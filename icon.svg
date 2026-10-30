@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="리핏 앱 아이콘">
+  <rect width="512" height="512" rx="112" fill="#315b43"/>
+  <path d="M146 356V156h92c65 0 105 31 105 83 0 39-21 65-59 77l68 40h-87l-57-36h-1v36h-61Zm61-86h30c29 0 43-10 43-30s-14-29-43-29h-30v59Z" fill="#d9ed81"/>
+  <circle cx="374" cy="145" r="25" fill="#f5f6f2"/>
+</svg>

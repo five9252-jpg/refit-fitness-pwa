@@ -1,9 +1,13 @@
-const CACHE_NAME = 'refit-shell-v2';
+const CACHE_NAME = 'refit-shell-v7';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './pwa-register.js',
+  './backend-config.js',
+  './account.js',
+  './supabase/schema.sql',
+  './supabase/README.md',
   './assets/pwa/icon.svg',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
@@ -21,7 +25,14 @@ const SHELL_ASSETS = [
   './assets/exercises/leg-extension.jpg',
   './assets/exercises/leg-press.jpg',
   './assets/exercises/seated-row.jpg',
-  './assets/exercises/shoulder-press.jpg'
+  './assets/exercises/bent-over-lateral-raise.jpg',
+  './assets/exercises/dumbbell-fly.jpg',
+  './assets/exercises/face-pull.jpg',
+  './assets/exercises/heel-elevated-goblet-squat.jpg',
+  './assets/exercises/hip-abduction-machine.jpg',
+  './assets/exercises/triceps-pushdown.jpg',
+  './assets/exercises/shoulder-press.jpg',
+  './assets/exercises/exercise-atlas.png'
 ];
 
 self.addEventListener('install', (event) => {
