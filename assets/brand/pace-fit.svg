@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 156" role="img" aria-labelledby="title desc">
+  <title id="title">페이스핏 로고 대안 C — 나만의 리듬</title><desc id="desc">서로 다른 간격의 리듬 점과 앞으로 나아가는 선</desc>
+  <rect x="10" y="18" width="120" height="120" rx="36" fill="#315b43"/>
+  <path d="M31 78h19l10 20 16-42 15 42 11-20h19" fill="none" stroke="#d9ed81" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="31" cy="78" r="5" fill="#f5f6f2"/><circle cx="121" cy="78" r="5" fill="#f5f6f2"/>
+  <text x="158" y="83" fill="#203b2d" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="50" font-weight="800" letter-spacing="-2">페이스핏</text>
+  <text x="161" y="116" fill="#687563" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="18" font-weight="600">한 세트부터, 내 페이스로</text>
+</svg>

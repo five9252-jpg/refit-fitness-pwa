@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 132" role="img" aria-labelledby="title desc">
+  <title id="title">차근핏 로고 컨셉</title>
+  <desc id="desc">작은 운동을 차곡차곡 이어가는 계단형 경로와 차근핏 워드마크</desc>
+  <rect x="8" y="12" width="108" height="108" rx="28" fill="#315b43"/>
+  <path d="M34 84h18V66h18V48h18" fill="none" stroke="#d9ed81" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="91" cy="39" r="7" fill="#f5f6f2"/>
+  <text x="142" y="76" fill="#203b2d" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="48" font-weight="800" letter-spacing="-2">차근핏</text>
+  <text x="145" y="103" fill="#687563" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="16" font-weight="600">한 세트부터, 내 페이스로</text>
+</svg>

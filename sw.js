@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v7';
+const CACHE_NAME = 'refit-shell-v10';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -32,7 +32,26 @@ const SHELL_ASSETS = [
   './assets/exercises/hip-abduction-machine.jpg',
   './assets/exercises/triceps-pushdown.jpg',
   './assets/exercises/shoulder-press.jpg',
-  './assets/exercises/exercise-atlas.png'
+  './assets/exercises/chest-press-v2.png',
+  './assets/exercises/lat-pulldown-v2.png',
+  './assets/exercises/seated-row-v2.png',
+  './assets/exercises/leg-press-v2.png',
+  './assets/exercises/leg-curl-v2.png',
+  './assets/exercises/leg-extension-v2.png',
+  './assets/exercises/shoulder-press-v2.png',
+  './assets/exercises/biceps-curl-v2.png',
+  './assets/exercises/glute-press-v2.png',
+  './assets/exercises/lateral-raise-v2.png',
+  './assets/exercises/calf-raise-v2.png',
+  './assets/exercises/high-back-row-v2.png',
+  './assets/exercises/incline-dumbbell-press-v2.png',
+  './assets/exercises/dumbbell-hip-hinge-v2.png',
+  './assets/exercises/bent-over-lateral-raise-v2.png',
+  './assets/exercises/face-pull-v2.png',
+  './assets/exercises/dumbbell-fly-v2.png',
+  './assets/exercises/hip-abduction-machine-v2.png',
+  './assets/exercises/heel-elevated-goblet-squat-v2.png',
+  './assets/exercises/triceps-pushdown-v2.png'
 ];
 
 self.addEventListener('install', (event) => {
