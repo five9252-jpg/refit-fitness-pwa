@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v10';
+const CACHE_NAME = 'refit-shell-v12';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -51,7 +51,15 @@ const SHELL_ASSETS = [
   './assets/exercises/dumbbell-fly-v2.png',
   './assets/exercises/hip-abduction-machine-v2.png',
   './assets/exercises/heel-elevated-goblet-squat-v2.png',
-  './assets/exercises/triceps-pushdown-v2.png'
+  './assets/exercises/triceps-pushdown-v2.png',
+  './assets/exercises/dumbbell-chest-press.jpg',
+  './assets/exercises/one-arm-dumbbell-row.jpg',
+  './assets/exercises/dumbbell-step-up.jpg',
+  './assets/exercises/dumbbell-front-raise.jpg',
+  './assets/exercises/hammer-curl.jpg',
+  './assets/exercises/dumbbell-triceps-kickback.jpg',
+  './assets/exercises/dumbbell-side-lunge.jpg',
+  './assets/exercises/farmers-carry.jpg'
 ];
 
 self.addEventListener('install', (event) => {
