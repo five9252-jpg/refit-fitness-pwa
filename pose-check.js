@@ -10,6 +10,8 @@
   const ctx = canvas.getContext('2d');
   const startButton = $('startPoseCamera');
   const stopButton = $('stopPoseCamera');
+  const finishButton = $('finishPoseCheck');
+  const resultPanel = $('poseResult');
   const stageMessage = $('poseStageMessage');
   const CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.1';
   const MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task';
@@ -23,6 +25,9 @@
   let lastRepAt = 0;
   let cameraRunning = false;
   let startGeneration = 0;
+  let trackedFrames = 0;
+  let deepestBend = 0;
+  let startedAt = 0;
 
   const status = (message, feedback = '') => {
     stageMessage.textContent = message;
@@ -111,6 +116,8 @@
     const innerAngle = angleAt(side.joints[0], side.joints[1], side.joints[2]);
     if (innerAngle === null) return;
     const bend = Math.max(0, 180 - innerAngle);
+    trackedFrames += 1;
+    deepestBend = Math.max(deepestBend, bend);
     $('poseKneeAngle').textContent = `${Math.round(bend)}°`;
 
     if (bend >= 38) {
@@ -162,6 +169,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     startButton.disabled = false;
     stopButton.disabled = true;
+    finishButton.disabled = true;
     $('posePhase').textContent = '대기 중';
     $('poseKneeAngle').textContent = '—';
     if (showMessage) status('카메라가 꺼졌어요. 필요할 때 다시 시작할 수 있습니다.', '영상은 저장되지 않았어요.');
@@ -177,6 +185,10 @@
     $('poseRepCount').textContent = '0회';
     repCount = 0;
     hasReachedBottom = false;
+    trackedFrames = 0;
+    deepestBend = 0;
+    startedAt = 0;
+    resultPanel.hidden = true;
     status('카메라 권한을 확인하고 있어요. 브라우저의 허용을 눌러주세요.');
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
@@ -213,8 +225,10 @@
         return;
       }
       cameraRunning = true;
+      startedAt = performance.now();
       stageMessage.hidden = true;
       stopButton.disabled = false;
+      finishButton.disabled = false;
       $('posePhase').textContent = '인식 중';
       $('poseFeedback').textContent = '옆면에서 전신이 잘 보이도록 서주세요.';
       renderLoop();
@@ -226,6 +240,26 @@
       status(denied ? '카메라 권한이 허용되지 않았어요. 주소창의 카메라 권한을 확인해주세요.' : '카메라 또는 분석 모델을 불러오지 못했어요. 인터넷 연결과 카메라를 확인한 뒤 다시 시도해주세요.', denied ? '브라우저 설정에서 카메라를 허용한 뒤 다시 시도하세요.' : '오류가 계속되면 다른 최신 브라우저에서 열어보세요.');
       startButton.disabled = false;
     }
+  }
+
+  async function finishCheck() {
+    if (!cameraRunning) return;
+    const seconds = Math.max(1, Math.round((performance.now() - startedAt) / 1000));
+    const count = repCount;
+    const frames = trackedFrames;
+    const maxBend = Math.round(deepestBend);
+    await stopCamera(false);
+    resultPanel.hidden = false;
+    $('poseResultCount').textContent = `${count}회`;
+    $('poseResultTime').textContent = `${seconds}초`;
+    $('poseResultBend').textContent = frames ? `${maxBend}°` : '—';
+    $('poseResultMessage').textContent = !frames
+      ? '관절을 인식하지 못했어요. 옆면에서 전신과 발목이 보이도록 카메라를 두고 다시 시도해주세요.'
+      : !count
+        ? '관절 움직임은 감지했지만 완성된 스쿼트 반복은 세지 못했어요. 서 있는 자세에서 내려갔다가 다시 일어나는 동작을 시도해주세요.'
+        : `${count}회의 스쿼트 움직임을 감지했어요. 최대 무릎 굽힘은 약 ${maxBend}°로 추정됩니다. 이 수치만으로 자세의 안전성이나 정확도를 판정할 수는 없어요.`;
+    status('분석을 마쳤어요. 아래 결과를 확인해주세요.');
+    resultPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   $('openPoseCheck').addEventListener('click', openDialog);
@@ -243,4 +277,5 @@
   });
   startButton.addEventListener('click', startCamera);
   stopButton.addEventListener('click', () => stopCamera());
+  finishButton.addEventListener('click', finishCheck);
 })();
