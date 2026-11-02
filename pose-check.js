@@ -27,6 +27,7 @@
   let startGeneration = 0;
   let trackedFrames = 0;
   let deepestBend = 0;
+  let smallestMetric = Infinity;
   let startedAt = 0;
   let armed = false;
   let activeExercise = 'squat';
@@ -37,6 +38,13 @@
     bench: { name: '벤치프레스', joint: 'elbow', label: '팔꿈치 펴짐 추정', maxLabel: '최대 팔꿈치 펴짐', guide: '벤치 옆에서 어깨·팔꿈치·손목이 기구에 가리지 않게 촬영하세요.', work: 150, rest: 110, countOnWork: true, workPhase: '위로 미는 구간', restPhase: '가슴 쪽으로 내린 구간', cue: '팔을 굽혔다 펴는 움직임만 추적해요. 바벨 위치나 무게는 분석하지 않아요.' },
     deadlift: { name: '데드리프트', joint: 'hip', label: '엉덩관절 펴짐 추정', maxLabel: '최대 엉덩관절 펴짐', guide: '몸 옆에서 어깨·엉덩이·무릎과 발이 보이게 촬영하세요.', work: 160, rest: 120, countOnWork: true, workPhase: '일어서는 구간', restPhase: '몸을 숙인 구간', cue: '몸을 숙였다 일어서는 움직임만 추적해요. 바벨 경로나 허리의 안전성은 판정하지 않아요.' },
     lunge: { name: '런지', joint: 'knee', label: '앞무릎 굽힘 추정', maxLabel: '최대 앞무릎 굽힘', guide: '몸 옆에서 양쪽 다리와 발이 보이게 촬영하세요.', work: 50, rest: 25, countOnWork: false, workPhase: '내려가는 구간', restPhase: '일어선 구간', cue: '앞무릎을 굽혔다가 다시 일어나는 움직임을 추적해요.' },
+  };
+  const MOVEMENT_GUIDES = {
+    squat: '준비: 발을 안정적으로 두고 엉덩이를 뒤로 보내며 내려가요. 운동 중: 무릎과 엉덩이를 굽힌 뒤 발로 바닥을 밀며 일어나요.',
+    overhead: '준비: 손을 어깨 높이에 두고 몸통을 안정적으로 세워요. 운동 중: 팔꿈치를 펴며 머리 위로 밀고 천천히 내려요.',
+    bench: '준비: 벤치에 안정적으로 누워 바를 가슴 쪽으로 조절해요. 운동 중: 팔꿈치를 굽혔다 펴며 바를 밀어요.',
+    deadlift: '준비: 바 가까이 서서 엉덩이와 무릎을 굽혀 잡아요. 운동 중: 발로 바닥을 밀며 엉덩관절을 펴고 다시 천천히 내려요.',
+    lunge: '준비: 한 발을 앞으로 내디디고 균형을 잡아요. 운동 중: 앞무릎과 엉덩이를 굽혀 내려갔다가 밀어 올라와요.',
   };
 
   function updateExerciseCopy() {
@@ -150,6 +158,7 @@
     const metric = exercise.joint === 'knee' ? Math.max(0, 180 - innerAngle) : innerAngle;
     trackedFrames += 1;
     deepestBend = Math.max(deepestBend, metric);
+    smallestMetric = Math.min(smallestMetric, metric);
     $('poseKneeAngle').textContent = `${Math.round(metric)}°`;
 
     if (metric >= exercise.work) {
@@ -229,6 +238,7 @@
     exerciseSelect.disabled = true;
     trackedFrames = 0;
     deepestBend = 0;
+    smallestMetric = Infinity;
     startedAt = 0;
     resultPanel.hidden = true;
     status('카메라 권한을 확인하고 있어요. 브라우저의 허용을 눌러주세요.');
@@ -298,6 +308,10 @@
     $('poseResultCount').textContent = `${count}회`;
     $('poseResultTime').textContent = `${seconds}초`;
     $('poseResultBend').textContent = frames ? `${maxBend}°` : '—';
+    $('poseReference').textContent = MOVEMENT_GUIDES[activeExercise];
+    $('poseObserved').textContent = frames
+      ? `${exercise.label}: 약 ${Math.round(smallestMetric)}°–${maxBend}° 범위가 감지됐고, 완성된 반복은 ${count}회로 추정됐어요. 화면에 보인 관절 한 곳의 움직임만 측정한 값이에요.`
+      : '관절이 충분히 보이지 않아 움직임 범위를 표시할 수 없어요. 촬영 위치를 조정해 다시 확인해주세요.';
     $('poseResultMessage').textContent = !frames
       ? `관절을 인식하지 못했어요. ${exercise.guide}`
       : !count
