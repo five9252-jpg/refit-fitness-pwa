@@ -166,6 +166,10 @@
     const {error}=await s.client.from('record_comments').insert({member_id:memberId,log_key:logKey,author_id:s.user.id,body:body.trim()});
     if (error) throw error;
   }
+  function trainerItemMarkup(item) {
+    const sets = Array.isArray(item.setDetails) ? item.setDetails.filter(set => set && Number.isFinite(Number(set.weight)) && Number.isInteger(Number(set.reps)) && Number(set.reps) > 0) : [];
+    return `${esc(item.name)} ${sets.length ? sets.map((set,index) => `${index + 1}세트 ${esc(set.weight)}kg × ${esc(set.reps)}회`).join(' / ') : `${esc(item.weight)}kg · ${esc(item.sets)}세트 × ${esc(item.reps)}회`}`;
+  }
   async function memberRecords(memberId) {
     const s = session();
     if (!s) return;
@@ -180,7 +184,7 @@
     if (!result) return;
     const profile=result.record?.payload?.profile||{};
     const logs=[...(result.record?.payload?.logs||[]),...result.entries.map(trainerLog)].filter(row=>row.id&&Array.isArray(row.items)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    show(shell(profile.name||'회원 기록', '회원이 공유한 운동 기록입니다.', `<button class="trainer-subtle" id="backToMembers" type="button">← 회원 목록</button>${result.link.can_write?'<button class="trainer-primary" id="trainerNewLog" type="button" style="margin-left:8px">운동 기록 대신 작성</button>':''}<div class="trainer-card"><h3>운동 기록 ${logs.length}회</h3>${logs.length?logs.map(log=>`<div class="trainer-log"><h4>${esc(log.title||'운동 기록')}</h4><small>${esc(log.date)} · ${esc(log.effort||'난이도 미기록')} · ${log.source==='trainer'?'트레이너 작성':'회원 작성'}</small><p>${(log.items||[]).map(item=>`${esc(item.name)} ${esc(item.weight)}kg · ${esc(item.sets)}세트 × ${esc(item.reps)}회`).join('<br>')}</p>${log.note?`<p>${esc(log.note)}</p>`:''}<div class="trainer-comments" data-thread="${esc(log.id)}"><button class="trainer-subtle" type="button" data-load-comment="${esc(log.id)}">코멘트 보기</button></div></div>`).join(''):'<p class="trainer-empty">아직 운동 기록이 없어요.</p>'}</div><p class="trainer-note">사진은 회원 기기에만 저장되어 이 화면에 나타나지 않습니다.</p>`));
+    show(shell(profile.name||'회원 기록', '회원이 공유한 운동 기록입니다.', `<button class="trainer-subtle" id="backToMembers" type="button">← 회원 목록</button>${result.link.can_write?'<button class="trainer-primary" id="trainerNewLog" type="button" style="margin-left:8px">운동 기록 대신 작성</button>':''}<div class="trainer-card"><h3>운동 기록 ${logs.length}회</h3>${logs.length?logs.map(log=>`<div class="trainer-log"><h4>${esc(log.title||'운동 기록')}</h4><small>${esc(log.date)} · ${esc(log.effort||'난이도 미기록')} · ${log.source==='trainer'?'트레이너 작성':'회원 작성'}</small><p>${(log.items||[]).map(trainerItemMarkup).join('<br>')}</p>${log.note?`<p>${esc(log.note)}</p>`:''}<div class="trainer-comments" data-thread="${esc(log.id)}"><button class="trainer-subtle" type="button" data-load-comment="${esc(log.id)}">코멘트 보기</button></div></div>`).join(''):'<p class="trainer-empty">아직 운동 기록이 없어요.</p>'}</div><p class="trainer-note">사진은 회원 기기에만 저장되어 이 화면에 나타나지 않습니다.</p>`));
     overlay.querySelector('#backToMembers').onclick=trainerView;
     const newLog=overlay.querySelector('#trainerNewLog');if(newLog)newLog.onclick=()=>trainerRecordForm(memberId,profile.name||'회원');
     overlay.querySelectorAll('[data-load-comment]').forEach(control=>control.onclick=()=>loadPortalThread(memberId,control.dataset.loadComment));

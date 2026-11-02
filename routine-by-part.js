@@ -19,14 +19,27 @@
     oldCurrentRoutine(name).forEach(ex => { if (!catalog.has(ex.name)) catalog.set(ex.name, ex); });
   });
   [
+    {name:'체스트 프레스',group:'가슴 · 머신',sets:3,reps:10},
+    {name:'인클라인 덤벨 프레스',group:'가슴 · 덤벨',sets:3,reps:10},
     {name:'덤벨 체스트 프레스',group:'가슴 · 덤벨',sets:3,reps:10},
+    {name:'랫 풀다운',group:'등 · 머신',sets:3,reps:10},
+    {name:'시티드 로우',group:'등 · 머신',sets:3,reps:10},
+    {name:'시티드 하이백 로우',group:'등 · 머신',sets:3,reps:10},
     {name:'벤치 지지 원암 덤벨 로우',group:'등 · 덤벨',sets:3,reps:10},
+    {name:'덤벨 숄더 프레스',group:'어깨 · 덤벨',sets:2,reps:10},
+    {name:'머신 레터럴 레이즈',group:'어깨 · 머신',sets:2,reps:12},
+    {name:'벤트오버 레터럴 레이즈',group:'어깨 · 덤벨',sets:2,reps:12},
     {name:'덤벨 스텝업',group:'하체 · 덤벨',sets:2,reps:8},
     {name:'덤벨 프런트 레이즈',group:'어깨 · 덤벨',sets:2,reps:10},
+    {name:'덤벨 바이셉스 컬',group:'팔 · 덤벨',sets:2,reps:10},
+    {name:'케이블 트라이셉스 푸시다운',group:'팔 · 케이블',sets:2,reps:10},
     {name:'해머 컬',group:'팔 · 덤벨',sets:2,reps:10},
     {name:'덤벨 트라이셉스 킥백',group:'팔 · 덤벨',sets:2,reps:10},
     {name:'덤벨 사이드 런지',group:'하체 · 덤벨',sets:2,reps:8},
     {name:'파머스 캐리',group:'하체 · 덤벨',sets:3,reps:20,repLabel:'걸음'},
+    {name:'레그 프레스',group:'하체 · 머신',sets:3,reps:10},
+    {name:'레그 컬',group:'하체 · 머신',sets:3,reps:10},
+    {name:'머신 카프 레이즈',group:'하체 · 머신',sets:2,reps:12},
     {name:'스쿼트',group:'하체 · 맨몸',equipment:'맨몸',sets:2,reps:8}
   ].forEach(ex => { if (!catalog.has(ex.name)) catalog.set(ex.name, ex); });
   (window.PACEFIT_LIBRARY || []).forEach(ex => {
