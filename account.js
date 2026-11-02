@@ -28,7 +28,7 @@
       <p class="account-footnote">운영자 서버 연결 전 안내입니다. 서버 계정 기능을 켜면 별도의 서버 수집·이용 동의를 받습니다.</p>
     </section>`);
     gate.querySelector('#localConsentCheck').onchange = e => { gate.querySelector('#localConsentContinue').disabled = !e.target.checked; };
-    gate.querySelector('#localConsentContinue').onclick = () => { localStorage.setItem(localConsentKey, JSON.stringify({version:1,acceptedAt:new Date().toISOString()})); gate.remove(); const state=bridge&&bridge.getState();if(state&&!state.profile&&!state.onboardingSkipped&&!state.demo&&typeof window.openProfile==='function')window.openProfile(); };
+    gate.querySelector('#localConsentContinue').onclick = () => { localStorage.setItem(localConsentKey, JSON.stringify({version:1,acceptedAt:new Date().toISOString()})); gate.remove(); window.dispatchEvent(new CustomEvent('refit:local-ready')); };
     gate.querySelector('#localConsentLeave').onclick = () => { show(gate, '<section class="account-panel"><h1>동의하지 않았습니다</h1><p>동의하지 않으면 이 기기에 운동 프로필과 기록을 저장할 수 없습니다.</p><button class="cancel" onclick="location.reload()">돌아가기</button></section>'); };
   }
   const gate = mountGate();
@@ -49,7 +49,7 @@
   accountButton.onclick = () => gate.hidden = false;
   if (!ready) {
     show(gate, `<section class="account-panel"><div class="eyebrow">서버 연결 설정 필요</div><h1>온라인 저장을 아직 시작할 수 없어요</h1><p>Supabase 프로젝트 주소와 publishable key, 개인정보처리자 표시명·문의 이메일·실제 보유 기간이 모두 설정되어야 회원가입을 열 수 있습니다.</p><p>이 설정이 비어 있는 상태에서는 서버로 기록을 전송하지 않습니다. <a href="./supabase/README.md" target="_blank" rel="noopener">연결 준비 안내</a></p><button type="button" class="cancel" id="returnLocal">이 기기에만 저장하여 사용</button></section>`);
-    gate.querySelector('#returnLocal').onclick = () => { document.documentElement.classList.remove('refit-backend-on'); gate.hidden = true; localMode(); };
+    gate.querySelector('#returnLocal').onclick = () => { document.documentElement.classList.remove('refit-backend-on'); gate.hidden = true; localMode(); window.dispatchEvent(new CustomEvent('refit:local-ready')); };
     return;
   }
   if (!window.supabase || !window.supabase.createClient) {
@@ -138,7 +138,6 @@
     window.RefitAccountSession={client,user:currentUser,exerciseConsent:cloudExerciseConsent};
     window.dispatchEvent(new CustomEvent('refit:session-ready'));
     accountButton.onclick=accountMenu;
-    const appState=bridge.getState();if(!appState.profile&&!appState.onboardingSkipped&&!appState.demo&&typeof window.openProfile==='function')window.openProfile();
   }
   async function showAdmin() {
     const {data:membership,error:membershipError}=await client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle();
@@ -179,3 +178,4 @@
    client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!== (currentUser&&currentUser.id))setTimeout(()=>finishSession(session.user),0);if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}});
   }
 })();
+

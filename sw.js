@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v20';
+const CACHE_NAME = 'refit-shell-v21';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -103,3 +103,4 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+

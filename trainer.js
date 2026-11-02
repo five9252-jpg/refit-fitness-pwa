@@ -6,8 +6,18 @@
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'profile-edit trainer-open';
-  button.textContent = '트레이너';
+  button.textContent = '트레이너 연결';
   topRight.insertBefore(button, topRight.firstChild);
+  const switchButton = document.createElement('button');
+  switchButton.type = 'button';
+  switchButton.className = 'profile-edit role-switch';
+  switchButton.textContent = '화면 선택';
+  topRight.insertBefore(switchButton, button);
+  const entry = document.createElement('div');
+  entry.id = 'roleEntry';
+  entry.className = 'role-entry';
+  entry.hidden = true;
+  document.body.appendChild(entry);
   const overlay = document.createElement('div');
   overlay.id = 'trainerOverlay';
   overlay.className = 'trainer-overlay';
@@ -15,12 +25,28 @@
   document.body.appendChild(overlay);
   const style = document.createElement('style');
   style.textContent = `.trainer-overlay{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;padding:16px;background:#17251cb3}.trainer-overlay[hidden]{display:none}.trainer-panel{width:min(800px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border-radius:22px;background:#fff;box-shadow:0 25px 80px #10251950}.trainer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.trainer-head h2{margin:2px 0;font-size:24px;letter-spacing:-.04em}.trainer-head p{font-size:12px;color:#66756b;margin:5px 0 0}.trainer-close,.trainer-tabs button,.trainer-subtle{border:1px solid #e0e8de;border-radius:10px;padding:9px 12px;background:#fff;color:#315b43;font-size:12px;font-weight:800;cursor:pointer}.trainer-tabs{display:flex;gap:8px;margin:18px 0}.trainer-tabs button.active{background:#315b43;color:#fff;border-color:#315b43}.trainer-card{border:1px solid #e4eae1;border-radius:15px;padding:16px;margin:12px 0;background:#fafbf8}.trainer-card h3{font-size:15px;margin:0 0 7px}.trainer-card p{font-size:12px;line-height:1.6;color:#536454;margin:7px 0}.trainer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.trainer-row input[type=checkbox]{accent-color:#315b43}.trainer-field{display:block;font-size:11px;font-weight:800;color:#536454;margin:11px 0}.trainer-field input,.trainer-field textarea,.trainer-field select{display:block;width:100%;min-height:42px;margin-top:5px;padding:9px 10px;border:1px solid #dae4d8;border-radius:10px;background:#fff;color:#20291f;font:inherit;font-size:13px}.trainer-field textarea{min-height:72px;resize:vertical}.trainer-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.trainer-primary{min-height:42px;border:0;border-radius:11px;background:#315b43;color:#fff;padding:10px 16px;font-size:12px;font-weight:800;cursor:pointer}.trainer-primary:disabled{opacity:.5;cursor:not-allowed}.trainer-code{display:inline-block;padding:11px 14px;border:1px solid #dbe7d7;border-radius:11px;background:#f0f6ec;color:#284f39;font-size:17px;font-weight:850;letter-spacing:.12em;word-break:break-all}.trainer-note{font-size:11px;color:#6b786d;line-height:1.6}.trainer-error{padding:11px;border-radius:10px;background:#fff2ef;color:#9a3e32;font-size:12px}.trainer-log{border-top:1px solid #e5ebe3;padding:13px 0}.trainer-log:first-of-type{border-top:0}.trainer-log h4{font-size:13px;margin:0 0 4px}.trainer-log small{color:#718074;font-size:10px}.trainer-comments{margin-top:10px;padding:10px;border-radius:11px;background:#f4f7f2}.trainer-comment{font-size:11px;line-height:1.5;padding:7px 0;border-bottom:1px solid #e3e8e1}.trainer-comment:last-child{border:0}.trainer-comment b{color:#315b43}.trainer-comment time{color:#7b877d;margin-left:7px}.trainer-comment-form{display:flex;gap:7px;margin-top:8px}.trainer-comment-form input{flex:1;min-width:0;border:1px solid #dce4d9;border-radius:9px;padding:9px;font-size:12px}.trainer-comment-form button{border:0;border-radius:9px;background:#315b43;color:#fff;padding:9px 11px;font-size:11px;font-weight:800}.trainer-journal-comments{margin-top:10px}.trainer-empty{color:#788176;font-size:12px;padding:18px 0}@media(max-width:560px){.trainer-panel{padding:17px;border-radius:17px}.trainer-fields{grid-template-columns:1fr}.trainer-comment-form{flex-direction:column}.trainer-open{font-size:10px;padding:7px 9px!important}.topbar{height:auto;min-height:64px;flex-wrap:wrap;gap:6px;padding:9px 0}.top-right{margin-left:auto;gap:6px}.top-right .avatar{display:none}}`;
+  style.textContent += `.role-entry{position:fixed;inset:0;z-index:1050;display:grid;place-items:center;overflow:auto;padding:24px;background:#f6f8f4}.role-entry[hidden]{display:none}.role-entry-inner{width:min(760px,100%)}.role-entry-brand{display:flex;align-items:center;gap:10px;color:#315b43;font-size:15px;font-weight:900}.role-entry-brand img{width:36px;height:36px}.role-entry h1{margin:35px 0 8px;font-size:clamp(28px,5vw,42px);line-height:1.2;letter-spacing:-.055em}.role-entry-intro{margin:0 0 28px;color:#67766c;font-size:15px}.role-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.role-choice{min-height:210px;text-align:left;border:1px solid #e3e9e0;border-radius:22px;background:#fff;padding:24px;box-shadow:0 14px 35px #274c3210;color:#17271d;cursor:pointer;transition:transform .2s,box-shadow .2s}.role-choice:hover,.role-choice:focus-visible{transform:translateY(-3px);box-shadow:0 20px 40px #274c3222;outline:2px solid #8eb29a}.role-choice-mark{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#e6f1e5;color:#315b43;font-size:22px;margin-bottom:25px}.role-choice strong{display:block;font-size:23px;letter-spacing:-.04em}.role-choice span:last-child{display:block;margin-top:8px;color:#66756b;font-size:13px;line-height:1.5}.role-entry-note{margin-top:20px;color:#748077;font-size:12px;line-height:1.6}.trainer-member-select{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:end}.trainer-member-select .trainer-field{margin:0}.trainer-member-select button{white-space:nowrap}@media(max-width:560px){.role-entry{padding:18px}.role-entry h1{margin-top:28px}.role-choices{grid-template-columns:1fr}.role-choice{min-height:150px;padding:20px}.role-choice-mark{margin-bottom:12px}.trainer-member-select{grid-template-columns:1fr 1fr}.trainer-member-select .trainer-field{grid-column:1/-1}.trainer-member-select button{white-space:normal}}`;
   document.head.appendChild(style);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const session = () => window.RefitAccountSession;
   const sameSession = captured => Boolean(captured && session()?.user?.id === captured.user.id);
-  const close = () => { overlay.hidden = true; button.focus(); };
-  const shell = (title, intro, body, tabs = true) => `<section class="trainer-panel" role="dialog" aria-modal="true" aria-label="트레이너와 회원"><div class="trainer-head"><div><h2>${esc(title)}</h2><p>${esc(intro)}</p></div><button class="trainer-close" type="button" data-close>닫기</button></div>${tabs ? '<div class="trainer-tabs"><button type="button" data-mode="member">내 트레이너</button><button type="button" data-mode="trainer">트레이너 화면</button></div>' : ''}<div id="trainerContent">${body}</div></section>`;
+  let activeRole = null;
+  const close = () => { overlay.hidden = true; if (activeRole === 'trainer') showEntry(); else button.focus(); };
+  function showEntry() {
+    const profileBackdrop = document.getElementById('profileBackdrop');
+    if (profileBackdrop) profileBackdrop.classList.remove('open');
+    overlay.hidden = true;
+    entry.innerHTML = `<div class="role-entry-inner"><div class="role-entry-brand"><img src="./assets/pwa/icon.svg" alt="">페이스핏</div><h1>오늘은 어떤 화면으로<br>시작할까요?</h1><p class="role-entry-intro">운동을 기록하거나, 회원의 운동을 함께 관리하세요.</p><div class="role-choices"><button class="role-choice" id="enterPersonal" type="button"><span class="role-choice-mark" aria-hidden="true">◌</span><strong>개인</strong><span>내 운동 추천과 일지를 확인하고 기록하기</span></button><button class="role-choice" id="enterTrainer" type="button"><span class="role-choice-mark" aria-hidden="true">↗</span><strong>트레이너</strong><span>연결된 회원을 선택하고 운동을 대신 기록하기</span></button></div><p class="role-entry-note">회원 기록 공유와 대리 작성은 회원의 동의와 서버 연결이 필요합니다.</p></div>`;
+    entry.hidden = false;
+    entry.querySelector('#enterPersonal').onclick = () => {
+      activeRole = 'personal'; entry.hidden = true;
+      const state = bridge.getState();
+      if (state && !state.profile && !state.onboardingSkipped && !state.demo && typeof window.openProfile === 'function') window.openProfile();
+    };
+    entry.querySelector('#enterTrainer').onclick = () => { activeRole = 'trainer'; entry.hidden = true; trainerView(); };
+    entry.querySelector('#enterPersonal').focus();
+  }
+  const shell = (title, intro, body) => `<section class="trainer-panel" role="dialog" aria-modal="true" aria-label="트레이너와 회원"><div class="trainer-head"><div><h2>${esc(title)}</h2><p>${esc(intro)}</p></div><button class="trainer-close" type="button" data-close>${activeRole === 'trainer' ? '화면 선택' : '닫기'}</button></div><div id="trainerContent">${body}</div></section>`;
   const show = html => { overlay.innerHTML = html; overlay.hidden = false; overlay.querySelector('[data-close]').onclick = close; overlay.querySelectorAll('[data-mode]').forEach(tab => tab.onclick = () => tab.dataset.mode === 'member' ? memberView() : trainerView()); };
   const errorText = error => esc(error?.message || '서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.');
   const tryQuery = async work => { try { return await work(); } catch (error) { show(shell('연결 오류', '서버 설정을 확인해주세요.', `<p class="trainer-error">${errorText(error)}</p>`)); return null; } };
@@ -92,7 +118,15 @@
     if (!sameSession(s)) return;
     if (!result) return;
     const code = profile.invite_code.replace(/(.{4})/g,'$1-').replace(/-$/,'');
-    show(shell('트레이너 화면', '연결된 회원의 운동 기록을 확인하세요.', `<div class="trainer-card"><h3>회원 초대 코드</h3><div class="trainer-code">${esc(code)}</div><p>회원이 자신의 계정에서 이 코드를 등록하고 기록 공유에 동의하면 아래에 나타납니다.</p></div><h3>연결된 회원 ${result.links.length}명</h3>${result.links.length ? result.links.map(link=>{const payload=result.records[link.member_id]?.payload||{},name=payload.profile?.name||'이름 미입력',count=(payload.logs||[]).length;return `<button type="button" class="library-card" data-member="${esc(link.member_id)}"><span class="library-card-copy"><strong>${esc(name)}</strong><small>회원 기록 ${count}회 · ${link.can_write?'대리 작성 허용':'열람·코멘트만 허용'}</small></span><span aria-hidden="true">›</span></button>`}).join('') : '<p class="trainer-empty">아직 연결된 회원이 없어요.</p>'}`));
+    const memberOptions = result.links.map(link => { const name = result.records[link.member_id]?.payload?.profile?.name || '이름 미입력'; return `<option value="${esc(link.member_id)}">${esc(name)}${link.can_write?' · 대리 작성 가능':' · 열람만 가능'}</option>`; }).join('');
+    show(shell('트레이너 화면', '회원 이름을 선택해 기록을 확인하거나 대신 작성하세요.', `<div class="trainer-card"><h3>오늘 지도할 회원</h3>${result.links.length ? `<div class="trainer-member-select"><label class="trainer-field">회원 이름<select id="trainerSelectedMember"><option value="">회원을 선택하세요</option>${memberOptions}</select></label><button class="trainer-subtle" id="viewSelectedMember" type="button" disabled>기록 보기</button><button class="trainer-primary" id="checkSelectedMember" type="button" disabled>운동 체크하기</button></div><p class="trainer-note" id="trainerSelectionHint">회원이 대리 작성을 허용한 경우에만 운동을 체크할 수 있어요.</p>` : '<p class="trainer-empty">아직 연결된 회원이 없어요. 아래 코드를 회원에게 전달하세요.</p>'}</div><div class="trainer-card"><h3>회원 초대 코드</h3><div class="trainer-code">${esc(code)}</div><p>회원이 자신의 계정에서 이 코드를 등록하고 기록 공유에 동의하면 위에서 이름을 선택할 수 있습니다.</p></div><h3>연결된 회원 ${result.links.length}명</h3>${result.links.length ? result.links.map(link=>{const payload=result.records[link.member_id]?.payload||{},name=payload.profile?.name||'이름 미입력',count=(payload.logs||[]).length;return `<button type="button" class="library-card" data-member="${esc(link.member_id)}"><span class="library-card-copy"><strong>${esc(name)}</strong><small>회원 기록 ${count}회 · ${link.can_write?'대리 작성 허용':'열람·코멘트만 허용'}</small></span><span aria-hidden="true">›</span></button>`}).join('') : ''}`));
+    const picker = overlay.querySelector('#trainerSelectedMember');
+    if (picker) {
+      const view = overlay.querySelector('#viewSelectedMember'), check = overlay.querySelector('#checkSelectedMember'), hint = overlay.querySelector('#trainerSelectionHint');
+      picker.onchange = () => { const link = result.links.find(row => row.member_id === picker.value); view.disabled = !link; check.disabled = !link?.can_write; hint.textContent = !link ? '회원을 선택하세요.' : link.can_write ? '선택한 회원의 운동을 트레이너 계정으로 기록할 수 있어요.' : '이 회원은 기록 열람만 허용했어요. 회원이 대리 작성 권한을 켜야 운동을 체크할 수 있어요.'; };
+      view.onclick = () => memberRecords(picker.value);
+      check.onclick = () => { const link = result.links.find(row => row.member_id === picker.value); if (link?.can_write) trainerRecordForm(link.member_id, result.records[link.member_id]?.payload?.profile?.name || '회원'); };
+    }
     overlay.querySelectorAll('[data-member]').forEach(row => row.onclick = () => memberRecords(row.dataset.member));
   }
 
@@ -194,11 +228,15 @@
     });
   }
   const list=document.getElementById('logList');if(list)new MutationObserver(()=>queueMicrotask(decorateJournal)).observe(list,{childList:true});
-  button.onclick=()=>session()?memberView():localView();
+  button.onclick=()=>{ activeRole='personal'; session()?memberView():localView(); };
+  switchButton.onclick=showEntry;
   overlay.addEventListener('click',event=>{if(event.target===overlay)close()});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!overlay.hidden)close()});
-  window.addEventListener('refit:session-ready',()=>{button.textContent='트레이너';refreshTrainerEntries();decorateJournal()});
-  window.addEventListener('refit:session-ended',()=>{close();button.textContent='트레이너'});
+  window.addEventListener('refit:session-ready',()=>{button.textContent='트레이너 연결';refreshTrainerEntries();decorateJournal();showEntry()});
+  window.addEventListener('refit:local-ready',()=>{ if (!document.getElementById('accountGate') || document.getElementById('accountGate').hidden) showEntry(); });
+  window.addEventListener('refit:session-ended',()=>{overlay.hidden=true;entry.hidden=true;activeRole=null;button.textContent='트레이너 연결'});
+  try { if (JSON.parse(localStorage.getItem('refit-local-consent-v1')||'null')?.acceptedAt && !window.REFIT_CONFIG?.supabaseUrl && !window.REFIT_CONFIG?.supabasePublishableKey) showEntry(); } catch {}
   let lastRefresh=0;
   window.addEventListener('focus',()=>{if(session()&&Date.now()-lastRefresh>60000){lastRefresh=Date.now();refreshTrainerEntries()}});
 })();
+
