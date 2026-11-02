@@ -223,7 +223,7 @@
   }
   function decorateJournal() {
     const s=session();if(!s||!s.exerciseConsent)return;
-    document.querySelectorAll('#logList .log-item[data-log-id]').forEach(item=>{
+    document.querySelectorAll('#logList .log-item[data-log-id], #calendarDayLogs .log-item[data-log-id]').forEach(item=>{
       const logId=item.dataset.logId,detail=item.querySelector('.log-details');
       if(!logId||!detail||detail.querySelector('.trainer-journal-comments'))return;
       const root=document.createElement('div');root.className='trainer-journal-comments';root.innerHTML='<button type="button" class="trainer-subtle">코멘트 보기</button>';
@@ -232,6 +232,7 @@
     });
   }
   const list=document.getElementById('logList');if(list)new MutationObserver(()=>queueMicrotask(decorateJournal)).observe(list,{childList:true});
+  const calendarLogs=document.getElementById('calendarDayLogs');if(calendarLogs)new MutationObserver(()=>queueMicrotask(decorateJournal)).observe(calendarLogs,{childList:true});
   button.onclick=()=>{ activeRole='personal'; session()?memberView():localView(); };
   switchButton.onclick=showEntry;
   overlay.addEventListener('click',event=>{if(event.target===overlay)close()});
