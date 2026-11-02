@@ -246,19 +246,24 @@
     const cardioResult = window.PacefitCardio?.read() || {data:null,error:null};
     if (cardioResult.error) { window.toast(cardioResult.error); return; }
     const cardio = cardioResult.data;
+    const durationResult = window.PacefitCalories?.readDuration() || {minutes:null,error:null};
+    if (durationResult.error) { window.toast(durationResult.error); return; }
+    const strengthMinutes = items.length ? durationResult.minutes : null;
     const note = document.getElementById('workoutNote').value.trim();
     const hasPhoto = !!document.querySelector('#workoutPhotoPreviews img');
     if (!items.length && !cardio && !note && !hasPhoto) { window.toast('세트, 유산소, 메모 또는 사진을 입력해주세요.'); return; }
     const photos = await window.savePendingPhotos('workout');
     const effort = document.querySelector('input[name="sessionEffort"]:checked')?.value || '적당했어요';
     const current = state(), profile = current.sampleProfile ? null : current.profile;
-    const log = {id:`log-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,loggedAt:new Date().toISOString(),date:today(),bodyPart:part,title:`${part} · 헬스장 운동`,effort,note,photoIds:photos.ids,items,cardio};
+    const calorieEstimate = window.PacefitCalories?.estimate({weightKg:profile?.weight,strengthMinutes,cardio,effort}) || null;
+    const log = {id:`log-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,loggedAt:new Date().toISOString(),date:today(),bodyPart:part,title:`${part} · 헬스장 운동`,effort,note,photoIds:photos.ids,items,cardio,strengthMinutes,calorieEstimate};
     const saved = window.commitState({...current,demo:false,sampleProfile:false,profile,onboardingSkipped:current.sampleProfile?false:current.onboardingSkipped,logs:[...(current.demo?[]:current.logs),log]},'오늘 운동 기록을 저장했어요.');
     if (!saved) { await window.deleteMedia(photos.ids); return; }
     draft.clear();
     document.getElementById('workoutNote').value = '';
     window.clearPendingPhotos('workout');
     window.PacefitCardio?.clear();
+    window.PacefitCalories?.afterSave(log);
     window.renderPlan();
     if (photos.error) window.toast('운동 기록은 저장했지만 사진은 저장되지 않았어요.');
     if (!profile && !current.onboardingSkipped) window.openProfile();

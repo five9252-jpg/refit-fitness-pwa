@@ -5,7 +5,7 @@ window.REFIT_CONFIG = {
   supabaseUrl: '',
   supabasePublishableKey: '',
   privacy: {
-    noticeVersion: '2026-11-02-v2',
+    noticeVersion: '2026-11-03-v3',
     operatorName: '',
     contactEmail: '',
     retention: '',
@@ -13,3 +13,4 @@ window.REFIT_CONFIG = {
     processorNotice: ''
   }
 };
+
