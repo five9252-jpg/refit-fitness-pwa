@@ -127,9 +127,10 @@ create policy "linked trainers read comments" on public.record_comments
   ));
 drop policy if exists "members and linked trainers create comments" on public.record_comments;
 create policy "members and linked trainers create comments" on public.record_comments
-  for insert to authenticated with check (author_id = (select auth.uid()) and (
+  for insert to authenticated with check (author_id = (select auth.uid())
+    and public.member_sharing_allowed(member_id) and (
     member_id = (select auth.uid()) or
-    (public.member_sharing_allowed(member_id) and exists (
+    (exists (
       select 1 from public.trainer_member_links l where l.member_id = record_comments.member_id
         and l.trainer_id = (select auth.uid()) and l.status = 'active'
     ))
