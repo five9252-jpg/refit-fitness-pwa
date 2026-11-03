@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v30';
+const CACHE_NAME = 'refit-shell-v31';
 const SHELL_ASSETS = [
   './',
   './index.html',
