@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v25';
+const CACHE_NAME = 'refit-shell-v26';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,22 @@ const SHELL_ASSETS = [
   './pose-check.js?v=17',
   './data/burnfit-library.js',
   './exercise-library-ui.js',
+  './exercise-visuals.js',
+  './assets/exercises/pacefit-area-chest.jpg',
+  './assets/exercises/pacefit-area-back.jpg',
+  './assets/exercises/pacefit-area-shoulders.jpg',
+  './assets/exercises/pacefit-area-arms.jpg',
+  './assets/exercises/pacefit-area-legs.jpg',
+  './assets/exercises/pacefit-area-core.jpg',
+  './assets/exercises/pacefit-barbell-bench-press.jpg',
+  './assets/exercises/pacefit-conventional-deadlift.jpg',
+  './assets/exercises/pacefit-overhead-press.jpg',
+  './assets/exercises/pacefit-barbell-back-squat.jpg',
+  './assets/exercises/pacefit-pull-up.jpg',
+  './assets/exercises/pacefit-lunge.jpg',
+  './assets/exercises/pacefit-barbell-curl.jpg',
+  './assets/exercises/pacefit-area-whole-body.jpg',
+  './assets/exercises/pacefit-barbell-row.jpg',
   './assets/exercises/bodyweight-squat.jpg',
   './supabase/schema.sql',
   './supabase/README.md',
