@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" role="img" aria-label="페이스핏 앱 아이콘">
-  <rect x="0" y="0" width="140" height="140" rx="38" fill="#315b43"/>
+  <rect x="0" y="0" width="140" height="140" rx="38" fill="#244c5a"/>
   <path d="M31 78h19l10 20 16-42 15 42 11-20h19" fill="none" stroke="#d9ed81" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="31" cy="78" r="5" fill="#f5f6f2"/>
-  <circle cx="121" cy="78" r="5" fill="#f5f6f2"/>
+  <circle cx="31" cy="78" r="5" fill="#f7f9fa"/>
+  <circle cx="121" cy="78" r="5" fill="#f7f9fa"/>
 </svg>
