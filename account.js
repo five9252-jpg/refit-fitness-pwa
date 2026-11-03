@@ -69,6 +69,8 @@
   }
   function consentView(mode) {
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="consentTitle"><div class="eyebrow">${mode==='signup'?'회원가입 전':'계정 이용 전'}</div><h1 id="consentTitle">개인정보 수집·이용 동의</h1><p>운영자: <b>${escapeHtml(privacy.operatorName)}</b> · 문의: <b>${escapeHtml(privacy.contactEmail)}</b></p><dl class="notice-list"><dt>필수 정보</dt><dd>이메일 계정 정보, 별명·운동 경험·목표·주간 목표</dd><dt>이용 목적</dt><dd>계정 로그인, 프로필 저장, 운동 서비스 제공과 계정 관리</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 권리</dt><dd>필수 항목 동의를 거부하면 온라인 계정을 만들거나 사용할 수 없습니다. 이 기기 전용으로 사용할 수 있습니다.</dd></dl><label class="consent-check"><input id="basicConsent" type="checkbox"><span><b>[필수]</b> 위 개인정보 수집·이용 내용을 확인했고 동의합니다.</span></label><dl class="notice-list"><dt>운동·신체 정보</dt><dd>운동 종목·날짜·무게·세트·횟수·난이도·운동 시간·예상 칼로리·메모, 선택 입력한 성별·키·체중·기초대사량·1RM 참고 기록을 서버에 저장합니다. 동의하면 이 기기에 이미 저장된 기록도 해당 계정으로 동기화될 수 있습니다. 운동 사진은 서버에 올리지 않습니다.</dd><dt>이용 목적</dt><dd>운동 일지 동기화와 개인화된 다음 운동·참고 중량 표시. 트레이너와 기록을 공유하려면 별도로 연결 코드와 공유 권한을 선택합니다.</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 시</dt><dd>동의를 거부해도 계정 기본 기능은 쓸 수 있지만, 운동·신체 기록은 서버에 동기화되지 않아 운영자 조회와 기기 간 기록 동기화를 사용할 수 없습니다.</dd></dl><label class="consent-check"><input id="exerciseConsent" type="checkbox"><span><b>[선택]</b> 운동·신체 정보의 서버 저장과 이용에 동의합니다.</span></label><dl class="notice-list"><dt>저장·처리 위치</dt><dd>${escapeHtml(privacy.dataRegion)}의 Supabase 데이터베이스/Auth에 저장됩니다. ${escapeHtml(privacy.processorNotice)}</dd></dl><div class="account-actions"><button class="save-manual" id="acceptConsent">확인하고 계속</button><button class="cancel" id="consentBack">돌아가기</button></div><p class="account-footnote">동의는 계정 설정에서 철회할 수 있으며, 철회 시 서버 운동 기록 동기화를 중단합니다. 기록 삭제 요청은 운영자 연락처로 접수할 수 있습니다.</p></section>`);
+    const fullNotice=document.createElement('p');fullNotice.className='account-footnote';fullNotice.innerHTML='<a href="./privacy.html" target="_blank" rel="noopener">개인정보 처리 안내 전체 보기</a>';
+    gate.querySelector('.account-actions').before(fullNotice);
     gate.querySelector('#acceptConsent').onclick = async () => {
       const basic=gate.querySelector('#basicConsent').checked;
       if (!basic) { gate.querySelector('#basicConsent').focus(); return; }
@@ -159,10 +161,51 @@
     show(gate,`<section class="account-panel"><div class="eyebrow">운영자 전용</div><h1>회원 운동 기록</h1><p>${(data||[]).length}개 계정 데이터 · 트레이너 기록 ${trainerEntries.length}개 · 코멘트 ${comments.length}개. 사진 파일은 이 화면에 표시되지 않습니다.</p>${html}<div class="account-actions"><button id="adminClose" class="cancel">닫기</button><button id="adminRefresh" class="cancel">새로고침</button></div></section>`);
     gate.querySelector('#adminClose').onclick=()=>gate.hidden=true;gate.querySelector('#adminRefresh').onclick=showAdmin;
   }
+  async function restoreRecords() {
+    if (!currentUser) return;
+    if (privacy.recoveryEnabled !== true) { alert('복구용 보관 기능은 아직 준비 중입니다.'); return; }
+    if (!cloudExerciseConsent) { alert('운동·신체 정보 서버 저장에 동의한 뒤 복구할 수 있습니다.'); consentView('existing'); return; }
+    const choice = window.confirm('같은 이메일로 탈퇴한 계정의 운동 기록을 복구할까요? 현재 계정의 운동 기록은 복구 기록으로 교체됩니다.');
+    if (!choice) return;
+    const {data,error} = await client.rpc('restore_withdrawn_records');
+    if (error) { accountMenu(); alert('복구에 실패했습니다. 잠시 후 다시 시도해주세요.'); return; }
+    if (!data) { accountMenu(); alert('복구할 기록이 없거나 보관 기간이 지났습니다.'); return; }
+    try { await loadCloudState(); alert('운동 기록을 복구했습니다.'); }
+    catch { accountMenu(); alert('복구는 완료됐지만 화면을 다시 불러오지 못했습니다. 새로고침해주세요.'); }
+  }
+  function withdrawView() {
+    const recoveryOption=privacy.recoveryEnabled===true&&cloudExerciseConsent?'<label class="consent-check"><input id="keepRecovery" type="checkbox"><span>운동 기록 복구를 위해 서버 기록과 코멘트를 탈퇴 후 1년간 별도로 보관합니다. 같은 이메일로 새 계정을 만들고 인증하면 복구할 수 있습니다.</span></label>':'<p>복구용 보관은 아직 제공하지 않습니다. 탈퇴하면 서버 기록은 즉시 삭제됩니다.</p>';
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="withdrawTitle"><div class="eyebrow">계정 탈퇴</div><h1 id="withdrawTitle">계정을 삭제할까요?</h1><p>탈퇴하면 로그인과 트레이너 연결이 종료됩니다. 이 기기에 남은 현재 기록과 사진도 삭제합니다.</p>${recoveryOption}<label class="consent-check"><input id="withdrawUnderstand" type="checkbox"><span>탈퇴 후 트레이너 연결은 복구되지 않고, 이 기기에만 있던 사진은 복구할 수 없음을 확인했습니다.</span></label><div class="account-actions"><button id="withdrawSubmit" class="save-manual" type="button" disabled>계정 탈퇴</button><button id="withdrawCancel" class="cancel" type="button">취소</button></div><p id="withdrawError" class="account-error" hidden></p></section>`);
+    const understood=gate.querySelector('#withdrawUnderstand'),submit=gate.querySelector('#withdrawSubmit');
+    understood.onchange=()=>{submit.disabled=!understood.checked;};
+    gate.querySelector('#withdrawCancel').onclick=accountMenu;
+    submit.onclick=async()=>{
+      submit.disabled=true;
+      const keep=gate.querySelector('#keepRecovery')?.checked===true;
+      try {
+        clearTimeout(syncTimer);
+        if (keep) {
+          const {error:syncError}=await client.from('user_app_data').upsert({user_id:currentUser.id,payload:cloudPayload(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+          if (syncError) throw syncError;
+        }
+        const {error}=await client.rpc('withdraw_account',{keep_recovery:keep});
+        if (error) throw error;
+        if (bridge&&bridge.clearCurrentPhotos) await bridge.clearCurrentPhotos();
+        await client.auth.signOut().catch(()=>{});
+        currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;
+        window.dispatchEvent(new CustomEvent('refit:session-ended'));
+        if (bridge) bridge.resetForLogout();
+        authView(keep?'계정 탈퇴가 완료됐습니다. 같은 이메일로 다시 가입해 1년 안에 운동 기록을 복구할 수 있습니다.':'계정 탈퇴가 완료됐습니다. 서버 기록과 이 기기의 현재 기록을 삭제했습니다.');
+      } catch(error) {
+        const note=gate.querySelector('#withdrawError');if(note){note.hidden=false;note.textContent='탈퇴를 완료하지 못했습니다. 서버 연결을 확인하고 다시 시도해주세요.';}
+        submit.disabled=false;
+      }
+    };
+  }
   async function accountMenu() {
     const {data:membership}=await client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle();
-    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(currentUser.email||'계정')}</h1><p>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button><button id="signOut" class="cancel">로그아웃</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
-    const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
+    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(currentUser.email||'계정')}</h1><p>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
      gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
   }
   async function finishSession(user) {
@@ -183,4 +226,3 @@
    client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!== (currentUser&&currentUser.id))setTimeout(()=>finishSession(session.user),0);if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}});
   }
 })();
-

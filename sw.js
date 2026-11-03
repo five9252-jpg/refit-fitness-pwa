@@ -1,7 +1,8 @@
-const CACHE_NAME = 'refit-shell-v27';
+const CACHE_NAME = 'refit-shell-v28';
 const SHELL_ASSETS = [
   './',
   './index.html',
+  './privacy.html',
   './manifest.webmanifest',
   './pwa-register.js',
   './backend-config.js',
@@ -125,4 +126,3 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
-
