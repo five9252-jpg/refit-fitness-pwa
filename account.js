@@ -140,6 +140,11 @@
     accountButton.onclick=accountMenu;
   }
   async function showAdmin() {
+    if (window.PacefitOperatorDashboard) {
+      gate.hidden = true;
+      await window.PacefitOperatorDashboard.open({client,user:currentUser});
+      return;
+    }
     const {data:membership,error:membershipError}=await client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle();
     if(membershipError||!membership){alert('운영자 권한이 없습니다.');return;}
     const {data,error}=await client.from('user_app_data').select('user_id,payload,updated_at').order('updated_at',{ascending:false}).limit(500);

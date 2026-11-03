@@ -240,7 +240,7 @@
   window.addEventListener('refit:session-ready',()=>{button.textContent='트레이너 연결';refreshTrainerEntries();decorateJournal();showEntry()});
   window.addEventListener('refit:local-ready',()=>{ if (!document.getElementById('accountGate') || document.getElementById('accountGate').hidden) showEntry(); });
   window.addEventListener('refit:session-ended',()=>{overlay.hidden=true;entry.hidden=true;activeRole=null;button.textContent='트레이너 연결'});
-  try { if (JSON.parse(localStorage.getItem('refit-local-consent-v1')||'null')?.acceptedAt && !window.REFIT_CONFIG?.supabaseUrl && !window.REFIT_CONFIG?.supabasePublishableKey) showEntry(); } catch {}
+  try { if (JSON.parse(localStorage.getItem('refit-local-consent-v2')||'null')?.acceptedAt && !window.REFIT_CONFIG?.supabaseUrl && !window.REFIT_CONFIG?.supabasePublishableKey) showEntry(); } catch {}
   let lastRefresh=0;
   window.addEventListener('focus',()=>{if(session()&&Date.now()-lastRefresh>60000){lastRefresh=Date.now();refreshTrainerEntries()}});
 })();

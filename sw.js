@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v26';
+const CACHE_NAME = 'refit-shell-v27';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,8 @@ const SHELL_ASSETS = [
   './pwa-register.js',
   './backend-config.js',
   './account.js',
+  './operator-dashboard.js',
+  './voice-journal.js',
   './routine-by-part.js',
   './workout-enhancements.js',
   './calorie-estimate.js',

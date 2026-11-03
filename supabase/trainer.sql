@@ -55,7 +55,7 @@ grant select on public.trainer_profiles, public.trainer_member_links to authenti
 grant select, insert on public.trainer_log_entries, public.record_comments to authenticated;
 
 create or replace function public.member_sharing_allowed(target_member uuid)
-returns boolean language sql stable security definer set search_path = public, pg_temp as $$
+returns boolean language sql stable security definer set search_path = '' as $$
   select coalesce((
     select basic_data_accepted and exercise_data_accepted
     from public.consent_events where user_id = target_member
@@ -142,7 +142,7 @@ create policy "admins read comments" on public.record_comments
   ));
 
 create or replace function public.create_trainer_profile(trainer_name text)
-returns text language plpgsql security definer set search_path = public, pg_temp as $$
+returns text language plpgsql security definer set search_path = '' as $$
 declare code text;
 begin
   if (select auth.uid()) is null then raise exception 'Login required'; end if;
@@ -156,7 +156,7 @@ end;
 $$;
 
 create or replace function public.join_trainer(code text, allow_trainer_write boolean default false)
-returns void language plpgsql security definer set search_path = public, pg_temp as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare trainer uuid;
 begin
   if (select auth.uid()) is null then raise exception 'Login required'; end if;
@@ -172,7 +172,7 @@ end;
 $$;
 
 create or replace function public.set_trainer_access(target_trainer uuid, allow_trainer_write boolean, revoke_link boolean default false)
-returns void language plpgsql security definer set search_path = public, pg_temp as $$
+returns void language plpgsql security definer set search_path = '' as $$
 begin
   if (select auth.uid()) is null then raise exception 'Login required'; end if;
   update public.trainer_member_links
@@ -186,3 +186,4 @@ $$;
 
 revoke all on function public.create_trainer_profile(text), public.join_trainer(text, boolean), public.set_trainer_access(uuid, boolean, boolean) from public, anon;
 grant execute on function public.create_trainer_profile(text), public.join_trainer(text, boolean), public.set_trainer_access(uuid, boolean, boolean) to authenticated;
+
