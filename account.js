@@ -62,10 +62,27 @@
   client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   const pill = document.getElementById('localPill');
   const userBadge = document.createElement('span'); userBadge.className = 'account-badge'; if (topRight) topRight.insertBefore(userBadge, accountButton.nextSibling);
+  function authErrorKo(error) {
+    const message = String(error && error.message || error || '').trim();
+    const code = String(error && error.code || '').trim();
+    const text = `${code} ${message}`.toLowerCase();
+    if (/over_email_send_rate_limit|email rate limit exceeded|too many emails/.test(text)) return '인증 메일 요청이 너무 많아요. 잠시 기다린 뒤 다시 시도해주세요.';
+    if (/over_request_rate_limit|too many requests/.test(text)) return '요청이 잠시 많았어요. 몇 분 뒤 다시 시도해주세요.';
+    if (/invalid login credentials|invalid email or password/.test(text)) return '이메일 또는 비밀번호가 맞지 않습니다.';
+    if (/email not confirmed|email_not_confirmed/.test(text)) return '이메일 인증이 아직 완료되지 않았어요. 받은편지함에서 인증 링크를 확인해주세요.';
+    if (/user already registered|user already exists|already registered/.test(text)) return '이미 가입된 이메일입니다. 로그인하거나 비밀번호 찾기를 이용해주세요.';
+    if (/error sending confirmation email|smtp|535|525|mail.*send|email provider/.test(text)) return '가입 인증 메일을 보내지 못했어요. 잠시 후 다시 시도해주세요. 문제가 계속되면 운영자에게 문의해주세요.';
+    if (/email_address_not_authorized|email address not authorized/.test(text)) return '현재 이메일 발송 설정에서 이 주소로 메일을 보낼 수 없습니다. 운영자에게 문의해주세요.';
+    if (/invalid email|email address.*invalid|unable to validate email/.test(text)) return '이메일 주소를 다시 확인해주세요.';
+    if (/password.*(weak|least|short|contain|characters)/.test(text)) return '비밀번호 조건을 확인해주세요. 8자 이상으로 입력해주세요.';
+    if (/failed to fetch|networkerror|network request failed|fetch failed/.test(text)) return '서버에 연결하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해주세요.';
+    if (/database error saving new user/.test(text)) return '가입 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요.';
+    return '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요. 문제가 계속되면 운영자에게 문의해주세요.';
+  }
   function authView(message = '', tone = 'error') {
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">운동 기록 온라인 저장</div><h1 id="accountTitle">페이스핏 계정</h1><p>로그인하면 기기 간 운동 기록을 동기화할 수 있습니다. 서버에 저장되는 정보와 동의 항목을 확인한 뒤 가입하세요.</p>${notice}<div class="field"><label for="accountEmail">이메일</label><input id="accountEmail" type="email" autocomplete="email" maxlength="254" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">동의 확인 후 가입</button><button class="cancel" id="localOnlyButton">이 기기에만 저장</button></div><p class="account-footnote">계정 이메일은 로그인과 계정 복구를 위해 Supabase Auth에 저장됩니다. 비밀번호는 페이스핏 운영자가 볼 수 없습니다.</p></section>`);
-    gate.querySelector('#signInButton').onclick = async () => {const email=gate.querySelector('#accountEmail').value.trim(),password=gate.querySelector('#accountPassword').value;const {error}=await client.auth.signInWithPassword({email,password});if(error)authView(error.message);};
+    gate.querySelector('#signInButton').onclick = async () => {const email=gate.querySelector('#accountEmail').value.trim(),password=gate.querySelector('#accountPassword').value;const {error}=await client.auth.signInWithPassword({email,password});if(error)authView(authErrorKo(error));};
     gate.querySelector('#signUpButton').onclick = () => { signupCredentials={email:gate.querySelector('#accountEmail').value.trim(),password:gate.querySelector('#accountPassword').value};const saved=JSON.parse(sessionStorage.getItem('refit-pending-consent')||'null');if(saved)performSignup(signupCredentials.email,signupCredentials.password,saved);else consentView('signup'); };
     gate.querySelector('#localOnlyButton').onclick = () => {document.documentElement.classList.remove('refit-backend-on');gate.hidden=true;localMode();};
   }
@@ -95,7 +112,7 @@
     if(!email||!password||password.length<8){authView('이메일과 8자 이상의 비밀번호를 입력해주세요.');return;}
     const acceptedAt=choices.acceptedAt||new Date().toISOString();
     const {data,error}=await client.auth.signUp({email,password,options:{data:{refit_consent:{version:privacy.noticeVersion,basic:choices.basic===true,exercise:choices.exercise===true,acceptedAt,operator:privacy.operatorName,contact:privacy.contactEmail,retention:privacy.retention}}}});
-    if(error){authView(error.message);return;}
+    if(error){authView(authErrorKo(error));return;}
     if(!data.session){authView('가입 요청이 접수됐습니다. 받은편지함 또는 스팸함의 인증 링크를 누른 뒤 이 화면에서 로그인해주세요.','success');return;}
     if(data.user){const saved=await storeConsent(data.user.id,choices.basic===true,choices.exercise===true,acceptedAt);if(saved.error){authView('계정은 만들었지만 동의 기록을 저장하지 못했어요. 로그인 후 다시 확인해주세요.');return;}}
     sessionStorage.removeItem('refit-pending-consent');await finishSession(data.session.user);
@@ -215,7 +232,7 @@
     finishingUserId=user.id;
     currentUser=user;
     try {if(!(await ensureConsent(user)))return;await loadCloudState();}
-    catch(error){show(gate,`<section class="account-panel"><h1>계정 데이터를 불러오지 못했어요</h1><p class="account-error">${escapeHtml(error.message||'서버 연결 오류')}</p><button id="retryAccount" class="cancel">다시 시도</button><button id="signOutError" class="cancel">로그아웃</button></section>`);gate.querySelector('#retryAccount').onclick=()=>finishSession(user);gate.querySelector('#signOutError').onclick=async()=>{await client.auth.signOut();currentUser=null;authView();};}
+    catch(error){show(gate,`<section class="account-panel"><h1>계정 데이터를 불러오지 못했어요</h1><p class="account-error">${escapeHtml(authErrorKo(error))}</p><button id="retryAccount" class="cancel">다시 시도</button><button id="signOutError" class="cancel">로그아웃</button></section>`);gate.querySelector('#retryAccount').onclick=()=>finishSession(user);gate.querySelector('#signOutError').onclick=async()=>{await client.auth.signOut();currentUser=null;authView();};}
     finally {if(finishingUserId===user.id)finishingUserId=null;}
   }
   const basePersist=window.persist;
