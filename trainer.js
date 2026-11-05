@@ -64,10 +64,13 @@
       return;
     }
     const result = await tryQuery(async () => {
-      const links = assertResult(await s.client.from('trainer_member_links').select('trainer_id,status,can_write,updated_at').eq('member_id',s.user.id));
+      const [links, ownProfile] = await Promise.all([
+        s.client.from('trainer_member_links').select('trainer_id,status,can_write,updated_at').eq('member_id',s.user.id),
+        s.client.from('trainer_profiles').select('invite_code').eq('user_id',s.user.id).maybeSingle()
+      ]).then(rows => rows.map(assertResult));
       const ids = (links || []).map(row => row.trainer_id);
       const profiles = ids.length ? assertResult(await s.client.from('trainer_profiles').select('user_id,display_name').in('user_id',ids)) : [];
-      return { links: links || [], names: Object.fromEntries((profiles || []).map(row => [row.user_id,row.display_name])) };
+      return { links: links || [], ownInviteCode: ownProfile?.invite_code || '', names: Object.fromEntries((profiles || []).map(row => [row.user_id,row.display_name])) };
     });
     if (!sameSession(s)) return;
     if (!result) return;
@@ -75,10 +78,18 @@
     show(shell('내 트레이너', '내가 허용한 기록만 연결된 트레이너가 볼 수 있어요.', `<div class="trainer-card"><h3>트레이너 코드 등록</h3><p>등록하면 트레이너가 내 서버 운동 기록을 볼 수 있습니다. 대리 기록은 따로 허용할 수 있고 언제든 해제할 수 있어요.</p><label class="trainer-field">트레이너 코드<input id="trainerInviteCode" maxlength="32" autocomplete="off" placeholder="예: ABCD-EFGH-IJKL-MNOP"></label><label class="trainer-row trainer-note"><span>트레이너가 내 운동 기록을 대신 작성하도록 허용</span><input id="trainerAllowWrite" type="checkbox"></label><button class="trainer-primary" id="joinTrainer" type="button">코드 등록</button></div><h3>연결된 트레이너</h3>${active.length ? active.map(row => `<div class="trainer-card"><div class="trainer-row"><strong>${esc(result.names[row.trainer_id]||'트레이너')}</strong><button class="trainer-subtle" data-revoke="${esc(row.trainer_id)}" type="button">연결 해제</button></div><label class="trainer-row trainer-note"><span>대리 기록 작성 허용</span><input type="checkbox" data-write="${esc(row.trainer_id)}" ${row.can_write?'checked':''}></label></div>`).join('') : '<p class="trainer-empty">아직 연결된 트레이너가 없어요.</p>'}<p class="trainer-note">운동 사진은 이 기기에만 저장되어 트레이너에게 보이지 않습니다.</p>`));
     overlay.querySelector('#joinTrainer').onclick = async () => {
       const code = overlay.querySelector('#trainerInviteCode').value.trim();
-      if (!/^[A-Za-z0-9-]{12,32}$/.test(code)) { overlay.querySelector('#trainerInviteCode').focus(); return; }
+      const showCodeError = message => {
+        overlay.querySelector('#trainerContent > .trainer-error')?.remove();
+        overlay.querySelector('#trainerContent').insertAdjacentHTML('afterbegin', `<p class="trainer-error" role="alert">${esc(message)}</p>`);
+      };
+      if (!/^[A-Za-z0-9-]{12,32}$/.test(code)) { showCodeError('트레이너 코드를 확인해주세요.'); overlay.querySelector('#trainerInviteCode').focus(); return; }
+      if (code.replace(/[^A-Za-z0-9]/g, '').toUpperCase() === result.ownInviteCode) {
+        showCodeError('현재 로그인한 계정의 코드입니다. 회원은 별도 계정으로 로그인해 이 트레이너 코드를 등록해야 합니다.');
+        return;
+      }
       const allow = overlay.querySelector('#trainerAllowWrite').checked;
       const {error} = await s.client.rpc('join_trainer',{code,allow_trainer_write:allow});
-      if (error) { overlay.querySelector('#trainerContent').insertAdjacentHTML('afterbegin',`<p class="trainer-error">${errorText(error)}</p>`); return; }
+      if (error) { showCodeError(error.message === 'Invalid trainer code' ? '코드를 찾을 수 없습니다. 트레이너 화면에 표시된 코드를 다시 확인해주세요.' : error.message || '트레이너 연결에 실패했어요.'); return; }
       memberView();
     };
     overlay.querySelectorAll('[data-write]').forEach(input => input.onchange = async () => {
