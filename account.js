@@ -91,6 +91,7 @@
     return '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요. 문제가 계속되면 운영자에게 문의해주세요.';
   }
   function authView(message = '', tone = 'error') {
+    document.documentElement.classList.add('refit-backend-on');
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
     gate.querySelector('#signInButton').onclick = async () => {
@@ -238,6 +239,7 @@
     const profileText=document.querySelector('#profileBackdrop .dialog>p');if(profileText)profileText.textContent='프로필은 계정에 동기화됩니다. 운동·신체 정보 동의 여부에 따라 운동 기록과 신체 정보 저장이 달라집니다.';
     const storageCard=Array.from(document.querySelectorAll('.card')).find(card=>card.textContent.includes('기록은 어디에 저장되나요?'));
     const storageText=storageCard&&storageCard.querySelector('.coach-text');if(storageText)storageText.innerHTML=cloudExerciseConsent?'프로필과 운동 기록은 로그인한 계정의 서버 데이터베이스에 동기화됩니다. 운동 사진은 이 기기에만 저장됩니다.':'프로필 기본 정보만 계정 서버에 저장됩니다. 운동 기록과 사진은 이 기기에만 남으며 운영자 서버에는 올라가지 않습니다.';
+    document.documentElement.classList.remove('refit-backend-on');
     gate.hidden=true;userBadge.textContent=currentUser.email||'로그인됨';accountButton.textContent='계정';pill.textContent=cloudExerciseConsent?'서버에 저장됨':'프로필만 서버 저장';
     window.RefitAccountSession={client,user:currentUser,exerciseConsent:cloudExerciseConsent};
     window.dispatchEvent(new CustomEvent('refit:session-ready'));
