@@ -9,6 +9,7 @@
   const bridge = window.RefitAccountBridge;
   let client = null, currentUser = null, cloudExerciseConsent = false, syncTimer = 0, syncBusy = false, pendingSync = false, finishingUserId = null;
   let signupCredentials = null;
+  const loginIdPattern = /^[a-z][a-z0-9_]{3,19}$/;
 
   const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const show = (root, html) => { root.innerHTML = html; root.hidden = false; };
@@ -21,11 +22,11 @@
     const gate = document.getElementById('accountGate') || mountGate();
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="localNoticeTitle">
       <div class="eyebrow">처음 방문 · 기기 내 저장 안내</div><h1 id="localNoticeTitle">페이스핏 데이터 이용 안내</h1>
-      <p>현재 버전은 계정과 서버가 연결되지 않은 체험판입니다. 운동 정보는 운영자에게 전송되지 않고 이 브라우저에만 저장됩니다.</p>
+      <p>계정 없이 사용하면 운동 정보는 운영자에게 전송되지 않고 이 브라우저에만 저장됩니다.</p>
       <dl class="notice-list"><dt>저장 정보</dt><dd>별명, 운동 목표·경험, 선택 입력한 성별·키·체중·기초대사량·운동 시간·운동 기록·메모</dd><dt>이용 목적</dt><dd>운동 기록 표시와 다음 루틴·시작 무게·운동 소모 칼로리 참고값 제공</dd><dt>저장 위치와 기간</dt><dd>현재 기기의 브라우저 저장소에 보관되며, 브라우저 데이터 삭제 시 함께 지워질 수 있습니다.</dd><dt>운동 사진</dt><dd>이 기기에만 저장되고 운영자에게 전송되지 않습니다.</dd><dt>거부 방법</dt><dd>동의하지 않으면 기록 저장과 프로필 입력을 사용할 수 없습니다. 동의 후에도 브라우저 데이터를 삭제해 저장 내용을 지울 수 있습니다.</dd></dl>
       <label class="consent-check"><input id="localConsentCheck" type="checkbox"><span>위 내용을 확인했고, 이 기기에 운동 프로필과 기록을 저장하는 데 동의합니다.</span></label>
       <div class="account-actions"><button id="localConsentContinue" class="save-manual" type="button" disabled>동의하고 시작</button><button id="localConsentLeave" class="cancel" type="button">동의하지 않음</button></div>
-      <p class="account-footnote">운영자 서버 연결 전 안내입니다. 서버 계정 기능을 켜면 별도의 서버 수집·이용 동의를 받습니다.</p>
+      <p class="account-footnote">나중에 온라인 계정을 만들면 서버 수집·이용 동의를 별도로 받습니다.</p>
     </section>`);
     gate.querySelector('#localConsentCheck').onchange = e => { gate.querySelector('#localConsentContinue').disabled = !e.target.checked; };
     gate.querySelector('#localConsentContinue').onclick = () => { localStorage.setItem(localConsentKey, JSON.stringify({version:1,acceptedAt:new Date().toISOString()})); gate.remove(); window.dispatchEvent(new CustomEvent('refit:local-ready')); };
@@ -91,13 +92,70 @@
   }
   function authView(message = '', tone = 'error') {
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">운동 기록 온라인 저장</div><h1 id="accountTitle">페이스핏 계정</h1><p>로그인하면 기기 간 운동 기록을 동기화할 수 있습니다. 서버에 저장되는 정보와 동의 항목을 확인한 뒤 가입하세요.</p>${notice}<div class="field"><label for="accountEmail">이메일</label><input id="accountEmail" type="email" autocomplete="email" maxlength="254" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">동의 확인 후 가입</button><button class="cancel" id="localOnlyButton">이 기기에만 저장</button></div><p class="account-footnote">계정 이메일은 로그인과 계정 복구를 위해 Supabase Auth에 저장됩니다. 비밀번호는 페이스핏 운영자가 볼 수 없습니다.</p></section>`);
-    gate.querySelector('#signInButton').onclick = async () => {const email=gate.querySelector('#accountEmail').value.trim(),password=gate.querySelector('#accountPassword').value;const {error}=await client.auth.signInWithPassword({email,password});if(error)authView(authErrorKo(error));};
-    gate.querySelector('#signUpButton').onclick = () => { signupCredentials={email:gate.querySelector('#accountEmail').value.trim(),password:gate.querySelector('#accountPassword').value};const saved=JSON.parse(sessionStorage.getItem('refit-pending-consent')||'null');if(saved)performSignup(signupCredentials.email,signupCredentials.password,saved);else consentView('signup'); };
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
+    gate.querySelector('#signInButton').onclick = async () => {
+      const username=gate.querySelector('#loginId').value.trim().toLowerCase();
+      const password=gate.querySelector('#accountPassword').value;
+      if(!loginIdPattern.test(username)||password.length<8){authView('아이디와 비밀번호를 확인해주세요.');return;}
+      const button=gate.querySelector('#signInButton');button.disabled=true;
+      try {
+        const {data,error}=await client.functions.invoke('username-login',{body:{username,password}});
+        if(error||!data?.access_token||!data?.refresh_token) throw error||new Error('invalid_credentials');
+        const {data:sessionData,error:sessionError}=await client.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
+        if(sessionError) throw sessionError;
+        if(sessionData.user) await finishSession(sessionData.user);
+      } catch(error) {
+        authView(error?.context?.status===429?'로그인 시도가 많아요. 15분 뒤 다시 시도해주세요.':error?.context?.status===503?'아이디 로그인 서버에 연결하지 못했어요. 잠시 후 다시 시도하거나 기존 이메일 계정으로 로그인해주세요.':'아이디 또는 비밀번호가 맞지 않습니다.');
+      }
+    };
+    gate.querySelector('#signUpButton').onclick = () => signupView();
+    gate.querySelector('#oldEmailLogin').onclick = () => legacyEmailView();
     gate.querySelector('#localOnlyButton').onclick = () => {document.documentElement.classList.remove('refit-backend-on');gate.hidden=true;localMode();};
   }
+  function legacyEmailView(message='') {
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">기존 계정</div><h1>이메일로 로그인</h1><p>이전에 이메일로 가입한 계정과 운동 기록을 그대로 불러옵니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="legacyEmail">이메일</label><input id="legacyEmail" type="email" autocomplete="email" required></div><div class="field"><label for="legacyPassword">비밀번호</label><input id="legacyPassword" type="password" autocomplete="current-password" required></div><div class="account-actions"><button id="legacySignIn" class="save-manual">로그인</button><button id="legacyBack" class="cancel">돌아가기</button></div></section>`);
+    gate.querySelector('#legacySignIn').onclick=async()=>{
+      const email=gate.querySelector('#legacyEmail').value.trim(),password=gate.querySelector('#legacyPassword').value;
+      const {error}=await client.auth.signInWithPassword({email,password});
+      if(error)legacyEmailView(authErrorKo(error));
+    };
+    gate.querySelector('#legacyBack').onclick=()=>authView();
+  }
+  function signupView(message='') {
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">1단계 · 계정 만들기</div><h1>아이디와 비밀번호</h1><p>이메일은 다음 단계에서 별도로 인증합니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="newLoginId">로그인 아이디</label><input id="newLoginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" minlength="4" maxlength="20" required><small>영문 소문자로 시작, 영문·숫자·밑줄 4~20자</small></div><div class="field"><label for="newPassword">비밀번호</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="newPasswordAgain">비밀번호 확인</label><input id="newPasswordAgain" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="newEmail">인증받을 이메일</label><input id="newEmail" type="email" autocomplete="email" maxlength="254" required></div><div class="account-actions"><button id="signupNext" class="save-manual">다음 · 동의 확인</button><button id="signupBack" class="cancel">돌아가기</button></div></section>`);
+    gate.querySelector('#signupNext').onclick=async()=>{
+      const username=gate.querySelector('#newLoginId').value.trim().toLowerCase();
+      const password=gate.querySelector('#newPassword').value;
+      const repeated=gate.querySelector('#newPasswordAgain').value;
+      const email=gate.querySelector('#newEmail').value.trim();
+      if(!loginIdPattern.test(username)){signupView('아이디는 영문 소문자로 시작하고 영문·숫자·밑줄 4~20자로 입력해주세요.');return;}
+      if(password.length<8||password!==repeated){signupView('비밀번호는 8자 이상으로 입력하고 확인란과 같게 적어주세요.');return;}
+      if(!gate.querySelector('#newEmail').checkValidity()){signupView('인증받을 이메일 주소를 확인해주세요.');return;}
+      const {data,error}=await client.rpc('login_id_available',{proposed:username});
+      if(error){signupView('아이디 확인 서버에 연결하지 못했어요. 다시 시도해주세요.');return;}
+      if(!data){signupView('이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.');return;}
+      signupCredentials={username,password,email};
+      consentView('signup');
+    };
+    gate.querySelector('#signupBack').onclick=()=>authView();
+  }
+  function verificationView(email, message='') {
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">2단계 · 이메일 확인</div><h1>인증 메일을 확인해주세요</h1><p>${escapeHtml(email)}로 보낸 인증번호를 입력하세요. 메일의 인증 버튼을 눌러도 됩니다.</p>${message?`<p class="account-info" role="status">${escapeHtml(message)}</p>`:''}<div class="field"><label for="emailCode">이메일 인증번호</label><input id="emailCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{6,8}" required></div><div class="account-actions"><button id="verifyEmailCode" class="save-manual">이메일 인증 완료</button><button id="resendSignupEmail" class="cancel">인증 메일 다시 보내기</button><button id="verificationBack" class="cancel">로그인 화면</button></div></section>`);
+    gate.querySelector('#verifyEmailCode').onclick=async()=>{
+      const token=gate.querySelector('#emailCode').value.trim();
+      if(!/^[0-9]{6,8}$/.test(token)){verificationView(email,'메일에 적힌 숫자 6~8자리를 입력해주세요.');return;}
+      const {data,error}=await client.auth.verifyOtp({email,token,type:'signup'});
+      if(error){verificationView(email,'인증번호가 맞지 않거나 만료됐어요. 새 인증 메일을 요청해주세요.');return;}
+      if(data?.user){sessionStorage.removeItem('refit-pending-consent');await finishSession(data.user);}
+    };
+    gate.querySelector('#resendSignupEmail').onclick=async()=>{
+      const {error}=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:location.origin+location.pathname}});
+      verificationView(email,error?authErrorKo(error):'새 인증 메일을 보냈어요. 가장 최근 메일의 번호를 사용해주세요.');
+    };
+    gate.querySelector('#verificationBack').onclick=()=>authView();
+  }
   function consentView(mode) {
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="consentTitle"><div class="eyebrow">${mode==='signup'?'회원가입 전':'계정 이용 전'}</div><h1 id="consentTitle">개인정보 수집·이용 동의</h1><p>운영자: <b>${escapeHtml(privacy.operatorName)}</b> · 문의: <b>${escapeHtml(privacy.contactEmail)}</b></p><dl class="notice-list"><dt>필수 정보</dt><dd>이메일 계정 정보, 별명·운동 경험·목표·주간 목표</dd><dt>이용 목적</dt><dd>계정 로그인, 프로필 저장, 운동 서비스 제공과 계정 관리</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 권리</dt><dd>필수 항목 동의를 거부하면 온라인 계정을 만들거나 사용할 수 없습니다. 이 기기 전용으로 사용할 수 있습니다.</dd></dl><label class="consent-check"><input id="basicConsent" type="checkbox"><span><b>[필수]</b> 위 개인정보 수집·이용 내용을 확인했고 동의합니다.</span></label><dl class="notice-list"><dt>운동·신체 정보</dt><dd>운동 종목·날짜·무게·세트·횟수·난이도·운동 시간·예상 칼로리·메모, 선택 입력한 성별·키·체중·기초대사량·1RM 참고 기록을 서버에 저장합니다. 동의하면 이 기기에 이미 저장된 기록도 해당 계정으로 동기화될 수 있습니다. 운동 사진은 서버에 올리지 않습니다.</dd><dt>이용 목적</dt><dd>운동 일지 동기화와 개인화된 다음 운동·참고 중량 표시. 트레이너와 기록을 공유하려면 별도로 연결 코드와 공유 권한을 선택합니다.</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 시</dt><dd>동의를 거부해도 계정 기본 기능은 쓸 수 있지만, 운동·신체 기록은 서버에 동기화되지 않아 운영자 조회와 기기 간 기록 동기화를 사용할 수 없습니다.</dd></dl><label class="consent-check"><input id="exerciseConsent" type="checkbox"><span><b>[선택]</b> 운동·신체 정보의 서버 저장과 이용에 동의합니다.</span></label><dl class="notice-list"><dt>저장·처리 위치</dt><dd>${escapeHtml(privacy.dataRegion)}의 Supabase 데이터베이스/Auth에 저장됩니다. ${escapeHtml(privacy.processorNotice)}</dd></dl><div class="account-actions"><button class="save-manual" id="acceptConsent">확인하고 계속</button><button class="cancel" id="consentBack">돌아가기</button></div><p class="account-footnote">동의는 계정 설정에서 철회할 수 있으며, 철회 시 서버 운동 기록 동기화를 중단합니다. 기록 삭제 요청은 운영자 연락처로 접수할 수 있습니다.</p></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="consentTitle"><div class="eyebrow">${mode==='signup'?'회원가입 · 개인정보 확인':'계정 이용 · 개인정보 확인'}</div><h1 id="consentTitle">개인정보 수집·이용 동의</h1><p>운영자: <b>${escapeHtml(privacy.operatorName)}</b> · 문의: <b>${escapeHtml(privacy.contactEmail)}</b></p><dl class="notice-list"><dt>필수 정보</dt><dd>로그인 아이디, 이메일 계정 정보, 별명·운동 경험·목표·주간 목표. 비밀번호는 인증 서비스에서 처리합니다.</dd><dt>이용 목적</dt><dd>계정 로그인, 이메일 주소 확인, 프로필 저장, 운동 서비스 제공과 계정 관리</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 권리</dt><dd>필수 항목 동의를 거부하면 온라인 계정을 만들거나 사용할 수 없습니다. 이 기기 전용으로 사용할 수 있습니다.</dd></dl><label class="consent-check"><input id="basicConsent" type="checkbox"><span><b>[필수]</b> 위 개인정보 수집·이용 내용을 확인했고 동의합니다.</span></label><dl class="notice-list"><dt>운동·신체 정보</dt><dd>운동 종목·날짜·무게·세트·횟수·난이도·운동 시간·예상 칼로리·메모, 선택 입력한 성별·키·체중·기초대사량·1RM 참고 기록을 서버에 저장합니다. 동의하면 이 기기에 이미 저장된 기록도 해당 계정으로 동기화될 수 있습니다. 운동 사진은 서버에 올리지 않습니다.</dd><dt>이용 목적</dt><dd>운동 일지 동기화와 개인화된 다음 운동·참고 중량 표시. 트레이너와 기록을 공유하려면 별도로 연결 코드와 공유 권한을 선택합니다.</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 시</dt><dd>동의를 거부해도 계정 기본 기능은 쓸 수 있지만, 운동·신체 기록은 서버에 동기화되지 않아 운영자 조회와 기기 간 기록 동기화를 사용할 수 없습니다.</dd></dl><label class="consent-check"><input id="exerciseConsent" type="checkbox"><span><b>[선택]</b> 운동·신체 정보의 서버 저장과 이용에 동의합니다.</span></label><dl class="notice-list"><dt>저장·처리 위치</dt><dd>${escapeHtml(privacy.dataRegion)}의 Supabase 데이터베이스/Auth에 저장됩니다. ${escapeHtml(privacy.processorNotice)}</dd></dl><div class="account-actions"><button class="save-manual" id="acceptConsent">확인하고 계속</button><button class="cancel" id="consentBack">돌아가기</button></div><p class="account-footnote">동의는 계정 설정에서 철회할 수 있으며, 철회 시 서버 운동 기록 동기화를 중단합니다. 기록 삭제 요청은 운영자 연락처로 접수할 수 있습니다.</p></section>`);
     const fullNotice=document.createElement('p');fullNotice.className='account-footnote';fullNotice.innerHTML='<a href="./privacy.html" target="_blank" rel="noopener">개인정보 처리 안내 전체 보기</a>';
     gate.querySelector('.account-actions').before(fullNotice);
     gate.querySelector('#acceptConsent').onclick = async () => {
@@ -108,22 +166,24 @@
         sessionStorage.setItem('refit-pending-consent',JSON.stringify({basic,exercise,acceptedAt}));authView();
       } else if (mode === 'signup') {
         sessionStorage.setItem('refit-pending-consent',JSON.stringify({basic,exercise,acceptedAt}));
-        if(!signupCredentials||!signupCredentials.email||!signupCredentials.password||signupCredentials.password.length<8){authView('이메일과 8자 이상의 비밀번호를 먼저 입력해주세요.');return;}
-        await performSignup(signupCredentials.email,signupCredentials.password,{basic,exercise,acceptedAt});
+        if(!signupCredentials){signupView('아이디·비밀번호·이메일을 먼저 입력해주세요.');return;}
+        await performSignup(signupCredentials,{basic,exercise,acceptedAt});
       } else if (currentUser) {
         const result=await storeConsent(currentUser.id,basic,exercise,acceptedAt);
         if(result.error){consentView('existing');return;}
         cloudExerciseConsent=exercise; await loadCloudState();
       }
     };
-    gate.querySelector('#consentBack').onclick = () => currentUser?accountMenu():authView();
+    gate.querySelector('#consentBack').onclick = () => currentUser?accountMenu():mode==='signup'?signupView():authView();
   }
-  async function performSignup(email,password,choices) {
-    if(!email||!password||password.length<8){authView('이메일과 8자 이상의 비밀번호를 입력해주세요.');return;}
+  async function performSignup(credentials,choices) {
+    const {username,email,password}=credentials;
+    if(!loginIdPattern.test(username)||!email||!password||password.length<8){signupView('아이디·이메일·비밀번호를 다시 입력해주세요.');return;}
     const acceptedAt=choices.acceptedAt||new Date().toISOString();
-    const {data,error}=await client.auth.signUp({email,password,options:{data:{refit_consent:{version:privacy.noticeVersion,basic:choices.basic===true,exercise:choices.exercise===true,acceptedAt,operator:privacy.operatorName,contact:privacy.contactEmail,retention:privacy.retention}}}});
-    if(error){authView(authErrorKo(error));return;}
-    if(!data.session){authView('가입 요청이 접수됐습니다. 받은편지함 또는 스팸함의 인증 링크를 누른 뒤 이 화면에서 로그인해주세요.','success');return;}
+    const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{pacefit_username:username,refit_consent:{version:privacy.noticeVersion,basic:choices.basic===true,exercise:choices.exercise===true,acceptedAt,operator:privacy.operatorName,contact:privacy.contactEmail,retention:privacy.retention}}}});
+    signupCredentials=null;
+    if(error){signupView(authErrorKo(error));return;}
+    if(!data.session){verificationView(email);return;}
     if(data.user){const saved=await storeConsent(data.user.id,choices.basic===true,choices.exercise===true,acceptedAt);if(saved.error){authView('계정은 만들었지만 동의 기록을 저장하지 못했어요. 로그인 후 다시 확인해주세요.');return;}}
     sessionStorage.removeItem('refit-pending-consent');await finishSession(data.session.user);
   }
@@ -232,9 +292,26 @@
       }
     };
   }
+  function claimLoginIdView(message='') {
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">기존 계정 연결</div><h1>로그인 아이디 만들기</h1><p>현재 이메일 계정에 아이디를 연결합니다. 운동 기록과 트레이너 연결은 그대로 유지됩니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="claimLoginId">새 로그인 아이디</label><input id="claimLoginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" minlength="4" maxlength="20"><small>영문 소문자로 시작, 영문·숫자·밑줄 4~20자</small></div><div class="account-actions"><button id="claimIdSubmit" class="save-manual">아이디 연결</button><button id="claimIdBack" class="cancel">돌아가기</button></div></section>`);
+    gate.querySelector('#claimIdSubmit').onclick=async()=>{
+      const proposed=gate.querySelector('#claimLoginId').value.trim().toLowerCase();
+      if(!loginIdPattern.test(proposed)){claimLoginIdView('아이디 형식을 확인해주세요.');return;}
+      const {data:available,error:checkError}=await client.rpc('login_id_available',{proposed});
+      if(checkError||!available){claimLoginIdView(checkError?'아이디 확인에 실패했어요. 잠시 후 다시 시도해주세요.':'이미 사용 중인 아이디입니다.');return;}
+      const {data,error}=await client.rpc('claim_login_id',{proposed});
+      if(error||data!==proposed){claimLoginIdView('아이디를 연결하지 못했어요. 다른 아이디로 다시 시도해주세요.');return;}
+      accountMenu();
+    };
+    gate.querySelector('#claimIdBack').onclick=accountMenu;
+  }
   async function accountMenu() {
-    const {data:membership}=await client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle();
-    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(currentUser.email||'계정')}</h1><p>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    const [{data:membership},{data:loginId}]=await Promise.all([
+      client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle(),
+      client.rpc('my_login_id')
+    ]);
+    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    const claimButton=gate.querySelector('#claimLoginId');if(claimButton)claimButton.onclick=()=>claimLoginIdView();
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
      gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
   }
@@ -252,7 +329,8 @@
   accountButton.onclick=()=>authView();
   gate.hidden=false;
   show(gate,'<section class="account-panel"><div class="eyebrow">안전한 계정 연결</div><h1>연결 상태를 확인하고 있어요</h1><p>계정과 동의 기록을 확인한 다음 화면을 열겠습니다.</p></section>');
-  client.auth.getSession().then(({data,error})=>{if(error||!data.session){if(authCallbackNotice)authView(authCallbackNotice);else if(sessionStorage.getItem('refit-pending-consent'))authView();else consentView('preauth');return;}finishSession(data.session.user);});
+  client.auth.getSession().then(({data,error})=>{if(error||!data.session){authView(authCallbackNotice);return;}finishSession(data.session.user);});
    client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!== (currentUser&&currentUser.id))setTimeout(()=>finishSession(session.user),0);if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}});
   }
 })();
+
