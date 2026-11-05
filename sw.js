@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v40';
+const CACHE_NAME = 'refit-shell-v41';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -7,11 +7,11 @@ const SHELL_ASSETS = [
   './pwa-register.js',
   './backend-config.js?v=20261105-login-id-3',
   './account.js?v=20261105-login-id-4',
-  './operator-dashboard.js',
+  './operator-dashboard.js?v=20261105-plans-1',
   './voice-journal.js',
   './diet-journal.js?v=2',
   './diet-journal.css',
-  './routine-by-part.js?v=20261105-plans-1',
+  './routine-by-part.js?v=20261105-plans-2',
   './workout-enhancements.js',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',

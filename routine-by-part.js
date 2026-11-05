@@ -163,6 +163,14 @@
     section.querySelector('.set-add').onclick = () => { addSet(section, ex.reps); captureDrafts(); };
   }
 
+  function showTrainerWeight(row, suggested) {
+    const recommendation = row.querySelector('[data-recommendation]');
+    const recordedPain = recommendation?.querySelector('.recommendation-label')?.textContent.includes('통증을 기록');
+    if (!recommendation || recordedPain || suggested?.weight == null || !Number.isFinite(Number(suggested.weight))) return;
+    const weight = Number(suggested.weight);
+    recommendation.innerHTML = `<div class="recommendation-label">트레이너가 제안한 시작 참고 무게</div><strong class="recommendation-value">${escapeText(weight)}kg</strong><p>지난 기록과 오늘 몸 상태를 확인하고, 실제 운동 무게는 직접 조절하세요.</p><button class="use-recommendation" type="button" data-use-recommendation="${escapeText(weight)}">트레이너 참고 무게 사용</button>`;
+  }
+
   window.renderPlan = function () {
     oldRenderPlan();
     const { split, latest } = window.getPlan();
@@ -182,6 +190,7 @@
       if (ex) installSets(row, ex, split);
       const suggested = trainerPlan?.exercises?.find(item => item.name === row.dataset.name);
       if (suggested) {
+        showTrainerWeight(row, suggested);
         const note = document.createElement('div');
         note.className = 'set-help';
         note.textContent = `트레이너 제안 · ${suggested.sets}세트 × ${suggested.reps}회${suggested.weight == null ? '' : ` · 참고 ${suggested.weight}kg`}`;
@@ -225,6 +234,14 @@
     if (event.target.closest('.exercise')) captureDrafts();
   });
   exerciseList.addEventListener('change', event => {
+    if (event.target.matches('[data-equipment]')) {
+      const applied = state().trainerPlanApplied;
+      const part = window.getPlan().split;
+      if (applied?.date === today() && applied.bodyPart === part) {
+        const row = event.target.closest('.exercise');
+        showTrainerWeight(row, applied.exercises?.find(item => item.name === row?.dataset.name));
+      }
+    }
     const section = event.target.closest('.exercise-actual');
     if (section) {
       syncInherited(section);
