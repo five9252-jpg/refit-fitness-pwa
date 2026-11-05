@@ -32,6 +32,16 @@
     gate.querySelector('#localConsentLeave').onclick = () => { show(gate, '<section class="account-panel"><h1>동의하지 않았습니다</h1><p>동의하지 않으면 이 기기에 운동 프로필과 기록을 저장할 수 없습니다.</p><button class="cancel" onclick="location.reload()">돌아가기</button></section>'); };
   }
   const gate = mountGate();
+  const authCallbackNotice = (() => {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ''));
+    const code = params.get('error_code') || '';
+    const error = params.get('error') || '';
+    if (!code && !error) return '';
+    // Remove the stale auth error fragment so refreshes return to a usable page.
+    history.replaceState(history.state, '', `${location.pathname}${location.search}`);
+    if (code === 'otp_expired') return '이메일 인증 링크가 만료됐거나 이미 사용됐어요. 이미 인증을 마쳤다면 가입한 계정으로 로그인해 주세요. 아직 인증 전이면 새 인증 메일을 요청해 주세요.';
+    return '이메일 인증을 완료하지 못했어요. 링크가 만료됐거나 이미 사용되었을 수 있습니다. 로그인하거나 새 인증 메일을 요청해 주세요.';
+  })();
   const accountButton = document.createElement('button'); accountButton.type = 'button'; accountButton.className = 'profile-edit account-open'; accountButton.textContent = '계정'; accountButton.setAttribute('aria-label','계정 및 저장 방식');
   const topRight = document.querySelector('.top-right'); if (topRight) topRight.insertBefore(accountButton, topRight.firstChild);
   const style = document.createElement('style'); style.textContent = `
@@ -242,7 +252,7 @@
   accountButton.onclick=()=>authView();
   gate.hidden=false;
   show(gate,'<section class="account-panel"><div class="eyebrow">안전한 계정 연결</div><h1>연결 상태를 확인하고 있어요</h1><p>계정과 동의 기록을 확인한 다음 화면을 열겠습니다.</p></section>');
-  client.auth.getSession().then(({data,error})=>{if(error||!data.session){if(sessionStorage.getItem('refit-pending-consent'))authView();else consentView('preauth');return;}finishSession(data.session.user);});
+  client.auth.getSession().then(({data,error})=>{if(error||!data.session){if(authCallbackNotice)authView(authCallbackNotice);else if(sessionStorage.getItem('refit-pending-consent'))authView();else consentView('preauth');return;}finishSession(data.session.user);});
    client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!== (currentUser&&currentUser.id))setTimeout(()=>finishSession(session.user),0);if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}});
   }
 })();
