@@ -6,7 +6,7 @@ window.REFIT_CONFIG = {
   supabasePublishableKey: 'sb_publishable_FEy9kf6nBhSX9u4JHHc6Qw_x4VB3gZr',
   features: { dietFoodSearchEnabled: false, dietPhotoAnalysisEnabled: false },
   privacy: {
-    noticeVersion: '2026-11-05-v7',
+    noticeVersion: '2026-11-05-v8',
     operatorName: '박진성',
     contactEmail: 'wlstjd2351@naver.com',
     retention: '서비스 이용 중 보관하며 회원 탈퇴 시 삭제',
@@ -15,3 +15,4 @@ window.REFIT_CONFIG = {
     recoveryEnabled: false
   }
 };
+
