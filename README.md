@@ -2,6 +2,14 @@
 
 헬스를 처음 시작했거나 혼자 운동 계획을 이어가기 어려운 사람을 위한 브라우저 시제품입니다.
 
+## 식단 기록 기능
+
+- YouTube 운동 동기부여 영상 영역과 관련 이벤트 처리를 제거했습니다.
+- 식단 입력은 끼니, 음식 검색, 섭취량(g), 메모, 사진을 한 기록에 묶습니다. K-FIND 검색 결과를 고르면 해당 기준 영양값을 섭취량에 맞춰 계산해 하루 열량·단백질·탄수화물·지방 합계에 반영합니다. 직접 입력 음식은 영양성분이 확인되지 않으므로 합계에서 제외합니다.
+- 음식 사진 인식은 음식 종류와 분량의 AI 추정 기능입니다. OpenAI API로 사진을 보내기 전 별도 동의를 받고, 추정값은 검토·수정 후 사용하도록 설계했습니다. AI API key나 모델 설정이 없으면 인식 기능은 비활성입니다.
+- 식단 데이터 서버 저장과 AI 사진 전송 동의를 따로 받습니다. 서버 저장 동의가 없으면 식단 기록·사진은 이 브라우저에만 저장합니다. 서버 저장 기록은 회원과 운영자만 볼 수 있고 트레이너는 접근할 수 없습니다. 탈퇴 시 계정 데이터와 diet-photos 저장 객체를 제거하도록 `recovery.sql`을 갱신했습니다.
+- 현재 저장·검색·인식 연결은 코드에 포함되어 있지만 Supabase에 새 SQL/Edge Functions를 반영하기 전에는 서버 기능이 활성화되지 않습니다. 적용 순서는 [`supabase/README.md`](supabase/README.md)의 “식단 기능 활성화 준비”를 참고하세요.
+
 ## 화면에 구현한 기능
 
 - 오늘 운동 메모, 자유 운동 기록 메모, 트레이너 대리 기록 메모에는 지원 브라우저에서 한국어 음성 입력 버튼이 보입니다. 인식된 글을 확인한 뒤 기록 저장 버튼을 눌러야 일지에 저장됩니다. 브라우저의 음성 인식 서비스가 음성을 처리할 수 있으며, 페이스핏은 음성 파일을 보관하지 않습니다. 지원되지 않는 브라우저에서는 키보드 입력을 사용합니다.
@@ -75,4 +83,3 @@ Supabase 설정이 비어 있으면 기존 로컬 저장 모드로 동작하고 
 기본 ABC 루틴은 길이를 유지하고, 운동 추가 메뉴에 ACE Exercise Library를 참고한 프리웨이트 8종을 더했습니다. 덤벨 체스트 프레스, 벤치 지지 원암 덤벨 로우, 덤벨 스텝업, 덤벨 프런트 레이즈, 해머 컬, 덤벨 트라이셉스 킥백, 덤벨 사이드 런지, 파머스 캐리입니다. 초보자는 가벼운 무게나 맨몸으로 동작을 먼저 익히도록 안내합니다. 운동별 생성 이미지는 ssets/exercises/ 안의 개별 파일이며 서비스 워커에서 오프라인 캐시합니다.
 
 자세 자료: [ACE Chest Press](https://www.acefitness.org/resources/everyone/exercise-library/19/chest-press/) · [Single Arm Row](https://www.acefitness.org/resources/everyone/exercise-library/126/single-arm-row/) · [Step Up](https://www.acefitness.org/resources/everyone/exercise-library/28/step-up/) · [Front Raise](https://www.acefitness.org/resources/everyone/exercise-library/54/front-raise/) · [Hammer Curl](https://www.acefitness.org/resources/everyone/exercise-library/10/hammer-curl/) · [Triceps Kickback](https://www.acefitness.org/resources/everyone/exercise-library/55/triceps-kickback/) · [Lateral Lunge](https://www.acefitness.org/resources/everyone/exercise-library/364/lateral-lunge/) · [Farmer's Carry](https://www.acefitness.org/resources/everyone/exercise-library/359/farmer-s-carry/).
-

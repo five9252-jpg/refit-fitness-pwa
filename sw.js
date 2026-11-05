@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v31';
+const CACHE_NAME = 'refit-shell-v33';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const SHELL_ASSETS = [
   './account.js',
   './operator-dashboard.js',
   './voice-journal.js',
+  './diet-journal.js?v=2',
+  './diet-journal.css',
   './routine-by-part.js',
   './workout-enhancements.js',
   './calorie-estimate.js',
@@ -35,6 +37,7 @@ const SHELL_ASSETS = [
   './assets/exercises/pacefit-barbell-row.jpg',
   './assets/exercises/bodyweight-squat.jpg',
   './supabase/schema.sql',
+  './supabase/diet.sql',
   './supabase/README.md',
   './assets/pwa/icon.svg',
   './assets/pwa/icon-192.png',

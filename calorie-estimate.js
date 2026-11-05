@@ -70,4 +70,3 @@
   window.renderProfile();
   window.renderLogs();
 })();
-

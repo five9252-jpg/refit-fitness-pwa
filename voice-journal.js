@@ -94,4 +94,3 @@
   }).observe(trainerOverlay, {childList:true,subtree:true});
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopActive(); });
 })();
-

@@ -71,6 +71,8 @@ begin
     delete from public.account_recovery_archives where email = account_email;
   end if;
 
+  -- Meal photos live in private object storage and do not cascade with auth.users.
+  delete from storage.objects where bucket_id = 'diet-photos' and name like account_id::text || '/%';
   delete from auth.users where id = account_id;
   if not found then raise exception 'Account deletion failed'; end if;
 end;

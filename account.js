@@ -210,6 +210,7 @@
         const {error}=await client.rpc('withdraw_account',{keep_recovery:keep});
         if (error) throw error;
         if (bridge&&bridge.clearCurrentPhotos) await bridge.clearCurrentPhotos();
+        if (window.RefitDietJournal?.clearLocal) await window.RefitDietJournal.clearLocal();
         await client.auth.signOut().catch(()=>{});
         currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;
         window.dispatchEvent(new CustomEvent('refit:session-ended'));

@@ -147,4 +147,3 @@
   };
   window.renderPlan();window.renderLogs();
 })();
-
