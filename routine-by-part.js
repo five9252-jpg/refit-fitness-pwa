@@ -56,6 +56,12 @@
     const group = String(item.group || '');
     return parts.find(part => group.includes(part)) || null;
   };
+  window.PacefitRoutineCatalog = Object.freeze({
+    parts: [...parts],
+    list: part => [...catalog.values()].filter(item => exercisePart(item) === part)
+      .map(item => ({name:item.name,group:item.group,sets:item.sets,reps:item.reps})),
+    has: (part, name) => Boolean(catalog.has(name) && exercisePart(catalog.get(name)) === part)
+  });
   const logHasPart = (log, part) => log.bodyPart === part || (log.items || []).some(item => exercisePart(item) === part);
   const today = () => { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
   const dateLabel = value => new Date(`${value}T12:00:00`).toLocaleDateString('ko-KR', {month:'long',day:'numeric',weekday:'short'});
@@ -72,7 +78,13 @@
   window.getCurrentRoutine = function (part) {
     if (!parts.includes(part)) return oldCurrentRoutine(part);
     const edits = state().routineEdits && state().routineEdits[part];
-    if (Array.isArray(edits)) return edits.map(row => catalog.get(row.name)).filter(Boolean).slice(0, 12);
+    if (Array.isArray(edits)) return edits.map(row => {
+      const original = catalog.get(row?.name);
+      if (!original) return null;
+      return {...original,
+        sets:Number.isInteger(row.sets) && row.sets >= 1 && row.sets <= 30 ? row.sets : original.sets,
+        reps:Number.isInteger(row.reps) && row.reps >= 1 && row.reps <= 100 ? row.reps : original.reps};
+    }).filter(Boolean).slice(0, 12);
     const recentNames = (state().logs || []).filter(log => logHasPart(log, part)).sort(byDate)
       .flatMap(log => (log.items || []).map(item => item.name))
       .filter(name => catalog.has(name) && exercisePart(catalog.get(name)) === part);
@@ -154,8 +166,11 @@
   window.renderPlan = function () {
     oldRenderPlan();
     const { split, latest } = window.getPlan();
-    document.getElementById('planTitle').textContent = `${split} 운동`;
-    document.getElementById('planDesc').textContent = latest ? `${dateLabel(latest.date)} ${split} 운동 기록에서 종목을 골랐어요. 종목별 무게는 같은 운동·기구의 지난 기록을 참고해요.` : `${split} 운동을 처음 기록해요. 가벼운 무게로 시작하고 종목은 자유롭게 바꿀 수 있어요.`;
+    const applied = state().trainerPlanApplied;
+    const trainerPlan = applied?.date === today() && applied?.bodyPart === split &&
+      applied.exercises?.every((item, index) => window.getCurrentRoutine(split)[index]?.name === item.name) ? applied : null;
+    document.getElementById('planTitle').textContent = trainerPlan ? `${split} · 트레이너 제안` : `${split} 운동`;
+    document.getElementById('planDesc').textContent = trainerPlan ? `${trainerPlan.trainerName || '트레이너'}님의 제안을 오늘 운동에 적용했어요. 무게는 참고값이며 실제 운동은 직접 기록해 주세요.` : latest ? `${dateLabel(latest.date)} ${split} 운동 기록에서 종목을 골랐어요. 종목별 무게는 같은 운동·기구의 지난 기록을 참고해요.` : `${split} 운동을 처음 기록해요. 가벼운 무게로 시작하고 종목은 자유롭게 바꿀 수 있어요.`;
     document.getElementById('basisText').textContent = `선택한 ${split} 부위에서 최근에 한 종목을 먼저 보여줍니다. 중량은 같은 종목·기구의 기록을 따로 확인해요.`;
     document.getElementById('homePlanTitle').textContent = `${split} 운동`;
     document.getElementById('homePlanDesc').textContent = latest ? `최근 ${split} 운동을 참고했어요.` : '하고 싶은 부위를 고르면 운동을 추천해요.';
@@ -165,6 +180,13 @@
     document.querySelectorAll('#exerciseList .exercise').forEach(row => {
       const ex = routine.find(item => item.name === row.dataset.name);
       if (ex) installSets(row, ex, split);
+      const suggested = trainerPlan?.exercises?.find(item => item.name === row.dataset.name);
+      if (suggested) {
+        const note = document.createElement('div');
+        note.className = 'set-help';
+        note.textContent = `트레이너 제안 · ${suggested.sets}세트 × ${suggested.reps}회${suggested.weight == null ? '' : ` · 참고 ${suggested.weight}kg`}`;
+        row.querySelector('.exercise-info')?.appendChild(note);
+      }
     });
   };
 
@@ -271,3 +293,4 @@
 
   window.persist();
 })();
+
