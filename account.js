@@ -92,7 +92,7 @@
   }
   function authView(message = '', tone = 'error') {
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
     gate.querySelector('#signInButton').onclick = async () => {
       const username=gate.querySelector('#loginId').value.trim().toLowerCase();
       const password=gate.querySelector('#accountPassword').value;
@@ -110,6 +110,7 @@
     };
     gate.querySelector('#signUpButton').onclick = () => signupView();
     gate.querySelector('#oldEmailLogin').onclick = () => legacyEmailView();
+    gate.querySelector('#resendEmailLink').onclick = () => resendEmailView();
     gate.querySelector('#localOnlyButton').onclick = () => {document.documentElement.classList.remove('refit-backend-on');gate.hidden=true;localMode();};
   }
   function legacyEmailView(message='') {
@@ -120,6 +121,18 @@
       if(error)legacyEmailView(authErrorKo(error));
     };
     gate.querySelector('#legacyBack').onclick=()=>authView();
+  }
+  function resendEmailView(message='') {
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">이메일 인증</div><h1>인증 메일 다시 받기</h1><p>가입할 때 입력한 이메일 주소를 적어주세요.</p>${message?`<p class="account-info" role="status">${escapeHtml(message)}</p>`:''}<div class="field"><label for="resendEmail">이메일</label><input id="resendEmail" type="email" autocomplete="email" required></div><div class="account-actions"><button id="resendEmailSubmit" class="save-manual">인증 메일 보내기</button><button id="resendEmailBack" class="cancel">돌아가기</button></div></section>`);
+    gate.querySelector('#resendEmailSubmit').onclick=async()=>{
+      const input=gate.querySelector('#resendEmail');
+      if(!input.checkValidity()){resendEmailView('이메일 주소를 확인해주세요.');return;}
+      const email=input.value.trim();
+      const {error}=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:location.origin+location.pathname}});
+      if(error){resendEmailView(authErrorKo(error));return;}
+      verificationView(email,'새 인증 메일을 보냈어요. 가장 최근 메일의 번호를 사용해주세요.');
+    };
+    gate.querySelector('#resendEmailBack').onclick=()=>authView();
   }
   function signupView(message='') {
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">1단계 · 계정 만들기</div><h1>아이디와 비밀번호</h1><p>이메일은 다음 단계에서 별도로 인증합니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="newLoginId">로그인 아이디</label><input id="newLoginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" minlength="4" maxlength="20" required><small>영문 소문자로 시작, 영문·숫자·밑줄 4~20자</small></div><div class="field"><label for="newPassword">비밀번호</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="newPasswordAgain">비밀번호 확인</label><input id="newPasswordAgain" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="newEmail">인증받을 이메일</label><input id="newEmail" type="email" autocomplete="email" maxlength="254" required></div><div class="account-actions"><button id="signupNext" class="save-manual">다음 · 동의 확인</button><button id="signupBack" class="cancel">돌아가기</button></div></section>`);
