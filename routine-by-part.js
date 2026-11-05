@@ -77,6 +77,13 @@
 
   window.getCurrentRoutine = function (part) {
     if (!parts.includes(part)) return oldCurrentRoutine(part);
+    const applied = state().trainerPlanApplied;
+    const baseEdits = JSON.stringify(state().routineEdits?.[part] ?? null);
+    if (applied?.date === today() && applied.bodyPart === part && applied.baseEdits === baseEdits &&
+        Array.isArray(applied.exercises) && applied.exercises.length &&
+        applied.exercises.every(item => catalog.has(item.name))) {
+      return applied.exercises.map(item => ({...catalog.get(item.name),sets:item.sets,reps:item.reps}));
+    }
     const edits = state().routineEdits && state().routineEdits[part];
     if (Array.isArray(edits)) return edits.map(row => {
       const original = catalog.get(row?.name);
@@ -175,8 +182,10 @@
     oldRenderPlan();
     const { split, latest } = window.getPlan();
     const applied = state().trainerPlanApplied;
+    const activeRoutine = window.getCurrentRoutine(split);
     const trainerPlan = applied?.date === today() && applied?.bodyPart === split &&
-      applied.exercises?.every((item, index) => window.getCurrentRoutine(split)[index]?.name === item.name) ? applied : null;
+      applied.exercises?.length === activeRoutine.length &&
+      applied.exercises?.every((item, index) => activeRoutine[index]?.name === item.name) ? applied : null;
     document.getElementById('planTitle').textContent = trainerPlan ? `${split} · 트레이너 제안` : `${split} 운동`;
     document.getElementById('planDesc').textContent = trainerPlan ? `${trainerPlan.trainerName || '트레이너'}님의 제안을 오늘 운동에 적용했어요. 무게는 참고값이며 실제 운동은 직접 기록해 주세요.` : latest ? `${dateLabel(latest.date)} ${split} 운동 기록에서 종목을 골랐어요. 종목별 무게는 같은 운동·기구의 지난 기록을 참고해요.` : `${split} 운동을 처음 기록해요. 가벼운 무게로 시작하고 종목은 자유롭게 바꿀 수 있어요.`;
     document.getElementById('basisText').textContent = `선택한 ${split} 부위에서 최근에 한 종목을 먼저 보여줍니다. 중량은 같은 종목·기구의 기록을 따로 확인해요.`;

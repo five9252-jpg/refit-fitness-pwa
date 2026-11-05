@@ -27,7 +27,9 @@
   document.head.appendChild(style);
 
   function renderPlanCard(plan, trainerName) {
-    const applied = bridge.getState().trainerPlanApplied?.id === plan.id && bridge.getState().trainerPlanApplied?.date === date();
+    const current = bridge.getState();
+    const applied = current.trainerPlanApplied?.id === plan.id && current.trainerPlanApplied?.date === date() &&
+      current.trainerPlanApplied?.baseEdits === JSON.stringify(current.routineEdits?.[plan.body_part] ?? null);
     root.innerHTML = `<small>TRAINER · NEXT WORKOUT · ${esc(dateText(plan.target_date))}</small><h2>${esc(plan.title)}</h2><p>${esc(trainerName)}님이 보낸 ${esc(plan.body_part)} 운동 제안이에요.</p><ul>${plan.exercises.map(item => `<li>${esc(item.name)} · ${esc(item.sets)}세트 × ${esc(item.reps)}회${item.weight == null ? '' : ` · 참고 ${esc(item.weight)}kg`}</li>`).join('')}</ul>${plan.note ? `<p>${esc(plan.note)}</p>` : ''}<p>참고 무게는 실제 운동 전에 몸 상태에 맞춰 확인해 주세요. 기록은 직접 입력합니다.</p><button id="applyTrainerPlan" type="button">${applied ? '적용한 운동 보기' : '오늘 운동으로 적용'}</button>`;
     root.hidden = false;
     root.querySelector('#applyTrainerPlan').onclick = () => {
@@ -37,8 +39,8 @@
         const current = bridge.getState();
         const next = {...current,
           routineChoice:{date:date(),part:plan.body_part},
-          routineEdits:{...(current.routineEdits || {}),[plan.body_part]:exercises.map(item => ({name:item.name,sets:item.sets,reps:item.reps}))},
-          trainerPlanApplied:{id:plan.id,date:date(),bodyPart:plan.body_part,trainerName,exercises}};
+          trainerPlanApplied:{id:plan.id,date:date(),bodyPart:plan.body_part,trainerName,exercises,
+            baseEdits:JSON.stringify(current.routineEdits?.[plan.body_part] ?? null)}};
         if (!window.commitState(next,'트레이너의 운동 제안을 적용했어요.')) return;
         renderPlanCard(plan,trainerName);
       }
