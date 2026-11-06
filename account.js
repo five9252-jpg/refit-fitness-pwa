@@ -77,7 +77,7 @@
     .account-gate{position:fixed;inset:0;z-index:1000;overflow:auto;background:rgba(18,36,27,.72);display:grid;place-items:center;padding:18px}.account-gate[hidden]{display:none!important}.account-panel{width:min(100%,560px);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 22px 90px #10251955;color:#16241b}.account-panel h1{font-size:25px;margin:8px 0}.account-panel>p{color:#59665d;line-height:1.6}.account-panel .eyebrow{color:#477657;font-size:12px;font-weight:800;letter-spacing:.04em}.account-panel .field{display:grid;gap:7px;margin:14px 0}.account-panel .field input{min-height:44px;padding:10px 12px;border:1px solid #d9e1d8;border-radius:10px;font:inherit}.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.account-actions button,.account-panel button{min-height:42px;padding:9px 14px;border:0;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.account-panel .save-manual{background:#2f6149;color:#fff}.account-panel .cancel{background:#edf1ec;color:#284b37}.account-panel button:disabled{opacity:.45;cursor:not-allowed}.account-footnote{font-size:12px!important}.account-remember{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px}.account-remember input{width:17px;height:17px}.notice-list{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;padding:15px;background:#f4f7f2;border-radius:14px;font-size:13px;line-height:1.5}.notice-list dt{font-weight:800;color:#2f6149}.notice-list dd{margin:0;color:#465349}.consent-check{display:flex;gap:10px;align-items:flex-start;margin:16px 0;line-height:1.5;font-size:14px}.consent-check input{margin-top:4px;flex:none}.account-link{border:0;background:none;color:#2f6149;text-decoration:underline;font:inherit;cursor:pointer;padding:4px}.account-error{color:#a1392e!important;background:#fff2ef;padding:10px;border-radius:10px}.admin-user{border:1px solid #e0e7de;border-radius:14px;padding:13px;margin:10px 0;background:#f9faf8}.admin-user summary{cursor:pointer;font-weight:800}.admin-user pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#465349;background:#f0f3ef;padding:10px;border-radius:8px}.account-badge{font-size:11px;color:#2f6149;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     @media(max-width:560px){.account-panel{padding:20px;border-radius:17px}.notice-list{grid-template-columns:1fr;gap:3px}.notice-list dd{margin-bottom:7px}.account-open{font-size:10px;padding:7px 9px!important}}
   `; document.head.appendChild(style);
-  style.textContent += '.account-info{color:#23513b;background:#edf7ee;padding:10px;border-radius:10px;line-height:1.5}';
+  style.textContent += '.account-info{color:#23513b;background:#edf7ee;padding:10px;border-radius:10px;line-height:1.5}.account-help-links{gap:4px 12px;border-top:1px solid #e7ece7;padding-top:10px}.account-help-links .account-link{min-height:36px;padding:5px 0;font-size:12px;text-align:left}';
 
   function localMode() {
     document.getElementById('localPill').textContent = '이 기기에 저장 중';
@@ -121,39 +121,34 @@
   function authView(message = '', tone = 'error') {
     document.documentElement.classList.add('refit-backend-on');
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><label class="account-remember"><input id="rememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">비밀번호를 저장하지 않고 로그인 상태만 유지합니다. 공용 기기라면 체크를 해제하세요.</p><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="findLoginId">아이디 찾기</button><button class="account-link" id="resetPassword">비밀번호 찾기</button><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">로그인</h1><p>아이디 또는 가입 이메일로 로그인하세요.</p>${notice}<div class="field"><label for="loginId">아이디 또는 이메일</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="254" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><label class="account-remember"><input id="rememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions account-help-links"><button class="account-link" id="findLoginId">아이디 찾기</button><button class="account-link" id="resetPassword">비밀번호 찾기</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button></div></section>`);
     gate.querySelector('#signInButton').onclick = async () => {
-      const username=gate.querySelector('#loginId').value.trim().toLowerCase();
+      const identifier=gate.querySelector('#loginId').value.trim().toLowerCase();
       const password=gate.querySelector('#accountPassword').value;
-      if(!loginIdPattern.test(username)||password.length<8){authView('아이디와 비밀번호를 확인해주세요.');return;}
+      const isEmail=identifier.includes('@');
+      if(!(isEmail?/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier):loginIdPattern.test(identifier))||password.length<8){authView('아이디 또는 이메일과 비밀번호를 확인해주세요.');return;}
       setRememberLogin(gate.querySelector('#rememberLogin').checked);
       const button=gate.querySelector('#signInButton');button.disabled=true;
       try {
-        const {data,error}=await client.functions.invoke('username-login',{body:{username,password}});
-        if(error||!data?.access_token||!data?.refresh_token) throw error||new Error('invalid_credentials');
-        const {data:sessionData,error:sessionError}=await client.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
-        if(sessionError) throw sessionError;
-        if(sessionData.user) await finishSession(sessionData.user);
+        if(isEmail){
+          const {data,error}=await client.auth.signInWithPassword({email:identifier,password});
+          if(error) throw error;
+          if(data.user) await finishSession(data.user);
+        }else{
+          const {data,error}=await client.functions.invoke('username-login',{body:{username:identifier,password}});
+          if(error||!data?.access_token||!data?.refresh_token) throw error||new Error('invalid_credentials');
+          const {data:sessionData,error:sessionError}=await client.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
+          if(sessionError) throw sessionError;
+          if(sessionData.user) await finishSession(sessionData.user);
+        }
       } catch(error) {
-        authView(error?.context?.status===429?'로그인 시도가 많아요. 15분 뒤 다시 시도해주세요.':error?.context?.status===503?'아이디 로그인 서버에 연결하지 못했어요. 잠시 후 다시 시도하거나 기존 이메일 계정으로 로그인해주세요.':'아이디 또는 비밀번호가 맞지 않습니다.');
+        authView(error?.context?.status===429?'로그인 시도가 많아요. 15분 뒤 다시 시도해주세요.':error?.context?.status===503?'로그인 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.':isEmail?authErrorKo(error):'아이디 또는 비밀번호가 맞지 않습니다.');
       }
     };
     gate.querySelector('#signUpButton').onclick = () => signupView();
     gate.querySelector('#findLoginId').onclick = () => recoveryEmailView('id');
     gate.querySelector('#resetPassword').onclick = () => recoveryEmailView('password');
-    gate.querySelector('#oldEmailLogin').onclick = () => legacyEmailView();
     gate.querySelector('#resendEmailLink').onclick = () => resendEmailView();
-    gate.querySelector('#localOnlyButton').onclick = () => {document.documentElement.classList.remove('refit-backend-on');gate.hidden=true;localMode();};
-  }
-  function legacyEmailView(message='') {
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">기존 계정</div><h1>이메일로 로그인</h1><p>이전에 이메일로 가입한 계정과 운동 기록을 그대로 불러옵니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="legacyEmail">이메일</label><input id="legacyEmail" type="email" autocomplete="email" required></div><div class="field"><label for="legacyPassword">비밀번호</label><input id="legacyPassword" type="password" autocomplete="current-password" required></div><label class="account-remember"><input id="legacyRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><div class="account-actions"><button id="legacySignIn" class="save-manual">로그인</button><button id="legacyBack" class="cancel">돌아가기</button></div></section>`);
-    gate.querySelector('#legacySignIn').onclick=async()=>{
-      const email=gate.querySelector('#legacyEmail').value.trim(),password=gate.querySelector('#legacyPassword').value;
-      setRememberLogin(gate.querySelector('#legacyRememberLogin').checked);
-      const {error}=await client.auth.signInWithPassword({email,password});
-      if(error)legacyEmailView(authErrorKo(error));
-    };
-    gate.querySelector('#legacyBack').onclick=()=>authView();
   }
   function recoveryEmailView(kind, message='', error=false) {
     const isId=kind==='id';
