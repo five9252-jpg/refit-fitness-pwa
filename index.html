@@ -278,8 +278,8 @@
     const exerciseList=document.getElementById('exerciseList'),exerciseBackdrop=document.getElementById('exerciseBackdrop');exerciseList.onclick=e=>{const detail=e.target.closest('[data-exercise-detail]');if(detail){openExerciseDetail(detail.dataset.exerciseDetail);return}const use=e.target.closest('[data-use-recommendation]');if(use){const row=use.closest('.exercise'),weight=row.querySelector('[data-weight]');weight.value=use.dataset.useRecommendation}};document.getElementById('closeExerciseDialog').onclick=()=>exerciseBackdrop.classList.remove('open');exerciseBackdrop.onclick=e=>{if(e.target===exerciseBackdrop)exerciseBackdrop.classList.remove('open')};
     exerciseList.onchange=e=>{if(!e.target.matches('[data-equipment]'))return;const row=e.target.closest('.exercise'),name=row.dataset.name,ex=allExercisePool.find(x=>x.name===name),equipment=e.target.value.trim(),rec=recommendFor(name,equipment,ex.reps);row.querySelector('[data-recommendation]').outerHTML=recommendationMarkup(ex,equipment,rec)};
     exerciseList.addEventListener('click',e=>{const remove=e.target.closest('[data-remove-exercise]');if(!remove)return;const {split}=getPlan(),items=getCurrentRoutine(split);if(items.length<=1){toast('루틴에는 운동을 최소 1개 남겨주세요.');return}saveRoutineEdits(split,items.filter(ex=>ex.name!==remove.dataset.removeExercise),'오늘 루틴에서 운동을 뺐어요.')});
-    document.getElementById('addRoutineExercise').onclick=()=>{const {split}=getPlan(),items=getCurrentRoutine(split),name=document.getElementById('addRoutineSelect').value,exercise=allExercisePool.find(ex=>ex.name===name);if(!exercise){toast('추가할 운동을 선택해주세요.');return}if(items.some(ex=>ex.name===name)){toast('이미 루틴에 들어 있는 운동이에요.');return}if(items.length>=12){toast('루틴은 최대 12종목까지 추가할 수 있어요.');return}saveRoutineEdits(split,[...items,exercise],'오늘 루틴에 운동을 추가했어요.')};
-    window.PacefitAddExercise=name=>{const exercise=allExercisePool.find(item=>item.name===name);if(!exercise)return false;const {split}=getPlan(),items=getCurrentRoutine(split);if(items.some(item=>item.name===name)){toast('이미 오늘 루틴에 들어 있는 운동이에요.');return false}if(items.length>=12){toast('루틴은 최대 12종목까지 추가할 수 있어요.');return false}return saveRoutineEdits(split,[...items,exercise],'오늘 루틴에 운동을 추가했어요.')};
+    document.getElementById('addRoutineExercise').onclick=()=>{const {split}=getPlan(),items=getCurrentRoutine(split),name=document.getElementById('addRoutineSelect').value,exercise=allExercisePool.find(ex=>ex.name===name);if(!exercise){toast('추가할 운동을 선택해주세요.');return}if(items.some(ex=>ex.name===name)){toast('이미 루틴에 들어 있는 운동이에요.');return}if(items.length>=12){toast('루틴은 최대 12종목까지 추가할 수 있어요.');return}saveRoutineEdits(split,[exercise,...items],'오늘 루틴에 운동을 추가했어요.')};
+    window.PacefitAddExercise=name=>{const exercise=allExercisePool.find(item=>item.name===name);if(!exercise)return false;const {split}=getPlan(),items=getCurrentRoutine(split);if(items.some(item=>item.name===name)){toast('이미 오늘 루틴에 들어 있는 운동이에요.');return false}if(items.length>=12){toast('루틴은 최대 12종목까지 추가할 수 있어요.');return false}return saveRoutineEdits(split,[exercise,...items],'오늘 루틴에 운동을 추가했어요.')};
     document.getElementById('todayRoutineChoice').addEventListener('change',e=>{const value=e.target.value,routineChoice=value==='auto'?{date:todayISO(),mode:'auto',split:null}:{date:todayISO(),mode:'manual',split:value};commitState({...state,routineChoice},value==='auto'?'기록 순서 추천으로 바꿨어요.':value+' 루틴으로 바꿨어요.')});
      const logList=document.getElementById('logList');logList.onclick=e=>{const button=e.target.closest('[data-log-toggle]');if(!button)return;const detail=document.getElementById('log-detail-'+button.dataset.logToggle);detail.hidden=!detail.hidden;button.setAttribute('aria-expanded',String(!detail.hidden))};
     document.getElementById('saveWorkout').onclick=async()=>{const {split}=getPlan(),items=[];let invalid=false;document.querySelectorAll('.exercise').forEach(row=>{const ex=getCurrentRoutine(split).find(x=>x.name===row.dataset.name),weightField=row.querySelector('[data-weight]'),setsField=row.querySelector('[data-sets]'),repsField=row.querySelector('[data-reps]'),equipment=row.querySelector('[data-equipment]').value.trim(),rawWeight=weightField.value.trim(),weight=rawWeight===''?null:Number(rawWeight),sets=Number(setsField.value),reps=Number(repsField.value),rawRir=row.querySelector('[data-rir]').value,rir=rawRir===''?null:Number(rawRir),formOk=row.querySelector('[data-form]').checked;if(rawWeight!==''&&(!Number.isFinite(weight)||weight<0||weight>1000)){invalid=true;weightField.focus();return}if(!Number.isInteger(sets)||sets<1||sets>30){invalid=true;setsField.focus();return}if(!Number.isInteger(reps)||reps<1||reps>100){invalid=true;repsField.focus();return}if(weight!==null)items.push({name:ex.name,equipment,weight,sets,reps,rir,formOk})});if(invalid){toast('무게 0~1000kg, 세트 1~30, 세트당 횟수 1~100으로 입력해주세요.');return}const note=document.getElementById('workoutNote').value.trim();if(!items.length&&!note&&!pendingPhotos.workout.length){toast('무게, 메모 또는 사진을 입력해주세요.');return}const photos=await savePendingPhotos('workout'),effort=document.querySelector('input[name="sessionEffort"]:checked').value,log={id:`log-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,loggedAt:new Date().toISOString(),date:todayISO(),title:split+' · 헬스장 루틴',effort,note,photoIds:photos.ids,items},profile=state.sampleProfile?null:state.profile,onboardingSkipped=state.sampleProfile?false:state.onboardingSkipped,realLogs=state.demo?[]:state.logs,saved=commitState({...state,demo:false,sampleProfile:false,profile,onboardingSkipped,logs:[...realLogs,log]},'오늘 운동 기록을 저장했어요.');if(!saved)await deleteMedia(photos.ids);else{document.getElementById('workoutNote').value='';clearPendingPhotos('workout');if(photos.error)toast('운동 기록은 저장했지만 사진은 저장되지 않았어요.');if(!profile&&!onboardingSkipped)openProfile()}};
@@ -305,7 +305,7 @@
 <script src="./exercise-visuals.js" defer></script>
 <script src="./exercise-library-ui.js" defer></script>
 <script src="./routine-by-part.js?v=20261105-plans-3" defer></script>
-<script src="./workout-enhancements.js" defer></script>
+<script src="./workout-enhancements.js?v=20261106-journal-1" defer></script>
 <script src="./calorie-estimate.js" defer></script>
 <script src="./operator-dashboard.js?v=20261105-plans-1" defer></script>
 <script src="./account.js?v=20261106-recovery-1" defer></script>
@@ -324,7 +324,6 @@
         if (button.dataset.viewTarget === view) button.setAttribute('aria-current', 'page');
         else button.removeAttribute('aria-current');
       });
-      if (view === 'journal') document.getElementById('journalDisclosure').open = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     document.querySelectorAll('[data-view-target]').forEach(button => button.addEventListener('click', () => showView(button.dataset.viewTarget)));
@@ -351,6 +350,8 @@
 </script>
 </body>
 </html>
+
+
 
 
 

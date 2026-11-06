@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v43';
+const CACHE_NAME = 'refit-shell-v44';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ const SHELL_ASSETS = [
   './diet-journal.js?v=2',
   './diet-journal.css',
   './routine-by-part.js?v=20261105-plans-3',
-  './workout-enhancements.js',
+  './workout-enhancements.js?v=20261106-journal-1',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer.js?v=20261105-trainer-2',
@@ -130,5 +130,6 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
 
 
