@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v42';
+const CACHE_NAME = 'refit-shell-v43';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const SHELL_ASSETS = [
   './manifest.webmanifest',
   './pwa-register.js',
   './backend-config.js?v=20261105-login-id-3',
-  './account.js?v=20261105-login-id-4',
+  './account.js?v=20261106-recovery-1',
   './operator-dashboard.js?v=20261105-plans-1',
   './voice-journal.js',
   './diet-journal.js?v=2',
@@ -130,4 +130,5 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
 

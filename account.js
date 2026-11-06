@@ -6,10 +6,36 @@
   const partlyConfigured = Boolean(cfg.supabaseUrl || cfg.supabasePublishableKey);
   const ready = Boolean(cfg.supabaseUrl && cfg.supabasePublishableKey && privacy.noticeVersion && privacy.operatorName && privacy.contactEmail && privacy.retention && privacy.dataRegion && privacy.processorNotice);
   const localConsentKey = 'refit-local-consent-v2';
+  const rememberKey = 'refit-remember-login-v1';
+  const authStorageKeys = new Set();
+  const rememberLogin = () => { try { return localStorage.getItem(rememberKey) !== 'off'; } catch { return false; } };
+  const authStorage = {
+    getItem(key) { authStorageKeys.add(key); return (rememberLogin() ? localStorage : sessionStorage).getItem(key); },
+    setItem(key, value) {
+      authStorageKeys.add(key);
+      (rememberLogin() ? localStorage : sessionStorage).setItem(key, value);
+      (rememberLogin() ? sessionStorage : localStorage).removeItem(key);
+    },
+    removeItem(key) { authStorageKeys.add(key); localStorage.removeItem(key); sessionStorage.removeItem(key); }
+  };
+  function setRememberLogin(enabled) {
+    const from = rememberLogin() ? localStorage : sessionStorage;
+    const to = enabled ? localStorage : sessionStorage;
+    if (from !== to) for (const key of authStorageKeys) {
+      const value = from.getItem(key);
+      if (value !== null) { to.setItem(key, value); from.removeItem(key); }
+    }
+    localStorage.setItem(rememberKey, enabled ? 'on' : 'off');
+  }
   const bridge = window.RefitAccountBridge;
   let client = null, currentUser = null, cloudExerciseConsent = false, syncTimer = 0, syncBusy = false, pendingSync = false, finishingUserId = null;
   let signupCredentials = null;
   const loginIdPattern = /^[a-z][a-z0-9_]{3,19}$/;
+  const authAction = new URLSearchParams(location.search).get('auth');
+  const authRedirect = action => `${location.origin}${location.pathname}?auth=${action}`;
+  function clearAuthAction() {
+    if (authAction) history.replaceState(history.state, '', location.pathname);
+  }
 
   const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const show = (root, html) => { root.innerHTML = html; root.hidden = false; };
@@ -40,6 +66,7 @@
     if (!code && !error) return '';
     // Remove the stale auth error fragment so refreshes return to a usable page.
     history.replaceState(history.state, '', `${location.pathname}${location.search}`);
+    if (authAction==='reset-password' || authAction==='find-id') return '확인 링크가 만료됐거나 이미 사용됐어요. 로그인 화면에서 새 확인 메일을 요청해 주세요.';
     if (code === 'otp_expired') return '이메일 인증 링크가 만료됐거나 이미 사용됐어요. 이미 인증을 마쳤다면 가입한 계정으로 로그인해 주세요. 아직 인증 전이면 새 인증 메일을 요청해 주세요.';
     return '이메일 인증을 완료하지 못했어요. 링크가 만료됐거나 이미 사용되었을 수 있습니다. 로그인하거나 새 인증 메일을 요청해 주세요.';
   })();
@@ -47,7 +74,7 @@
   const topRight = document.querySelector('.top-right'); if (topRight) topRight.insertBefore(accountButton, topRight.firstChild);
   const style = document.createElement('style'); style.textContent = `
     html.refit-backend-on .app{visibility:hidden}html.refit-backend-on:has(.account-gate[hidden]) .app{visibility:visible}
-    .account-gate{position:fixed;inset:0;z-index:1000;overflow:auto;background:rgba(18,36,27,.72);display:grid;place-items:center;padding:18px}.account-gate[hidden]{display:none!important}.account-panel{width:min(100%,560px);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 22px 90px #10251955;color:#16241b}.account-panel h1{font-size:25px;margin:8px 0}.account-panel>p{color:#59665d;line-height:1.6}.account-panel .eyebrow{color:#477657;font-size:12px;font-weight:800;letter-spacing:.04em}.account-panel .field{display:grid;gap:7px;margin:14px 0}.account-panel .field input{min-height:44px;padding:10px 12px;border:1px solid #d9e1d8;border-radius:10px;font:inherit}.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.account-actions button,.account-panel button{min-height:42px;padding:9px 14px;border:0;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.account-panel .save-manual{background:#2f6149;color:#fff}.account-panel .cancel{background:#edf1ec;color:#284b37}.account-panel button:disabled{opacity:.45;cursor:not-allowed}.account-footnote{font-size:12px!important}.notice-list{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;padding:15px;background:#f4f7f2;border-radius:14px;font-size:13px;line-height:1.5}.notice-list dt{font-weight:800;color:#2f6149}.notice-list dd{margin:0;color:#465349}.consent-check{display:flex;gap:10px;align-items:flex-start;margin:16px 0;line-height:1.5;font-size:14px}.consent-check input{margin-top:4px;flex:none}.account-link{border:0;background:none;color:#2f6149;text-decoration:underline;font:inherit;cursor:pointer;padding:4px}.account-error{color:#a1392e!important;background:#fff2ef;padding:10px;border-radius:10px}.admin-user{border:1px solid #e0e7de;border-radius:14px;padding:13px;margin:10px 0;background:#f9faf8}.admin-user summary{cursor:pointer;font-weight:800}.admin-user pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#465349;background:#f0f3ef;padding:10px;border-radius:8px}.account-badge{font-size:11px;color:#2f6149;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .account-gate{position:fixed;inset:0;z-index:1000;overflow:auto;background:rgba(18,36,27,.72);display:grid;place-items:center;padding:18px}.account-gate[hidden]{display:none!important}.account-panel{width:min(100%,560px);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 22px 90px #10251955;color:#16241b}.account-panel h1{font-size:25px;margin:8px 0}.account-panel>p{color:#59665d;line-height:1.6}.account-panel .eyebrow{color:#477657;font-size:12px;font-weight:800;letter-spacing:.04em}.account-panel .field{display:grid;gap:7px;margin:14px 0}.account-panel .field input{min-height:44px;padding:10px 12px;border:1px solid #d9e1d8;border-radius:10px;font:inherit}.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.account-actions button,.account-panel button{min-height:42px;padding:9px 14px;border:0;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.account-panel .save-manual{background:#2f6149;color:#fff}.account-panel .cancel{background:#edf1ec;color:#284b37}.account-panel button:disabled{opacity:.45;cursor:not-allowed}.account-footnote{font-size:12px!important}.account-remember{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px}.account-remember input{width:17px;height:17px}.notice-list{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;padding:15px;background:#f4f7f2;border-radius:14px;font-size:13px;line-height:1.5}.notice-list dt{font-weight:800;color:#2f6149}.notice-list dd{margin:0;color:#465349}.consent-check{display:flex;gap:10px;align-items:flex-start;margin:16px 0;line-height:1.5;font-size:14px}.consent-check input{margin-top:4px;flex:none}.account-link{border:0;background:none;color:#2f6149;text-decoration:underline;font:inherit;cursor:pointer;padding:4px}.account-error{color:#a1392e!important;background:#fff2ef;padding:10px;border-radius:10px}.admin-user{border:1px solid #e0e7de;border-radius:14px;padding:13px;margin:10px 0;background:#f9faf8}.admin-user summary{cursor:pointer;font-weight:800}.admin-user pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#465349;background:#f0f3ef;padding:10px;border-radius:8px}.account-badge{font-size:11px;color:#2f6149;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     @media(max-width:560px){.account-panel{padding:20px;border-radius:17px}.notice-list{grid-template-columns:1fr;gap:3px}.notice-list dd{margin-bottom:7px}.account-open{font-size:10px;padding:7px 9px!important}}
   `; document.head.appendChild(style);
   style.textContent += '.account-info{color:#23513b;background:#edf7ee;padding:10px;border-radius:10px;line-height:1.5}';
@@ -71,7 +98,7 @@
   }
   startServer();
   function startServer() {
-  client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:authStorage}});
   const pill = document.getElementById('localPill');
   const userBadge = document.createElement('span'); userBadge.className = 'account-badge'; if (topRight) topRight.insertBefore(userBadge, accountButton.nextSibling);
   function authErrorKo(error) {
@@ -94,11 +121,12 @@
   function authView(message = '', tone = 'error') {
     document.documentElement.classList.add('refit-backend-on');
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">아이디로 로그인</h1><p>가입 때 만든 아이디와 비밀번호를 입력하세요.</p>${notice}<div class="field"><label for="loginId">아이디</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><label class="account-remember"><input id="rememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">비밀번호를 저장하지 않고 로그인 상태만 유지합니다. 공용 기기라면 체크를 해제하세요.</p><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions"><button class="account-link" id="findLoginId">아이디 찾기</button><button class="account-link" id="resetPassword">비밀번호 찾기</button><button class="account-link" id="oldEmailLogin">기존 이메일 계정으로 로그인</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button><button class="account-link" id="localOnlyButton">계정 없이 개인으로 사용</button></div><p class="account-footnote">기존 이메일 계정의 운동 기록은 그대로 유지됩니다. 로그인 뒤 아이디를 만들 수 있습니다.</p></section>`);
     gate.querySelector('#signInButton').onclick = async () => {
       const username=gate.querySelector('#loginId').value.trim().toLowerCase();
       const password=gate.querySelector('#accountPassword').value;
       if(!loginIdPattern.test(username)||password.length<8){authView('아이디와 비밀번호를 확인해주세요.');return;}
+      setRememberLogin(gate.querySelector('#rememberLogin').checked);
       const button=gate.querySelector('#signInButton');button.disabled=true;
       try {
         const {data,error}=await client.functions.invoke('username-login',{body:{username,password}});
@@ -111,18 +139,61 @@
       }
     };
     gate.querySelector('#signUpButton').onclick = () => signupView();
+    gate.querySelector('#findLoginId').onclick = () => recoveryEmailView('id');
+    gate.querySelector('#resetPassword').onclick = () => recoveryEmailView('password');
     gate.querySelector('#oldEmailLogin').onclick = () => legacyEmailView();
     gate.querySelector('#resendEmailLink').onclick = () => resendEmailView();
     gate.querySelector('#localOnlyButton').onclick = () => {document.documentElement.classList.remove('refit-backend-on');gate.hidden=true;localMode();};
   }
   function legacyEmailView(message='') {
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">기존 계정</div><h1>이메일로 로그인</h1><p>이전에 이메일로 가입한 계정과 운동 기록을 그대로 불러옵니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="legacyEmail">이메일</label><input id="legacyEmail" type="email" autocomplete="email" required></div><div class="field"><label for="legacyPassword">비밀번호</label><input id="legacyPassword" type="password" autocomplete="current-password" required></div><div class="account-actions"><button id="legacySignIn" class="save-manual">로그인</button><button id="legacyBack" class="cancel">돌아가기</button></div></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">기존 계정</div><h1>이메일로 로그인</h1><p>이전에 이메일로 가입한 계정과 운동 기록을 그대로 불러옵니다.</p>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="legacyEmail">이메일</label><input id="legacyEmail" type="email" autocomplete="email" required></div><div class="field"><label for="legacyPassword">비밀번호</label><input id="legacyPassword" type="password" autocomplete="current-password" required></div><label class="account-remember"><input id="legacyRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><div class="account-actions"><button id="legacySignIn" class="save-manual">로그인</button><button id="legacyBack" class="cancel">돌아가기</button></div></section>`);
     gate.querySelector('#legacySignIn').onclick=async()=>{
       const email=gate.querySelector('#legacyEmail').value.trim(),password=gate.querySelector('#legacyPassword').value;
+      setRememberLogin(gate.querySelector('#legacyRememberLogin').checked);
       const {error}=await client.auth.signInWithPassword({email,password});
       if(error)legacyEmailView(authErrorKo(error));
     };
     gate.querySelector('#legacyBack').onclick=()=>authView();
+  }
+  function recoveryEmailView(kind, message='', error=false) {
+    const isId=kind==='id';
+    const title=isId?'아이디 찾기':'비밀번호 찾기';
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">계정 복구</div><h1>${title}</h1><p>가입할 때 인증한 이메일을 입력하세요. 본인 확인 링크를 보내드립니다.</p>${message?`<p class="${error?'account-error':'account-info'}" role="${error?'alert':'status'}">${escapeHtml(message)}</p>`:''}<div class="field"><label for="recoveryEmail">가입 이메일</label><input id="recoveryEmail" type="email" autocomplete="email" maxlength="254" required></div><div class="account-actions"><button id="sendRecovery" class="save-manual">확인 메일 보내기</button><button id="recoveryBack" class="cancel">로그인으로 돌아가기</button></div><p class="account-footnote">가입된 이메일인지 여부는 화면에 표시하지 않습니다. 메일이 오지 않으면 스팸함도 확인해 주세요.</p></section>`);
+    gate.querySelector('#sendRecovery').onclick=async()=>{
+      const input=gate.querySelector('#recoveryEmail');
+      if(!input.checkValidity()){input.reportValidity();return;}
+      const button=gate.querySelector('#sendRecovery');button.disabled=true;
+      const email=input.value.trim();
+      const result=isId
+        ? await client.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:authRedirect('find-id')}})
+        : await client.auth.resetPasswordForEmail(email,{redirectTo:authRedirect('reset-password')});
+      if(result.error){recoveryEmailView(kind,authErrorKo(result.error),true);return;}
+      recoveryEmailView(kind,'요청을 접수했어요. 가입된 이메일이라면 확인 링크가 도착합니다.');
+    };
+    gate.querySelector('#recoveryBack').onclick=()=>authView();
+  }
+  async function foundIdView() {
+    const {data,error}=await client.rpc('my_login_id');
+    if(error){authView('아이디를 불러오지 못했어요. 잠시 후 다시 시도해주세요.');return;}
+    clearAuthAction();
+    show(gate,`<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">이메일 확인 완료</div><h1>내 로그인 아이디</h1><p class="account-info">${data?escapeHtml(data):'이 계정에는 아직 로그인 아이디가 연결되지 않았습니다.'}</p><p>확인된 이메일: ${escapeHtml(currentUser?.email||'')}</p><div class="account-actions"><button id="foundIdContinue" class="save-manual">계속 사용하기</button></div></section>`);
+    gate.querySelector('#foundIdContinue').onclick=()=>{gate.hidden=true;};
+  }
+  function newPasswordView(message='') {
+    document.documentElement.classList.add('refit-backend-on');
+    show(gate,`<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">이메일 확인 완료</div><h1>새 비밀번호 설정</h1>${message?`<p class="account-error" role="alert">${escapeHtml(message)}</p>`:''}<div class="field"><label for="recoveryPassword">새 비밀번호</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="recoveryPasswordAgain">새 비밀번호 확인</label><input id="recoveryPasswordAgain" type="password" autocomplete="new-password" minlength="8" required></div><div class="account-actions"><button id="saveNewPassword" class="save-manual">비밀번호 변경</button></div><p class="account-footnote">8자 이상으로 설정하세요. 변경 후 현재 기기에서 로그인 상태가 유지됩니다.</p></section>`);
+    gate.querySelector('#saveNewPassword').onclick=async()=>{
+      const password=gate.querySelector('#recoveryPassword').value;
+      const again=gate.querySelector('#recoveryPasswordAgain').value;
+      if(password.length<8||password!==again){newPasswordView('비밀번호를 8자 이상, 두 칸에 동일하게 입력해주세요.');return;}
+      gate.querySelector('#saveNewPassword').disabled=true;
+      const {error}=await client.auth.updateUser({password});
+      if(error){newPasswordView(authErrorKo(error));return;}
+      clearAuthAction();
+      const {data}=await client.auth.getUser();
+      if(data?.user) await finishSession(data.user);
+      else authView('비밀번호를 변경했어요. 새 비밀번호로 로그인해 주세요.','success');
+    };
   }
   function resendEmailView(message='') {
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">이메일 인증</div><h1>인증 메일 다시 받기</h1><p>가입할 때 입력한 이메일 주소를 적어주세요.</p>${message?`<p class="account-info" role="status">${escapeHtml(message)}</p>`:''}<div class="field"><label for="resendEmail">이메일</label><input id="resendEmail" type="email" autocomplete="email" required></div><div class="account-actions"><button id="resendEmailSubmit" class="save-manual">인증 메일 보내기</button><button id="resendEmailBack" class="cancel">돌아가기</button></div></section>`);
@@ -326,7 +397,8 @@
       client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle(),
       client.rpc('my_login_id')
     ]);
-    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><label class="account-remember"><input id="menuRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">공용 기기에서는 끄고 사용하세요. 끄면 브라우저를 닫을 때 로그인 상태가 해제됩니다.</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    gate.querySelector('#menuRememberLogin').onchange=e=>setRememberLogin(e.target.checked);
     const claimButton=gate.querySelector('#claimLoginId');if(claimButton)claimButton.onclick=()=>claimLoginIdView();
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
      gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
@@ -335,7 +407,7 @@
     if(finishingUserId===user.id)return;
     finishingUserId=user.id;
     currentUser=user;
-    try {if(!(await ensureConsent(user)))return;await loadCloudState();}
+    try {if(!(await ensureConsent(user)))return;await loadCloudState();if(authAction==='find-id')await foundIdView();}
     catch(error){show(gate,`<section class="account-panel"><h1>계정 데이터를 불러오지 못했어요</h1><p class="account-error">${escapeHtml(authErrorKo(error))}</p><button id="retryAccount" class="cancel">다시 시도</button><button id="signOutError" class="cancel">로그아웃</button></section>`);gate.querySelector('#retryAccount').onclick=()=>finishSession(user);gate.querySelector('#signOutError').onclick=async()=>{await client.auth.signOut();currentUser=null;authView();};}
     finally {if(finishingUserId===user.id)finishingUserId=null;}
   }
@@ -345,8 +417,20 @@
   accountButton.onclick=()=>authView();
   gate.hidden=false;
   show(gate,'<section class="account-panel"><div class="eyebrow">안전한 계정 연결</div><h1>연결 상태를 확인하고 있어요</h1><p>계정과 동의 기록을 확인한 다음 화면을 열겠습니다.</p></section>');
-  client.auth.getSession().then(({data,error})=>{if(error||!data.session){authView(authCallbackNotice);return;}finishSession(data.session.user);});
-   client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!== (currentUser&&currentUser.id))setTimeout(()=>finishSession(session.user),0);if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}});
+  client.auth.getSession().then(({data,error})=>{
+    if(error||!data.session){authView(authCallbackNotice);return;}
+    if(authAction==='reset-password'){newPasswordView();return;}
+    finishSession(data.session.user);
+  });
+  client.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'&&session){setTimeout(()=>newPasswordView(),0);return;}
+    if(event==='SIGNED_IN'&&session&&session.user&&session.user.id!==(currentUser&&currentUser.id)){
+      if(authAction==='reset-password'){setTimeout(()=>newPasswordView(),0);return;}
+      setTimeout(()=>finishSession(session.user),0);
+    }
+    if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}
+  });
   }
 })();
+
 
