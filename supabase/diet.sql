@@ -30,6 +30,10 @@ create table if not exists public.diet_consent_events (
   accepted_at timestamptz not null default now()
 );
 create index if not exists food_nutrients_name_search_idx on public.food_nutrients using gin (to_tsvector('simple', food_name));
+-- The live lookup uses ILIKE '%query%'; a trigram index avoids scanning the
+-- full K-FIND catalogue for every search once the database is populated.
+create extension if not exists pg_trgm with schema extensions;
+create index if not exists food_nutrients_name_trgm_idx on public.food_nutrients using gin (food_name extensions.gin_trgm_ops);
 
 create table if not exists public.diet_entries (
   id text primary key,
@@ -99,3 +103,4 @@ create policy "users delete own diet photos" on storage.objects for delete to au
 
 -- Admin-only DB import is intentionally done from a trusted Edge Function using
 -- K-FIND_API_KEY and SUPABASE_SERVICE_ROLE_KEY secrets, never from browser code.
+

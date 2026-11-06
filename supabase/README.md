@@ -41,7 +41,7 @@
 1. Supabase SQL Editor에서 `diet.sql`을 실행합니다. 기존 `recovery.sql`을 이전에 실행한 프로젝트에서는 수정된 파일도 다시 실행해 탈퇴 시 비공개 식단 사진 객체가 삭제되게 합니다.
 2. Supabase Edge Functions에 `diet-food-search`, `diet-photo-analyze`, `diet-kfind-sync`를 배포합니다. 브라우저에 API 비밀키를 두지 않습니다.
 3. Supabase Dashboard의 Edge Function Secrets에 `FOOD_SAFETY_API_KEY`, `OPENAI_API_KEY`, `OPENAI_VISION_MODEL`을 직접 등록합니다. `diet-kfind-sync`는 서비스 키를 사용하며, 운영자 확인 후에만 실행합니다. `service_role`은 함수 환경에만 둡니다. AI 비밀값 등록 후에만 `backend-config.js`의 `features.dietPhotoAnalysisEnabled`를 `true`로 바꿉니다.
-4. 식품의약품안전처 식품영양성분 DB API 키는 [K-FIND Open API 안내](https://various.foodsafetykorea.go.kr/nutrient/industry/openApi/info.do) 및 식의약 데이터 포털에서 신청합니다. 최초 동기화 후 운영자 화면의 **K-FIND 영양 DB 500건 가져오기** 버튼을 반복해 전체 페이지를 가져옵니다. 동기화가 끝나면 `backend-config.js`의 `features.dietFoodSearchEnabled`를 `true`로 바꿉니다. API 응답 필드나 키 제공 상태가 바뀌면 함수의 필드 매핑을 점검해야 합니다.
+4. 식품의약품안전처 식품영양성분 DB API 키는 [K-FIND Open API 안내](https://various.foodsafetykorea.go.kr/nutrient/industry/openApi/info.do)에서 연결하는 식의약 데이터 포털을 통해 신청합니다. 현재 연결된 영양 DB 서비스는 `I2791`입니다. 최초 동기화 후 운영자 화면의 **K-FIND 영양 DB 500건 가져오기** 버튼을 반복해 전체 페이지를 가져옵니다. 동기화가 끝나면 `backend-config.js`의 `features.dietFoodSearchEnabled`를 `true`로 바꿉니다. API 키나 응답 규격이 바뀌면 서버 함수의 필드 매핑을 재확인해야 합니다.
 5. 음식 사진 추정은 서버에서 `OPENAI_API_KEY`와 `OPENAI_VISION_MODEL`이 설정된 경우에만 활성화됩니다. 사용자가 별도 동의하고 사진을 선택해야 호출되며, 추정값은 자동 저장되지 않고 기록 저장 전에 사용자가 확인·수정합니다.
 6. 먼저 Supabase 프로젝트에 `diet.sql`과 세 함수를 반영하고, 그 다음 앱 파일을 GitHub Pages에 배포해야 실제 서버 저장/검색/분석이 작동합니다. 현재 로컬 코드만으로는 공개 웹이나 서버 설정이 바뀌지 않습니다.
 
