@@ -1,9 +1,7 @@
-const CACHE_NAME = 'refit-shell-v53';
+const CACHE_NAME = 'refit-shell-v55';
 const SHELL_ASSETS = [
   './',
   './index.html',
-  './가이드-미리보기.html',
-  './assets/exercises/squat-pose-check-demo.jpg',
   './privacy.html',
   './manifest.webmanifest',
   './pwa-register.js',
@@ -30,6 +28,8 @@ const SHELL_ASSETS = [
   './data/burnfit-library.js',
   './exercise-library-ui.js',
   './exercise-art-data.js',
+  './exercise-art-lower-1.js',
+  './exercise-art-lower-2.js',
   './exercise-visuals.js',
   './assets/exercises/pacefit-area-chest.jpg',
   './assets/exercises/pacefit-area-back.jpg',
@@ -83,6 +83,7 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
 
 
 
