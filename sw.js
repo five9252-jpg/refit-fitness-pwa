@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v55';
+const CACHE_NAME = 'refit-shell-v56';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -30,6 +30,7 @@ const SHELL_ASSETS = [
   './exercise-art-data.js',
   './exercise-art-lower-1.js',
   './exercise-art-lower-2.js',
+  './exercise-art-lower-3.js',
   './exercise-visuals.js',
   './assets/exercises/pacefit-area-chest.jpg',
   './assets/exercises/pacefit-area-back.jpg',
