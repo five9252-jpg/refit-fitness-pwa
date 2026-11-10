@@ -63,6 +63,53 @@
     '바벨 컬': { main: '이두', assist: '상완근 · 전완근' },
     '바벨 로우': { main: '광배근 · 등 중간', assist: '이두 · 뒤어깨' },
   };
+  const inferMuscles = (item) => {
+    const name = item.name || '';
+    const category = item.category || '';
+    const has = pattern => pattern.test(name);
+    if (category === '하체') {
+      if (has(/데드리프트|힙힌지|굿모닝|풀.?스루|랙풀/)) return { main: '둔근 · 햄스트링', assist: '척추기립근 · 광배근' };
+      if (has(/레그.?프레스/)) return { main: '대퇴사두근', assist: '둔근 · 햄스트링' };
+      if (has(/레그.?컬|햄스트링.?컬|원레그.?컬/)) return { main: '햄스트링', assist: '종아리 · 둔근' };
+      if (has(/레그.?익스텐션|원레그.?익스텐션/)) return { main: '대퇴사두근', assist: '무릎 주변 안정근' };
+      if (has(/카프|종아리/)) return { main: '종아리', assist: '가자미근 · 발목 안정근' };
+      if (has(/런지|스텝업|스플릿/)) return { main: '대퇴사두근 · 둔근', assist: '햄스트링 · 종아리' };
+      if (has(/어브덕션|어덕션|클램|파이어 하이드런트/)) return { main: '둔근 · 내전근', assist: '대퇴근막장근 · 코어' };
+      if (has(/힙 쓰러스트|글루트|킥백|브릿지/)) return { main: '둔근', assist: '햄스트링 · 코어' };
+      return { main: '대퇴사두근 · 둔근', assist: '햄스트링 · 내전근 · 코어' };
+    }
+    if (category === '가슴') return { main: has(/플라이/) ? '대흉근' : '대흉근', assist: '앞어깨 · 삼두' };
+    if (category === '등') {
+      if (has(/데드리프트|랙풀|하이퍼|익스텐션/)) return { main: '척추기립근 · 둔근', assist: '햄스트링 · 광배근' };
+      if (has(/풀업|친업|풀다운|랫풀|풀.?다운/)) return { main: '광배근', assist: '이두 · 대원근' };
+      return { main: '광배근 · 등 중간', assist: '이두 · 뒤어깨 · 승모근' };
+    }
+    if (category === '어깨') {
+      if (has(/레터럴|리어|후면|리버스 플라이|페이스 풀/)) return { main: '어깨 옆·뒤', assist: '승모근 · 회전근개' };
+      if (has(/슈러그/)) return { main: '승모근', assist: '견갑거근 · 전완근' };
+      return { main: '어깨 앞·옆', assist: '삼두 · 윗가슴' };
+    }
+    if (category === '팔') {
+      if (has(/삼두|트라이셉|푸시.?다운|스컬 크러셔|JM 프레스/)) return { main: '삼두', assist: '팔꿈치 안정근 · 어깨' };
+      if (has(/리스트|악력|롤러|파머스/)) return { main: '전완근 · 악력', assist: '승모근 · 코어' };
+      return { main: '이두 · 상완근', assist: '전완근 · 어깨 안정근' };
+    }
+    if (category === '복근') {
+      if (has(/플랭크|데드버그|버드독/)) return { main: '복횡근 · 코어', assist: '둔근 · 어깨 안정근' };
+      if (has(/트위스트|로테이션|사이드|러시안/)) return { main: '복사근', assist: '복직근 · 코어' };
+      return { main: '복직근', assist: '복사근 · 고관절 굴곡근' };
+    }
+    if (category === '역도') return { main: '둔근 · 대퇴사두근', assist: '승모근 · 어깨 · 코어' };
+    if (category === '유산소') {
+      if (has(/로잉|스키 머신/)) return { main: '등 · 대퇴사두근', assist: '둔근 · 이두 · 코어' };
+      if (has(/싸이클|바이크|자전거/)) return { main: '대퇴사두근', assist: '둔근 · 햄스트링 · 종아리' };
+      return { main: '대퇴사두근 · 둔근', assist: '햄스트링 · 종아리 · 코어' };
+    }
+    return { main: '전신 · 둔근', assist: '대퇴사두근 · 코어 · 어깨 안정근' };
+  };
+  if (Array.isArray(window.PACEFIT_LIBRARY)) {
+    window.PACEFIT_LIBRARY.forEach(item => { if (!muscleInfo[item.name]) muscleInfo[item.name] = inferMuscles(item); });
+  }
   window.PacefitMuscles = muscleInfo;
   const muscleStyle = document.createElement('style');
   muscleStyle.textContent = `
@@ -117,9 +164,11 @@
         if (match(/해머/)) return 'hammer-curl-muscle-map.jpg';
         return 'barbell-curl-muscle-map.jpg';
       }
-      if (category === '복근') return 'pacefit-area-core.jpg';
-      if (category === '역도' || category === '유산소' || category === '기타') return 'pacefit-area-whole-body.jpg';
-      return 'pacefit-area-whole-body.jpg';
+      if (category === '복근') return 'bodyweight-squat-muscle-map.jpg';
+      if (category === '역도') return 'conventional-deadlift-muscle-map.jpg';
+      if (category === '유산소') return 'dumbbell-step-up-muscle-map.jpg';
+      if (category === '기타') return 'bodyweight-squat-muscle-map.jpg';
+      return 'bodyweight-squat-muscle-map.jpg';
     };
     if (Array.isArray(window.PACEFIT_LIBRARY)) {
       window.PACEFIT_LIBRARY.forEach(item => {
