@@ -4,14 +4,17 @@
   // An exercise-specific image shows that exercise's two positions. Area art only
   // identifies the body region and must never be described as a technique guide.
   const exerciseFiles = {
-    '벤치프레스': 'bench-press-muscle-map.jpg',
-    '컨벤셔널(바벨) 데드리프트': 'conventional-deadlift-muscle-map.jpg',
-    '오버헤드 프레스': 'overhead-press-muscle-map.jpg',
-    '바벨 백스쿼트': 'barbell-back-squat-muscle-map.jpg',
-    '풀업': 'pull-up-muscle-map.jpg',
-    '런지': 'lunge-muscle-map.jpg',
-    '바벨 컬': 'barbell-curl-muscle-map.jpg',
-    '바벨 로우': 'barbell-row-muscle-map.jpg',
+    '벤치프레스': 'pacefit-bench-press-v2.jpg',
+    '컨벤셔널(바벨) 데드리프트': 'pacefit-deadlift-v2.jpg',
+    '오버헤드 프레스': 'pacefit-overhead-press-v2.jpg',
+    '바벨 백스쿼트': 'pacefit-barbell-back-squat-v2.jpg',
+    '스쿼트': 'pacefit-barbell-back-squat-v2.jpg',
+    '풀업': 'pacefit-pull-up-v2.jpg',
+    '런지': 'pacefit-lunge-v2.jpg',
+    '바벨 컬': 'pacefit-barbell-curl-v2.jpg',
+    '바벨 로우': 'pacefit-barbell-row-v2.jpg',
+    '힙 쓰러스트': 'pacefit-hip-thrust-v2.jpg',
+    '덤벨 레터럴 레이즈': 'pacefit-lateral-raise-v2.jpg',
   };
   const areaFiles = {
     '가슴': 'pacefit-area-chest.jpg',
@@ -121,7 +124,7 @@
   `;
   document.head.append(muscleStyle);
   if (typeof exerciseAtlasCell !== 'undefined') {
-    Object.entries(exerciseFiles).forEach(([name, file]) => { exerciseAtlasCell[name] = { file }; });
+    Object.entries(exerciseFiles).forEach(([name, file]) => { exerciseAtlasCell[name] = { file: window.PacefitExerciseArt?.[file] || file }; });
     const representativeImage = (item) => {
       const name = item.name || '';
       const category = item.category || '';
