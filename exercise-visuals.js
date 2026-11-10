@@ -26,6 +26,11 @@
     '레그 컬': 'pacefit-seated-leg-curl-v2.jpg',
     '레그 익스텐션': 'pacefit-leg-extension-v2.jpg',
     '스탠딩 카프 레이즈': 'pacefit-standing-calf-raise-v2.jpg',
+    '핵 스쿼트 머신': 'pacefit-hack-squat-v2.jpg',
+    '힙 어덕션 머신': 'pacefit-hip-adduction-v2.jpg',
+    '힙 어브덕션 머신': 'pacefit-hip-abduction-v2.jpg',
+    '시티드 카프 레이즈': 'pacefit-seated-calf-raise-v2.jpg',
+    '노르딕 햄스트링 컬': 'pacefit-nordic-hamstring-curl-v2.jpg',
   };
   const areaFiles = {
     '가슴': 'pacefit-area-chest.jpg',
@@ -66,6 +71,11 @@
     '스모 데드리프트': { main: '둔근 · 내전근', assist: '대퇴사두근 · 햄스트링' },
     '시티드 레그 컬': { main: '햄스트링', assist: '종아리 · 둔근' },
     '스탠딩 카프 레이즈': { main: '종아리 비복근', assist: '가자미근 · 발목 안정근' },
+    '핵 스쿼트 머신': { main: '대퇴사두근', assist: '둔근 · 햄스트링' },
+    '힙 어덕션 머신': { main: '고관절 내전근', assist: '둔근 · 코어 안정근' },
+    '힙 어브덕션 머신': { main: '중둔근 · 소둔근', assist: '대퇴근막장근 · 코어 안정근' },
+    '시티드 카프 레이즈': { main: '가자미근', assist: '비복근 · 발목 안정근' },
+    '노르딕 햄스트링 컬': { main: '햄스트링', assist: '둔근 · 종아리' },
     '스쿼트': { main: '대퇴사두근 · 둔근', assist: '햄스트링 · 내전근' },
     '케이블 트라이셉스 푸시다운': { main: '삼두', assist: '팔꿈치 안정근' },
     '덤벨 체스트 프레스': { main: '가슴', assist: '앞어깨 · 삼두' },
