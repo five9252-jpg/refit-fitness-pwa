@@ -110,10 +110,12 @@
     ctx.clearRect(0, 0, width, height);
     const visible = (id) => points[id] && (points[id].visibility ?? 0) >= 0.35;
     const chains = [[11, 23], [12, 24], [23, 25, 27], [24, 26, 28], [11, 12], [23, 24], [11, 13, 15], [12, 14, 16]];
-    ctx.lineWidth = Math.max(3, width * 0.006);
+    ctx.save();
+    ctx.lineWidth = Math.max(2.5, width * 0.005);
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#d9ed81';
-    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#54e4ee';
+    ctx.shadowColor = '#35dce8';
+    ctx.shadowBlur = Math.max(7, width * 0.018);
     for (const chain of chains) {
       for (let i = 0; i < chain.length - 1; i += 1) {
         const a = points[chain[i]];
@@ -125,13 +127,25 @@
         ctx.stroke();
       }
     }
-    for (const point of points) {
-      if (!point || (point.visibility ?? 0) < 0.45) continue;
+    ctx.shadowBlur = 0;
+    const measured = new Set(ids || []);
+    points.forEach((point, id) => {
+      if (!point || (point.visibility ?? 0) < 0.45) return;
       ctx.beginPath();
-      ctx.arc(point.x * width, point.y * height, Math.max(3, width * 0.008), 0, Math.PI * 2);
+      ctx.arc(point.x * width, point.y * height, Math.max(4, width * 0.009), 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(5, 24, 30, .9)';
       ctx.fill();
-    }
+      ctx.lineWidth = Math.max(1.5, width * 0.003);
+      ctx.strokeStyle = measured.has(id) ? '#d9ef6d' : '#8ff5f3';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(point.x * width, point.y * height, Math.max(1.7, width * 0.004), 0, Math.PI * 2);
+      ctx.fillStyle = measured.has(id) ? '#eaff9a' : '#f1ffff';
+      ctx.fill();
+    });
+    ctx.restore();
   }
+
 
   function processPose(result) {
     const exercise = EXERCISES[activeExercise];
