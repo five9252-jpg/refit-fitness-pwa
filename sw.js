@@ -2,6 +2,8 @@ const CACHE_NAME = 'refit-shell-v50';
 const SHELL_ASSETS = [
   './',
   './index.html',
+  './가이드-미리보기.html',
+  './assets/exercises/squat-pose-check-demo.jpg',
   './privacy.html',
   './manifest.webmanifest',
   './pwa-register.js',
