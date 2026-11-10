@@ -27,7 +27,7 @@
     <article class="chapter" data-chapter="3"><div class="chapter-copy"><span class="chapter-num">04 · 식단 기록</span><h2>식사도 꼼꼼 기록해요</h2><p>음식 이름을 검색하거나 메모·사진을 함께 기록해요. 영양 정보와 사진 인식은 참고용으로 확인할 수 있어요.</p></div><div class="art"><div class="art-card"><strong>점심 기록 예시</strong><p>현미밥 · 닭가슴살 · 샐러드</p><div class="meter"><i style="width:66%"></i></div><div class="readout"><span>열량·영양 정보</span><span>사진 추가</span></div></div></div></article>
     <article class="chapter" data-chapter="4"><div class="chapter-copy"><span class="chapter-num">05 · 내 기록</span><h2>나의 변화를 눈으로 확인해요</h2><p>운동일지에서 날짜별 기록을 보고, 무게와 횟수가 어떻게 달라졌는지 살펴볼 수 있어요.</p></div><div class="art"><div class="art-card"><strong>최근 운동 기록</strong><div class="metric-big">3회 <span style="font-size:11px;font-weight:700;color:var(--muted)">이번 주</span></div><div class="chart" aria-hidden="true"><i style="height:30%"></i><i style="height:48%"></i><i style="height:42%"></i><i style="height:70%"></i><i style="height:88%"></i></div><div class="readout"><span>무게 변화</span><span>기록을 쌓아 확인</span></div></div></div></article>
     <div class="foot"><div class="foot-note" id="footNote">기록은 참고예요. 컨디션에 따라 운동과 무게를 조절해도 괜찮아요.</div><div class="actions"><button class="nav-btn" type="button" id="prevBtn">이전</button><button class="nav-btn primary" type="button" id="nextBtn">다음</button></div></div>
-    <p class="privacy-note">이 미리보기는 개인 확인용이며, 실제 웹사이트에는 아직 적용되지 않았습니다.</p>
+    <p class="privacy-note">필요할 때 화면 상단의 ‘이용 가이드’를 눌러 다시 확인할 수 있어요.</p>
   </section>
 </main>
 <script>
@@ -37,7 +37,7 @@
   tabs.innerHTML=names.map((name,i)=>`<button class="chapter-tab" type="button" data-step="${i}" aria-current="${i===0?'step':'false'}">${String(i+1).padStart(2,'0')} ${name}</button>`).join('');
   progress.innerHTML=chapters.map((_,i)=>`<i class="${i===0?'active':''}"></i>`).join('');
   function show(index){active=Math.max(0,Math.min(chapters.length-1,index));chapters.forEach((item,i)=>item.classList.toggle('active',i===active));tabs.querySelectorAll('button').forEach((button,i)=>button.setAttribute('aria-current',i===active?'step':'false'));progress.querySelectorAll('i').forEach((bar,i)=>bar.classList.toggle('active',i<=active));document.getElementById('stepCount').textContent=`${active+1} / ${chapters.length} 챕터`;document.getElementById('prevBtn').disabled=active===0;document.getElementById('nextBtn').textContent=active===chapters.length-1?'가이드 닫기':'다음';document.getElementById('heroTitle').innerHTML=active===0?'나에게 맞는 운동을<br>차근히 시작해요':`${names[active]} 챕터만<br>간단히 살펴봐요`;document.getElementById('heroSub').textContent='필요한 기능만 짧게 보고, 오늘 할 수 있는 것부터 시작해요.';}
-  const closeGuide=()=>{window.location.href='./index.html'};
+  const closeGuide=()=>{try{localStorage.setItem('pacefit-guide-seen-v1','1')}catch{}window.location.href='./index.html'};
   tabs.addEventListener('click',e=>{const button=e.target.closest('[data-step]');if(button)show(Number(button.dataset.step))});document.getElementById('prevBtn').addEventListener('click',()=>show(active-1));document.getElementById('nextBtn').addEventListener('click',()=>{if(active===chapters.length-1){closeGuide();return}show(active+1)});document.getElementById('skipGuide').addEventListener('click',closeGuide);show(0);
 })();
 </script>
