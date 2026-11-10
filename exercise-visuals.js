@@ -4,14 +4,14 @@
   // An exercise-specific image shows that exercise's two positions. Area art only
   // identifies the body region and must never be described as a technique guide.
   const exerciseFiles = {
-    '벤치프레스': 'pacefit-barbell-bench-press.jpg',
-    '컨벤셔널(바벨) 데드리프트': 'pacefit-conventional-deadlift.jpg',
-    '오버헤드 프레스': 'pacefit-overhead-press.jpg',
-    '바벨 백스쿼트': 'pacefit-barbell-back-squat.jpg',
-    '풀업': 'pacefit-pull-up.jpg',
-    '런지': 'pacefit-lunge.jpg',
-    '바벨 컬': 'pacefit-barbell-curl.jpg',
-    '바벨 로우': 'pacefit-barbell-row.jpg',
+    '벤치프레스': 'bench-press-muscle-map.jpg',
+    '컨벤셔널(바벨) 데드리프트': 'conventional-deadlift-muscle-map.jpg',
+    '오버헤드 프레스': 'overhead-press-muscle-map.jpg',
+    '바벨 백스쿼트': 'barbell-back-squat-muscle-map.jpg',
+    '풀업': 'pull-up-muscle-map.jpg',
+    '런지': 'lunge-muscle-map.jpg',
+    '바벨 컬': 'barbell-curl-muscle-map.jpg',
+    '바벨 로우': 'barbell-row-muscle-map.jpg',
   };
   const areaFiles = {
     '가슴': 'pacefit-area-chest.jpg',
@@ -50,3 +50,4 @@
     renderPlan();
   }
 })();
+

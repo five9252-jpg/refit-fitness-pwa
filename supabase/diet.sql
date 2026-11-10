@@ -103,4 +103,3 @@ create policy "users delete own diet photos" on storage.objects for delete to au
 
 -- Admin-only DB import is intentionally done from a trusted Edge Function using
 -- K-FIND_API_KEY and SUPABASE_SERVICE_ROLE_KEY secrets, never from browser code.
-

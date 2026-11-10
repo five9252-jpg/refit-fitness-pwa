@@ -26,4 +26,3 @@
 - 식품의약품안전처, K-FIND 식품영양성분 DB: https://various.foodsafetykorea.go.kr/nutrient/intro/data/dataInfo.do
 - 식품의약품안전처, K-FIND Open API 안내: https://various.foodsafetykorea.go.kr/nutrient/industry/openApi/info.do
 - 보건복지부·한국영양학회, 2025 한국인 영양소 섭취기준 안내: https://www.kns.or.kr/fileroom/fileroom_view.asp?BoardID=Kdr&idx=168
-

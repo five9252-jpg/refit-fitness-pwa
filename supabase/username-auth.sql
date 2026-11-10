@@ -96,4 +96,3 @@ returns text language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function public.my_login_id() from public, anon;
 grant execute on function public.my_login_id() to authenticated;
-

@@ -116,4 +116,3 @@
   window.RefitDietJournal={clearLocal:async()=>{try{const rows=read();write([]);localStorage.removeItem('pacefitDietJournalV1');for(const row of rows)if(row.photoId)await photoDel(row.photoId);}catch{localStorage.removeItem(STORE_KEY);localStorage.removeItem('pacefitDietJournalV1');}}};
   render();
 })();
-

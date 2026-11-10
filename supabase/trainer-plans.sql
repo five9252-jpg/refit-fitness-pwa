@@ -51,4 +51,3 @@ create policy "admins read workout plans" on public.trainer_workout_plans
   for select to authenticated using (exists (
     select 1 from public.admin_memberships a where a.user_id = (select auth.uid())
   ));
-

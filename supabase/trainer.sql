@@ -186,4 +186,3 @@ $$;
 
 revoke all on function public.create_trainer_profile(text), public.join_trainer(text, boolean), public.set_trainer_access(uuid, boolean, boolean) from public, anon;
 grant execute on function public.create_trainer_profile(text), public.join_trainer(text, boolean), public.set_trainer_access(uuid, boolean, boolean) to authenticated;
-

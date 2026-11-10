@@ -137,4 +137,3 @@
   window.addEventListener('focus', () => {if (window.RefitAccountSession?.exerciseConsent) loadMemberPlan();});
   if (window.RefitAccountSession) loadMemberPlan();
 })();
-

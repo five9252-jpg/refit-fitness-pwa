@@ -4,7 +4,7 @@
 window.REFIT_CONFIG = {
   supabaseUrl: 'https://hoxkpuyaeyojxhchtwzg.supabase.co',
   supabasePublishableKey: 'sb_publishable_FEy9kf6nBhSX9u4JHHc6Qw_x4VB3gZr',
-  features: { dietFoodSearchEnabled: true, dietPhotoAnalysisEnabled: false },
+  features: { dietFoodSearchEnabled: false, dietPhotoAnalysisEnabled: false },
   privacy: {
     noticeVersion: '2026-11-05-v8',
     operatorName: '박진성',
@@ -15,4 +15,3 @@ window.REFIT_CONFIG = {
     recoveryEnabled: false
   }
 };
-

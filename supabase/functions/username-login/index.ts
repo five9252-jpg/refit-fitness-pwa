@@ -81,4 +81,3 @@ Deno.serve(async (request) => {
     return response({ error: 'unavailable' }, 503, origin);
   }
 });
-

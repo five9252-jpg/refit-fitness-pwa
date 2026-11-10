@@ -104,4 +104,3 @@ Deno.serve(async (req) => {
     return json({ error: 'Authentication email could not be sent' }, 400);
   }
 });
-

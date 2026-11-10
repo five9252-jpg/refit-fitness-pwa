@@ -23,4 +23,3 @@ Deno.serve(async req => {
   });
   return Response.json({ foods }, { headers: cors });
 });
-
