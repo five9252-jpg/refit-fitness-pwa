@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7f9fa" />
   <meta name="description" content="한 세트부터, 내 페이스로. 운동 기록을 바탕으로 다음 운동을 준비하는 페이스핏." />
+  <script>
+    (() => {
+      const guideKey = 'pacefit-guide-seen-v1';
+      const isAuthReturn = new URLSearchParams(location.search).has('auth') || /access_token=|refresh_token=|error_code=|type=signup/i.test(location.hash);
+      if (isAuthReturn) { try { localStorage.setItem(guideKey, '1'); } catch {} return; }
+      try {
+        if (!localStorage.getItem(guideKey)) {
+          localStorage.setItem(guideKey, '1');
+          location.replace('./가이드-미리보기.html');
+        }
+      } catch {}
+    })();
+  </script>
   <script src="./backend-config.js?v=20261105-login-id-3"></script>
   <script>if(window.REFIT_CONFIG&&(window.REFIT_CONFIG.supabaseUrl||window.REFIT_CONFIG.supabasePublishableKey))document.documentElement.classList.add('refit-backend-on')</script>
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -135,7 +148,7 @@ body[data-view=journal] .progress-more summary{font-size:12px}
 </head>
 <body>
   <div class="app">
-    <header class="topbar"><div class="brand" aria-label="페이스 핏 운동 메이트"><img class="brand-icon" src="./assets/pwa/icon.svg" alt="" /><span class="brand-copy"><span class="brand-name">페이스 핏</span><span class="brand-tagline">운동 메이트</span></span></div><div class="top-right"><div class="avatar">나</div></div><div class="account-status" aria-label="계정 및 저장 상태"><span class="local-pill" id="localPill">이 기기에 저장 중</span></div></header>
+    <header class="topbar"><div class="brand" aria-label="페이스 핏 운동 메이트"><img class="brand-icon" src="./assets/pwa/icon.svg" alt="" /><span class="brand-copy"><span class="brand-name">페이스 핏</span><span class="brand-tagline">운동 메이트</span></span></div><div class="top-right"><a class="profile-edit guide-open" href="./가이드-미리보기.html" aria-label="페이스핏 이용 가이드 열기">이용 가이드</a><div class="avatar">나</div></div><div class="account-status" aria-label="계정 및 저장 상태"><span class="local-pill" id="localPill">이 기기에 저장 중</span></div></header>
     <section class="hello"><div><div class="date" id="todayLabel"></div><h1>안녕하세요, <span id="profileGreeting">운동 메이트</span>님</h1></div><div class="week" id="weekStrip"></div></section>
     <nav class="pace-nav" aria-label="주요 화면"><button type="button" data-view-target="home" aria-current="page">홈</button><button type="button" data-view-target="workout">운동</button><button type="button" data-view-target="diet">식단</button><button type="button" data-view-target="journal">기록</button><button type="button" data-view-target="library">운동 찾기</button></nav>
     <section class="diet-page" id="dietPage" aria-labelledby="dietTitle">
