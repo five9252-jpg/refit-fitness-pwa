@@ -10,6 +10,11 @@
   if (!search || !filters || !grid) return;
 
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+  const muscleText = (item) => window.PacefitMuscles?.[item.name] || null;
+  const muscleMarkup = (item) => {
+    const muscles = muscleText(item);
+    return muscles ? `<span class="library-muscles"><b>주동근</b> ${esc(muscles.main)} <i>·</i> <b>협력근</b> ${esc(muscles.assist)}</span>` : '';
+  };
   const categories = ['전체', ...new Set(items.map(item => item.category).filter(Boolean))];
   let category = '전체';
   let limit = 36;
@@ -32,20 +37,23 @@
   };
   const visual = (item, detail = false) => {
     const image = imagePath(item);
-    if (image) return `<img src="${esc(image)}" alt="${esc(item.name)} 운동 자세 그림" loading="lazy" decoding="async" />`;
+    if (image) return `<img src="${esc(image)}" alt="${esc(item.name)} ${exerciseAtlasCell[item.name]?.representative ? '대표 근육 그림' : '운동 자세 그림'}" loading="lazy" decoding="async" />`;
     const areaImage = window.PacefitAreaImages?.[item.category] || window.PacefitAreaImages?.['기타'];
     if (areaImage) return `<img src="${esc(areaImage)}" alt="${esc(item.category || '운동')} 부위 안내 그림" loading="lazy" decoding="async" />`;
     return categoryIcon(item.category || '운동');
   };
   const matching = () => {
     const query = search.value.trim().toLocaleLowerCase('ko-KR');
-    return items.filter(item => (category === '전체' || item.category === category)
-      && (!query || `${item.name} ${item.equipment || ''}`.toLocaleLowerCase('ko-KR').includes(query)));
+    return items.filter(item => {
+      const muscles = muscleText(item);
+      const searchable = `${item.name} ${item.equipment || ''} ${muscles?.main || ''} ${muscles?.assist || ''}`.toLocaleLowerCase('ko-KR');
+      return (category === '전체' || item.category === category) && (!query || searchable.includes(query));
+    });
   };
   const render = () => {
     const list = matching();
     count.textContent = `검색 결과 ${list.length}개 · 전체 ${items.length}개`;
-    grid.innerHTML = list.slice(0, limit).map((item) => `<button class="library-card" type="button" data-library-id="${esc(item.id)}"><span class="library-visual">${visual(item)}</span><span class="library-card-copy"><strong>${esc(item.name)}</strong><small>${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}${imagePath(item) ? ' · 자세 그림' : ' · 부위 그림'}</small></span></button>`).join('') || '<p class="empty">검색 결과가 없어요. 다른 이름이나 부위를 선택해보세요.</p>';
+    grid.innerHTML = list.slice(0, limit).map((item) => `<button class="library-card" type="button" data-library-id="${esc(item.id)}"><span class="library-visual">${visual(item)}</span><span class="library-card-copy"><strong>${esc(item.name)}</strong><small>${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}${imagePath(item) ? (exerciseAtlasCell[item.name]?.representative ? ' · 대표 근육 그림' : ' · 운동 그림') : ' · 부위 그림'}</small>${muscleMarkup(item)}</span></button>`).join('') || '<p class="empty">검색 결과가 없어요. 다른 이름이나 부위를 선택해보세요.</p>';
     more.hidden = list.length <= limit;
   };
   const showDetail = (item) => {
@@ -57,7 +65,8 @@
     const source = /^https:\/\/burnfit\.io\//.test(item.sourceUrl || '') ? item.sourceUrl : 'https://burnfit.io/라이브러리/';
     const review = item.reviewStatus === 'individual-draft' ? '개별 설명 초안 · 전문가 검증 전' : '운동군별 공통 안내 초안 · 종목별 자세 검증 전';
     const canAdd = ['가슴', '등', '어깨', '팔', '하체'].includes(item.category);
-    body.innerHTML = `<div class="library-detail-visual">${visual(item, true)}</div><p class="library-detail-meta">${review}</p><div class="library-detail-grid"><section><h3>준비 자세</h3><p>${esc(item.setup || '장비와 위치를 확인하고 편안한 시작 자세를 잡으세요.')}</p></section><section><h3>운동 중</h3><p>${esc(item.movement || '동작을 천천히 수행하고 가능한 범위에서 돌아오세요.')}</p></section><section><h3>주의할 점</h3><p>${esc(item.caution || '통증이 있거나 움직임이 불안정하면 중단하고 전문가에게 확인하세요.')}</p></section></div><p class="library-detail-meta">${imagePath(item) ? '페이스핏 운동 자세 그림' : '부위 안내 그림 · 이 운동의 자세를 재현한 이미지는 준비 중'} · ${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}</p>${canAdd ? '<button class="library-add" id="libraryAddToRoutine" type="button">오늘 루틴에 추가</button>' : ''}<a class="source-link" href="${esc(source)}" target="_blank" rel="noopener noreferrer">운동명 참고: 번핏 공개 라이브러리</a>`;
+    const isRepresentative = Boolean(exerciseAtlasCell[item.name]?.representative);
+    body.innerHTML = `<div class="library-detail-visual">${visual(item, true)}</div>${muscleMarkup(item)}<p class="library-detail-meta">${review}</p><div class="library-detail-grid"><section><h3>준비 자세</h3><p>${esc(item.setup || '장비와 위치를 확인하고 편안한 시작 자세를 잡으세요.')}</p></section><section><h3>운동 중</h3><p>${esc(item.movement || '동작을 천천히 수행하고 가능한 범위에서 돌아오세요.')}</p></section><section><h3>주의할 점</h3><p>${esc(item.caution || '통증이 있거나 움직임이 불안정하면 중단하고 전문가에게 확인하세요.')}</p></section></div><p class="library-detail-meta">${imagePath(item) ? (isRepresentative ? '대표 근육 그림 · 해당 동작의 자세를 그대로 재현한 그림은 아닐 수 있어요' : '페이스핏 운동 그림') : '부위 안내 그림'} · ${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}</p>${canAdd ? '<button class="library-add" id="libraryAddToRoutine" type="button">오늘 루틴에 추가</button>' : ''}<a class="source-link" href="${esc(source)}" target="_blank" rel="noopener noreferrer">운동명 참고: 번핏 공개 라이브러리</a>`;
     if (canAdd) document.getElementById('libraryAddToRoutine').addEventListener('click', () => {
       if (!window.PacefitAddExercise?.(item.name)) return;
       backdrop.classList.remove('open');
@@ -89,3 +98,4 @@
   });
   render();
 })();
+
