@@ -146,7 +146,7 @@
   const muscleStyle = document.createElement('style');
   muscleStyle.textContent = `
     .exercise-muscles,.library-muscles{display:flex;flex-wrap:wrap;gap:4px 10px;color:#607875;font-size:10px;line-height:1.45}
-    .exercise-muscles{margin-top:3px}.exercise-muscles b,.library-muscles b{color:#315f4c;font-size:9px;font-weight:850}
+    .exercise-muscles{margin-top:3px}.exercise-muscles b,.library-muscles b{color:#023F46;font-size:9px;font-weight:850}
     .library-muscles{margin-top:5px}.library-muscles i{font-style:normal;color:#95aaa2}
     .library-detail-visual+.library-muscles{font-size:12px;margin:12px 0 8px}.library-detail-visual+.library-muscles b{font-size:10px}
     @media(max-width:600px){.exercise-muscles{font-size:9px;gap:3px 7px}.exercise-muscles b{font-size:8px}}
@@ -159,16 +159,27 @@
       const category = item.category || '';
       const match = (pattern) => pattern.test(name);
       if (category === '하체') {
-        if (match(/데드리프트|힙힌지|굿모닝|풀.?스루|랙풀/)) return 'conventional-deadlift-muscle-map.jpg';
-        if (match(/레그.?프레스/)) return 'leg-press-muscle-map.jpg';
-        if (match(/레그.?컬|햄스트링.?컬|원레그.?컬/)) return 'leg-curl-muscle-map.jpg';
-        if (match(/레그.?익스텐션|원레그.?익스텐션/)) return 'leg-extension-muscle-map.jpg';
-        if (match(/카프|종아리/)) return 'calf-raise-muscle-map.jpg';
-        if (match(/런지|스텝업|스플릿 스쿼트/)) return /스텝업/.test(name) ? 'dumbbell-step-up-muscle-map.jpg' : 'lunge-muscle-map.jpg';
-        if (match(/힙 어브덕션|힙 어덕션|클램|파이어 하이드런트/)) return 'hip-abduction-machine-muscle-map.jpg';
-        if (match(/힙 쓰러스트|글루트|킥백|브릿지/)) return 'glute-press-muscle-map.jpg';
-        if (match(/스쿼트/)) return /맨몸|에어/.test(name) ? 'bodyweight-squat-muscle-map.jpg' : 'barbell-back-squat-muscle-map.jpg';
-        return 'heel-elevated-goblet-squat-muscle-map.jpg';
+        if (match(/데드리프트|힙힌지|굿모닝|풀.?스루|랙풀/)) {
+          if (match(/스모/)) return 'pacefit-sumo-deadlift-v2.jpg';
+          if (match(/루마니안|스티프|원레그|싱글 레그/)) return 'pacefit-romanian-deadlift-v2.jpg';
+          return 'pacefit-deadlift-v2.jpg';
+        }
+        if (match(/레그.?프레스/)) return 'pacefit-leg-press-v2.jpg';
+        if (match(/노르딕|글루트 햄/)) return 'pacefit-nordic-hamstring-curl-v2.jpg';
+        if (match(/레그.?컬|햄스트링.?컬|원레그.?컬/)) return 'pacefit-seated-leg-curl-v2.jpg';
+        if (match(/레그.?익스텐션|원레그.?익스텐션/)) return 'pacefit-leg-extension-v2.jpg';
+        if (match(/카프|종아리/)) return match(/시티드|로터리/) ? 'pacefit-seated-calf-raise-v2.jpg' : 'pacefit-standing-calf-raise-v2.jpg';
+        if (match(/힙 어덕션|내전/)) return 'pacefit-hip-adduction-v2.jpg';
+        if (match(/어브덕션|외전|클램|파이어 하이드런트/)) return 'pacefit-hip-abduction-v2.jpg';
+        if (match(/런지|스텝.?업/)) return 'pacefit-lunge-v2.jpg';
+        if (match(/불가리안|스플릿 스쿼트/)) return 'pacefit-bulgarian-split-squat-v2.jpg';
+        if (match(/힙 쓰러스트|글루트|킥백|브릿지|덩키/)) return 'pacefit-hip-thrust-v2.jpg';
+        if (match(/핵 스쿼트|브이 스쿼트|펜듈럼|레버리지|벨트 스쿼트/)) return 'pacefit-hack-squat-v2.jpg';
+        if (match(/점프 스쿼트/)) return 'pacefit-jump-squat-v2.jpg';
+        if (match(/프론트 스쿼트/)) return 'pacefit-front-squat-v2.jpg';
+        if (match(/고블릿|스모 스쿼트/)) return 'pacefit-goblet-squat-v2.jpg';
+        if (match(/스쿼트/)) return /맨몸|에어|피스톨|시시/.test(name) ? 'pacefit-goblet-squat-v2.jpg' : 'pacefit-barbell-back-squat-v2.jpg';
+        return 'pacefit-hip-thrust-v2.jpg';
       }
       if (category === '가슴') {
         if (match(/플라이/)) return 'dumbbell-fly-muscle-map.jpg';
@@ -236,5 +247,4 @@
     renderPlan();
   }
 })();
-
 

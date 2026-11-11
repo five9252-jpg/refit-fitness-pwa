@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v56';
+const CACHE_NAME = 'refit-shell-v58';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -42,7 +42,8 @@ const SHELL_ASSETS = [
   './supabase/schema.sql',
   './supabase/diet.sql',
   './supabase/README.md',
-  './assets/pwa/icon.svg',
+  './assets/brand/facefit-logo-web.png',
+  './assets/brand/facefit-logo-social.png',
   './assets/pwa/icon-192.png',
   './assets/pwa/icon-512.png',
   './assets/pwa/apple-touch-icon.png',
@@ -84,7 +85,6 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
-
 
 
 

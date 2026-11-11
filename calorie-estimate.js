@@ -9,9 +9,9 @@
   });
   const style = document.createElement('style');
   style.textContent = `
-    .strength-duration{margin:14px 0;padding:15px 17px;border:1px solid #dce8da;border-radius:16px;background:#f8faf6}.strength-duration label{display:block;color:#243d2c;font-size:12px;font-weight:800}.strength-duration input{display:block;width:130px;max-width:100%;margin-top:7px;padding:10px;border:1px solid #dbe4d9;border-radius:9px;background:white;color:#1b3121;font:inherit}.strength-duration small{display:block;margin-top:7px;color:#657768;font-size:11px;line-height:1.4}
+    .strength-duration{margin:14px 0;padding:15px 17px;border:1px solid #dce8da;border-radius:16px;background:#f8faf6}.strength-duration label{display:block;color:#164449;font-size:12px;font-weight:800}.strength-duration input{display:block;width:130px;max-width:100%;margin-top:7px;padding:10px;border:1px solid #dbe4d9;border-radius:9px;background:white;color:#193A3E;font:inherit}.strength-duration small{display:block;margin-top:7px;color:#657768;font-size:11px;line-height:1.4}
     .calorie-result{margin:15px 0 0;padding:15px 17px;border:1px solid #dce9d8;border-radius:14px;background:#eff7ed}.calorie-result strong{display:block;color:#244c30;font-size:17px}.calorie-result p{margin:6px 0 0;color:#617465;font-size:11px;line-height:1.5}.calorie-result[hidden]{display:none}
-    .calorie-log-row{margin-top:9px;padding-top:9px;border-top:1px solid #e1e9de;color:#315f47;font-size:12px;font-weight:800}.calorie-log-row small{display:block;margin-top:3px;color:#748477;font-size:10px;font-weight:500}
+    .calorie-log-row{margin-top:9px;padding-top:9px;border-top:1px solid #e1e9de;color:#07535A;font-size:12px;font-weight:800}.calorie-log-row small{display:block;margin-top:3px;color:#748477;font-size:10px;font-weight:500}
   `;
   document.head.append(style);
   $('.cardio-add').insertAdjacentHTML('beforebegin', `<div class="strength-duration"><label for="strengthMinutes">근력 운동 시간 (선택, 분)<input id="strengthMinutes" type="number" min="1" max="300" step="1" inputmode="numeric" placeholder="예: 40"></label><small>쉬는 시간을 포함한 근력 운동 전체 시간을 적어주세요. 칼로리 추정에는 체중과 운동 시간이 필요해요.</small></div>`);

@@ -136,7 +136,7 @@
       ctx.fillStyle = 'rgba(5, 24, 30, .9)';
       ctx.fill();
       ctx.lineWidth = Math.max(1.5, width * 0.003);
-      ctx.strokeStyle = measured.has(id) ? '#d9ef6d' : '#8ff5f3';
+      ctx.strokeStyle = measured.has(id) ? '#DAFA4F' : '#8ff5f3';
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(point.x * width, point.y * height, Math.max(1.7, width * 0.004), 0, Math.PI * 2);
@@ -145,7 +145,6 @@
     });
     ctx.restore();
   }
-
 
   function processPose(result) {
     const exercise = EXERCISES[activeExercise];
