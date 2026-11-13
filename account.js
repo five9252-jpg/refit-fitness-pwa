@@ -72,13 +72,15 @@
   })();
   const accountButton = document.createElement('button'); accountButton.type = 'button'; accountButton.className = 'profile-edit account-open'; accountButton.textContent = '계정'; accountButton.setAttribute('aria-label','계정 및 저장 방식');
   const topRight = document.querySelector('.top-right'); if (topRight) topRight.insertBefore(accountButton, topRight.firstChild);
+  const adminButton = document.createElement('button'); adminButton.type = 'button'; adminButton.className = 'profile-edit admin-open'; adminButton.textContent = '운영자 데이터 보기'; adminButton.hidden = true;
+  if (topRight) accountButton.after(adminButton);
   const accountStatus = document.querySelector('.account-status');
   const style = document.createElement('style'); style.textContent = `
     html.refit-backend-on .app{visibility:hidden}html.refit-backend-on:has(.account-gate[hidden]) .app{visibility:visible}
     .account-gate{position:fixed;inset:0;z-index:1000;overflow:auto;background:rgba(18,36,27,.72);display:grid;place-items:center;padding:18px}.account-gate[hidden]{display:none!important}.account-panel{width:min(100%,560px);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 22px 90px #10251955;color:#16241b}.account-panel h1{font-size:25px;margin:8px 0}.account-panel>p{color:#59665d;line-height:1.6}.account-panel .eyebrow{color:#477657;font-size:12px;font-weight:800;letter-spacing:.04em}.account-panel .field{display:grid;gap:7px;margin:14px 0}.account-panel .field input{min-height:44px;padding:10px 12px;border:1px solid #d9e1d8;border-radius:10px;font:inherit}.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.account-actions button,.account-panel button{min-height:42px;padding:9px 14px;border:0;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.account-panel .save-manual{background:#2f6149;color:#fff}.account-panel .cancel{background:#edf1ec;color:#284b37}.account-panel button:disabled{opacity:.45;cursor:not-allowed}.account-footnote{font-size:12px!important}.account-remember{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px}.account-remember input{width:17px;height:17px}.notice-list{display:grid;grid-template-columns:120px 1fr;gap:9px 12px;padding:15px;background:#f4f7f2;border-radius:14px;font-size:13px;line-height:1.5}.notice-list dt{font-weight:800;color:#2f6149}.notice-list dd{margin:0;color:#465349}.consent-check{display:flex;gap:10px;align-items:flex-start;margin:16px 0;line-height:1.5;font-size:14px}.consent-check input{margin-top:4px;flex:none}.account-link{border:0;background:none;color:#2f6149;text-decoration:underline;font:inherit;cursor:pointer;padding:4px}.account-error{color:#a1392e!important;background:#fff2ef;padding:10px;border-radius:10px}.admin-user{border:1px solid #e0e7de;border-radius:14px;padding:13px;margin:10px 0;background:#f9faf8}.admin-user summary{cursor:pointer;font-weight:800}.admin-user pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#465349;background:#f0f3ef;padding:10px;border-radius:8px}.account-badge{font-size:11px;color:#2f6149;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     @media(max-width:560px){.account-panel{padding:20px;border-radius:17px}.notice-list{grid-template-columns:1fr;gap:3px}.notice-list dd{margin-bottom:7px}.account-open{font-size:10px;padding:7px 9px!important}}
   `; document.head.appendChild(style);
-  style.textContent += '.account-info{color:#23513b;background:#edf7ee;padding:10px;border-radius:10px;line-height:1.5}.account-help-links{gap:4px 12px;border-top:1px solid #e7ece7;padding-top:10px}.account-help-links .account-link{min-height:36px;padding:5px 0;font-size:12px;text-align:left}';
+  style.textContent += '.account-info{color:#23513b;background:#edf7ee;padding:10px;border-radius:10px;line-height:1.5}.account-help-links{gap:4px 12px;border-top:1px solid #e7ece7;padding-top:10px}.account-help-links .account-link{min-height:36px;padding:5px 0;font-size:12px;text-align:left}.top-right .admin-open[hidden]{display:none}';
 
   function localMode() {
     document.getElementById('localPill').textContent = '이 기기에 저장 중';
@@ -120,6 +122,7 @@
     return '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요. 문제가 계속되면 운영자에게 문의해주세요.';
   }
   function authView(message = '', tone = 'error') {
+    adminButton.hidden = true;
     document.documentElement.classList.add('refit-backend-on');
     const notice=message?`<p class="${tone==='success'?'account-info':'account-error'}" role="${tone==='success'?'status':'alert'}">${escapeHtml(message)}</p>`:'';
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="accountTitle"><div class="eyebrow">개인 운동 기록</div><h1 id="accountTitle">로그인</h1><p>아이디 또는 가입 이메일로 로그인하세요.</p>${notice}<div class="field"><label for="loginId">아이디 또는 이메일</label><input id="loginId" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="254" required></div><div class="field"><label for="accountPassword">비밀번호</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></div><label class="account-remember"><input id="rememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><div class="account-actions"><button class="save-manual" id="signInButton">로그인</button><button class="cancel" id="signUpButton">새 계정 만들기</button></div><div class="account-actions account-help-links"><button class="account-link" id="findLoginId">아이디 찾기</button><button class="account-link" id="resetPassword">비밀번호 찾기</button><button class="account-link" id="resendEmailLink">인증 메일 다시 받기</button></div></section>`);
@@ -312,6 +315,16 @@
     window.RefitAccountSession={client,user:currentUser,exerciseConsent:cloudExerciseConsent};
     window.dispatchEvent(new CustomEvent('refit:session-ready'));
     accountButton.onclick=accountMenu;
+    void refreshAdminButton(currentUser.id);
+  }
+  async function refreshAdminButton(userId) {
+    adminButton.hidden = true;
+    try {
+      const {data, error} = await client.from('admin_memberships').select('user_id').eq('user_id',userId).maybeSingle();
+      if (!error && data && currentUser?.id === userId) adminButton.hidden = false;
+    } catch (error) {
+      console.warn('운영자 권한을 확인하지 못했습니다.', error);
+    }
   }
   async function showAdmin() {
     if (window.PacefitOperatorDashboard) {
@@ -333,6 +346,7 @@
     show(gate,`<section class="account-panel"><div class="eyebrow">운영자 전용</div><h1>회원 운동 기록</h1><p>${(data||[]).length}개 계정 데이터 · 트레이너 기록 ${trainerEntries.length}개 · 코멘트 ${comments.length}개. 사진 파일은 이 화면에 표시되지 않습니다.</p>${html}<div class="account-actions"><button id="adminClose" class="cancel">닫기</button><button id="adminRefresh" class="cancel">새로고침</button></div></section>`);
     gate.querySelector('#adminClose').onclick=()=>gate.hidden=true;gate.querySelector('#adminRefresh').onclick=showAdmin;
   }
+  adminButton.onclick = () => { if (currentUser && !adminButton.hidden) showAdmin(); };
   async function restoreRecords() {
     if (!currentUser) return;
     if (privacy.recoveryEnabled !== true) { alert('복구용 보관 기능은 아직 준비 중입니다.'); return; }
@@ -397,7 +411,7 @@
     gate.querySelector('#menuRememberLogin').onchange=e=>setRememberLogin(e.target.checked);
     const claimButton=gate.querySelector('#claimLoginId');if(claimButton)claimButton.onclick=()=>claimLoginIdView();
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
-     gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
+     gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);adminButton.hidden=true;await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
   }
   async function finishSession(user) {
     if(finishingUserId===user.id)return;
@@ -424,7 +438,7 @@
       if(authAction==='reset-password'){setTimeout(()=>newPasswordView(),0);return;}
       setTimeout(()=>finishSession(session.user),0);
     }
-    if(event==='SIGNED_OUT'){currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}
+    if(event==='SIGNED_OUT'){adminButton.hidden=true;currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}
   });
   }
 })();
