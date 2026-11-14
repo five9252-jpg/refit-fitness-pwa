@@ -12,9 +12,23 @@ Deno.serve(async req => {
   const { query = '' } = await req.json().catch(() => ({}));
   const q = String(query).trim().slice(0, 80);
   if (q.length < 1) return Response.json({ foods: [] }, { headers: cors });
-  const { data, error } = await client.from('food_nutrients').select('food_code,food_name,food_group,serving_g,kcal,carbs,protein,fat,source_name').ilike('food_name', `%${q.replace(/[%_]/g, '')}%`).limit(20);
-  if (error) return Response.json({ error: 'Food lookup is not configured' }, { status: 503, headers: cors });
-  const foods = (data || []).map(row => {
+  const columns = 'food_code,food_name,food_group,serving_g,kcal,carbs,protein,fat,source_name';
+  const pattern = `%${q.replace(/[%_]/g, '')}%`;
+  const [raw, processed] = await Promise.all([
+    client.from('food_nutrients').select(columns).like('food_code', 'R:%').ilike('food_name', pattern).order('food_name').limit(40),
+    client.from('food_nutrients').select(columns).not('food_code', 'like', 'R:%').ilike('food_name', pattern).order('food_name').limit(40),
+  ]);
+  if (raw.error || processed.error) return Response.json({ error: 'Food lookup is not configured' }, { status: 503, headers: cors });
+  const rank = (a: { food_name: string }, b: { food_name: string }) => {
+    const score = (name: string) => name === q ? 0 : name.startsWith(q) ? 1 : 2;
+    return score(a.food_name) - score(b.food_name) || a.food_name.length - b.food_name.length || a.food_name.localeCompare(b.food_name, 'ko');
+  };
+  const rawRows = (raw.data || []).sort(rank);
+  const processedRows = (processed.data || []).sort(rank);
+  const selected = [...rawRows.slice(0, 10), ...processedRows.slice(0, 10)];
+  const remaining = [...rawRows.slice(10), ...processedRows.slice(10)].sort(rank);
+  selected.push(...remaining.slice(0, 20 - selected.length));
+  const foods = selected.map(row => {
     const hasServing = Number(row.serving_g) > 0;
     const scale = hasServing ? 100 / Number(row.serving_g) : 1;
     // Only show per-100g values when the source provides a valid reference mass.
@@ -23,3 +37,4 @@ Deno.serve(async req => {
   });
   return Response.json({ foods }, { headers: cors });
 });
+
