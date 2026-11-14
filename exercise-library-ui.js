@@ -33,7 +33,8 @@
   const imagePath = (item) => {
     if (typeof exerciseAtlasCell === 'undefined') return null;
     const file = exerciseAtlasCell[item.name]?.file;
-    return file ? `./assets/exercises/${file}` : null;
+    if (!file) return null;
+    return file.startsWith('data:image/') ? file : `./assets/exercises/${file}`;
   };
   const visual = (item, detail = false) => {
     const image = imagePath(item);
