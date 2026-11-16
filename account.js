@@ -290,6 +290,7 @@
     if(state.demo){next.profile=null;next.logs=[];}
     else if(cloudExerciseConsent){next.logs=(state.logs||[]).filter(log=>log.source!=='trainer').map(log=>({...log,photoIds:[]}));}
     else {next.logs=[]; if(next.profile) next.profile={name:next.profile.name,experience:next.profile.experience,experienceOther:next.profile.experienceOther,goal:next.profile.goal,goalOther:next.profile.goalOther,days:next.profile.days};}
+    Object.assign(next,window.PacefitMemberInsights?.cloudBodyFields(state,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});
     return next;
   }
   function scheduleSync() { if(!currentUser)return;pill.textContent='서버 저장 대기 중';clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,650); }
@@ -304,7 +305,7 @@
   async function loadCloudState() {
     const {data,error}=await client.from('user_app_data').select('payload').eq('user_id',currentUser.id).maybeSingle();
     if(error)throw error;
-    if(data&&data.payload){const payload=data.payload;if(!cloudExerciseConsent){payload.logs=[];if(payload.profile)payload.profile={name:payload.profile.name,experience:payload.profile.experience,experienceOther:payload.profile.experienceOther,goal:payload.profile.goal,goalOther:payload.profile.goalOther,days:payload.profile.days};}bridge.replaceState(payload);}
+    if(data&&data.payload){const payload=data.payload;if(!cloudExerciseConsent){payload.logs=[];if(payload.profile)payload.profile={name:payload.profile.name,experience:payload.profile.experience,experienceOther:payload.profile.experienceOther,goal:payload.profile.goal,goalOther:payload.profile.goalOther,days:payload.profile.days};}Object.assign(payload,window.PacefitMemberInsights?.cloudBodyFields(payload,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});bridge.replaceState(payload);}
     else {scheduleSync();}
     const profileBackdrop=document.getElementById('profileBackdrop');if(profileBackdrop)profileBackdrop.classList.remove('open');
     const profileText=document.querySelector('#profileBackdrop .dialog>p');if(profileText)profileText.textContent='프로필은 계정에 동기화됩니다. 운동·신체 정보 동의 여부에 따라 운동 기록과 신체 정보 저장이 달라집니다.';
@@ -378,6 +379,7 @@
         if (error) throw error;
         if (bridge&&bridge.clearCurrentPhotos) await bridge.clearCurrentPhotos();
         if (window.RefitDietJournal?.clearLocal) await window.RefitDietJournal.clearLocal();
+        if (window.PacefitBodyRecords?.clearLocal) await window.PacefitBodyRecords.clearLocal();
         await client.auth.signOut().catch(()=>{});
         currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;
         window.dispatchEvent(new CustomEvent('refit:session-ended'));

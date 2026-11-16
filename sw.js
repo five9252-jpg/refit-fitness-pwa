@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v63';
+const CACHE_NAME = 'refit-shell-v64';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,10 @@ const SHELL_ASSETS = [
   './manifest.webmanifest',
   './pwa-register.js',
   './backend-config.js?v=20261114-food-search-1',
-  './account.js?v=20261113-admin-header-1',
+  './member-insights.css?v=20261116-2',
+  './member-insights.js?v=20261116-2',
+  './body-records.js?v=20261116-2',
+  './account.js?v=20261116-member-insights-2',
   './operator-dashboard.js?v=20261113-raw-sync-1',
   './voice-journal.js',
   './diet-journal.js?v=20261106-food-icons-1',
@@ -23,8 +26,8 @@ const SHELL_ASSETS = [
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261114-1',
-  './trainer-workspace.js?v=20261114-1',
-  './trainer.js?v=20261116-workspace-1',
+  './trainer-workspace.js?v=20261116-2',
+  './trainer.js?v=20261116-member-insights-2',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
