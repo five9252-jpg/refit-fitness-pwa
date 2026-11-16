@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v64';
+const CACHE_NAME = 'refit-shell-v65';
 const SHELL_ASSETS = [
   './',
   './index.html',
@@ -27,7 +27,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261114-1',
   './trainer-workspace.js?v=20261116-2',
-  './trainer.js?v=20261116-member-insights-2',
+  './trainer.js?v=20261116-member-insights-3',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',

@@ -160,8 +160,9 @@
     const result = await tryQuery(async () => {
       const links = assertResult(await s.client.from('trainer_member_links').select('member_id,can_write,status').eq('trainer_id',s.user.id).eq('status','active')) || [];
       const ids = links.map(row => row.member_id);
-      const records = ids.length ? assertResult(await s.client.from('user_app_data').select('user_id,payload,updated_at').in('user_id',ids)) || [] : [];
-      return {links,records:Object.fromEntries(records.map(row=>[row.user_id,row]))};
+      // The list needs names and workouts, not potentially large report images.
+      const records = ids.length ? assertResult(await s.client.from('user_app_data').select('user_id,profile:payload->profile,logs:payload->logs,updated_at').in('user_id',ids)) || [] : [];
+      return {links,records:Object.fromEntries(records.map(row=>[row.user_id,{user_id:row.user_id,updated_at:row.updated_at,payload:{profile:row.profile,logs:row.logs}}]))};
     });
     if (!sameSession(s) || epoch !== viewEpoch) return;
     if (!result) return;
