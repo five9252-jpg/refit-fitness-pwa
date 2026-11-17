@@ -1,10 +1,10 @@
-const CACHE_NAME = 'refit-shell-v68-services-20261117';
+const CACHE_NAME = 'refit-shell-v69-services-20261117';
 const SHELL_ASSETS = [
-  './pacefit-services-core.js?v=20261117-services-1',
-  './pacefit-services.js?v=20261117-services-1',
-  './pacefit-services.css?v=20261117-services-1',
-  './pacefit-ui-details.js?v=20261117-services-1',
-  './prototype-planners.js?v=20261117-services-1',
+  './pacefit-services-core.js?v=20261117-services-2',
+  './pacefit-services.js?v=20261117-services-2',
+  './pacefit-services.css?v=20261117-services-2',
+  './pacefit-ui-details.js?v=20261117-services-2',
+  './prototype-planners.js?v=20261117-services-2',
   './assets/ui-3d-web/body-area.png',
   './assets/ui-3d-web/exercise-search.png',
   './assets/ui-3d-web/journal.png',
