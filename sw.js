@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v70-services-20261117';
+const CACHE_NAME = 'refit-shell-v71-borders-20261117';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',

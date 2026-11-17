@@ -1,1 +1,56 @@
 .ps-launch{position:fixed;bottom:18px;right:18px;z-index:1250;border:1px solid #b5d4c7;border-radius:14px;padding:12px 17px;background:#164d46;color:#fff;font:700 14px SUIT,sans-serif;box-shadow:0 4px 15px #143c3930}.ps-overlay{position:fixed;inset:0;z-index:1850;background:#173c3970;padding:22px;display:grid;place-items:center}.ps-overlay[hidden]{display:none}.ps-panel{background:#f3f7f5;color:#164d46;width:min(1120px,100%);max-height:92dvh;overflow:auto;padding:24px;border-radius:20px;font-family:SUIT,sans-serif}.ps-panel header{display:flex;justify-content:space-between;gap:12px;align-items:center}.ps-panel h2{margin:0;font-size:25px}.ps-tabs,.ps-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:14px 0}.ps-panel button,.ps-panel input,.ps-panel select,.ps-panel textarea{font:inherit}.ps-panel button{border:1px solid #b9d2c6;border-radius:9px;background:#fff;color:#164d46;padding:10px 14px;cursor:pointer}.ps-panel button[aria-selected=true],.ps-panel .ps-primary{background:#164d46;color:#fff}.ps-panel button:disabled{opacity:.5;cursor:wait}.ps-panel :focus-visible{outline:3px solid #9eba48;outline-offset:2px}.ps-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:18px}.ps-card{padding:18px;background:#fff;border:1px solid #dae5df;border-radius:14px;margin:12px 0}.ps-card h3{margin:0 0 10px}.ps-small{font-size:12px;color:#597268;line-height:1.6}.ps-field{display:grid;gap:6px;margin:12px 0;font-size:13px}.ps-field input,.ps-field select,.ps-field textarea{padding:10px;border:1px solid #c9d8d0;border-radius:8px;width:100%;box-sizing:border-box;background:#fff;color:#173e36}.ps-field textarea{min-height:100px}.ps-error{color:#9b372a;background:#fff0eb;padding:10px;border-radius:8px;white-space:pre-wrap}.ps-item{padding:12px 0;border-top:1px solid #e0e9e3;overflow-wrap:anywhere}.ps-item:first-child{border-top:0}.ps-item p{white-space:pre-wrap;margin:6px 0}.ps-day{background:#edf5ed;padding:6px 10px;border-radius:8px}.ps-panel input[type=checkbox]{width:19px;height:19px;accent-color:#164d46}.ps-check{display:flex;gap:9px;align-items:flex-start;margin:12px 0;font-size:13px;line-height:1.6}.ps-badge{padding:4px 8px;background:#e5f4c2;border-radius:6px;font-size:12px}.ps-panel summary{cursor:pointer}.ps-preview{max-width:100%;max-height:250px;object-fit:contain}.ps-panel table{width:100%;border-collapse:collapse;font-size:12px}.ps-panel td,.ps-panel th{text-align:left;padding:9px;border-bottom:1px solid #dfebe2}@media(max-width:700px){.ps-grid{grid-template-columns:1fr}.ps-overlay{padding:0}.ps-panel{border-radius:0;max-height:100dvh;min-height:100dvh;width:100%;box-sizing:border-box;padding:16px}.ps-tabs{gap:5px}.ps-tabs button{padding:9px}.ps-launch{bottom:10px;right:10px}}
+/* PACEFIT: consistent boundaries and readable narrow-screen layouts. */
+body :is(.card,.ps-card,.trainer-card,.tw-member,.tw-stats button,.role-choice,.metric-card,.trainer-profile-item,.trainer-summary-stat,.mi-stat,.diet-card,.diet-meal,.diet-advice-grid article,.operator-section,.operator-member,.operator-stat,.admin-user,.lj-card,.home-recommend,.profile-strip,.ps-panel,.account-panel,.trainer-panel,.lj-panel,.operator-panel,.dialog,.diet-dialog){border:2px solid #9fb9ae!important}
+body button,body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){border-width:2px!important;border-style:solid!important;border-color:#a3bdb2;box-sizing:border-box}
+body :is(button[aria-selected=true],button[aria-pressed=true],.active,.ps-primary,.trainer-primary,.lj-primary){border-color:#164d46}
+body :is(button[aria-selected=true],button[aria-pressed=true],.tw-member[data-selected=true]){border-color:#164d46!important}
+body :is(.ps-item,.diet-entry,.trainer-log,.operator-record,.log-item){border-top-width:2px}
+body :is(.ps-panel,.trainer-panel,.account-panel,.diet-dialog,.lj-panel,.operator-panel){box-sizing:border-box;max-width:100%;word-break:keep-all;overflow-wrap:break-word}
+body :is(.ps-grid,.tw-split,.tw-layout,.grid,.trainer-fields,.field-grid)>*{min-width:0}
+body :is(.ps-panel,.trainer-panel,.account-panel,.diet-dialog,.lj-panel,.operator-panel) :is(p,small,label,h2,h3,h4,strong,summary){word-break:keep-all;overflow-wrap:break-word;white-space:normal}
+body :is(.ps-card,.trainer-card,.operator-section,.lj-card) p{line-height:1.75}
+.ps-panel h2{font-size:clamp(20px,3vw,25px);line-height:1.4}
+.ps-panel header>div{min-width:0;flex:1}.ps-panel header>button{flex:none;white-space:nowrap}
+.ps-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ps-tabs button{min-width:0;min-height:44px;white-space:normal;word-break:keep-all;line-height:1.4;padding:10px 8px}
+.ps-check input{flex:0 0 19px;margin-top:2px}.ps-check span{min-width:0}
+.ps-row>.ps-field{flex:1 1 150px;min-width:0}.ps-field :is(input,select,textarea){min-width:0;max-width:100%}
+.ps-card{min-width:0}.ps-card>.ps-grid>.ps-card{margin:0}.ps-grid:has(.pf-guide-image){gap:16px}
+@media(max-width:900px){
+ .ps-grid{grid-template-columns:minmax(0,1fr)}
+ .ps-panel{padding:20px}.ps-card{padding:18px}
+ .tw-split{grid-template-columns:minmax(0,1fr)}
+ .tw-split>aside{position:static;max-height:none;border-right:0;border-bottom:2px solid #9fb9ae;padding-right:0;padding-bottom:14px}
+}
+@media(max-width:600px){
+ .ps-overlay{padding:0}.ps-panel{padding:16px 14px;padding-bottom:calc(24px + env(safe-area-inset-bottom));max-height:100dvh;min-height:100dvh}
+ .ps-panel header{align-items:flex-start;gap:8px}.ps-panel header>button{padding:9px 11px;min-height:44px}
+ .ps-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .ps-card{padding:16px;margin:10px 0}.ps-card h3{font-size:17px;line-height:1.5}.ps-card p{font-size:14px;line-height:1.8}
+ .ps-panel input:not([type=checkbox]),.ps-panel select,.ps-panel textarea{font-size:16px}
+ .ps-row{gap:8px}.ps-row>input[type=date]{flex:1 1 160px;min-width:0;max-width:100%}
+ .ps-row>select{flex:1 1 120px;min-width:0;max-width:100%}
+ .ps-panel input[type=file]{width:100%;font-size:13px;overflow:hidden}
+ .trainer-head,.trainer-section-title,.card-head,.diet-header,.operator-head,.lj-head{flex-wrap:wrap;align-items:flex-start}
+ .trainer-head>div,.operator-head>div,.lj-head>div{flex:1 1 210px;min-width:0}
+ .trainer-head h2,.operator-head h2,.lj-head h2{line-height:1.4;overflow-wrap:break-word}
+ .trainer-fields,.field-grid,.lift-cards,.effort-picker,.trainer-profile-grid,.trainer-summary-grid,.mi-stats,.diet-nutrients,.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .trainer-fields label,.field-grid label,.pf-alias label{min-width:0}
+ .pf-record-drawer .trainer-fields{grid-template-columns:minmax(0,1fr)!important}
+ .pf-period label{flex:1 1 100%;min-width:0}.pf-period input{min-width:0;max-width:100%;flex:1}.pf-period span{white-space:normal;line-height:1.6}
+ .tw-actions button,.tw-filters button,.tw-detail-nav button{flex:1 1 100px;white-space:normal;word-break:keep-all;line-height:1.5}
+ .tw-stats button{min-width:0}.tw-stats span{white-space:normal;line-height:1.5}
+ .trainer-card table,.ps-card table,.operator-panel table{display:block;max-width:100%;overflow-x:auto;white-space:normal}
+ .trainer-card :is(th,td),.ps-card :is(th,td){min-width:90px;word-break:keep-all;line-height:1.6}
+ body .exercise{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.exercise-info{grid-column:1/-1}.exercise .metric input{width:100%;max-width:120px;min-width:0}
+ .profile-strip{align-items:flex-start;flex-wrap:wrap}.profile-main{min-width:0;flex:1 1 220px}.profile-estimates{grid-template-columns:minmax(0,1fr)}
+ .home-options,.home-shortcuts{grid-template-columns:minmax(0,1fr)!important}
+ .home-options>button{min-width:0;white-space:normal}.home-shortcuts>button{white-space:normal;min-height:48px}
+ .dialog-actions,.account-actions,.diet-dialog-actions{flex-wrap:wrap}.dialog-actions button,.account-actions button,.diet-dialog-actions button{flex:1 1 160px;white-space:normal;line-height:1.5}
+ .diet-entry{grid-template-columns:minmax(0,1fr)}.diet-entry-remove{justify-self:start}.diet-entry-copy{min-width:0}
+ .lj-tools,.lj-row,.lj-dock{gap:8px}.lj-tools button,.lj-dock button{flex:1 1 100px;white-space:normal;line-height:1.5}
+}
+@media(max-width:380px){
+ .trainer-profile-grid,.trainer-summary-grid,.mi-stats,.diet-nutrients,.metrics,.trainer-fields,.field-grid,.lift-cards{grid-template-columns:minmax(0,1fr)!important}
+ .ps-row>.ps-field{flex-basis:100%}.ps-panel h2{font-size:19px}.ps-small{font-size:12px}
+}
