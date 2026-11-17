@@ -54,3 +54,77 @@ body :is(.ps-card,.trainer-card,.operator-section,.lj-card) p{line-height:1.75}
  .trainer-profile-grid,.trainer-summary-grid,.mi-stats,.diet-nutrients,.metrics,.trainer-fields,.field-grid,.lift-cards{grid-template-columns:minmax(0,1fr)!important}
  .ps-row>.ps-field{flex-basis:100%}.ps-panel h2{font-size:19px}.ps-small{font-size:12px}
 }
+
+/* One phone-first workspace on every device; only the outer gutters grow. */
+:root{--pacefit-phone-width:480px}
+body{background:#e6ede9!important}
+body .app{width:100%;max-width:var(--pacefit-phone-width)!important;min-height:100dvh;margin-inline:auto;padding:0 14px calc(86px + env(safe-area-inset-bottom))!important;background:#f3f7f5;box-sizing:border-box}
+body .topbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-height:0;padding:14px 0}
+body .brand{flex:1 1 100%;min-width:0}body .brand-logo-web{width:150px;max-width:100%}
+body .top-right{display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-left:0;min-width:0}
+body .top-right .avatar{display:none}body .top-right button{font-size:12px;padding:8px 10px;min-height:40px}
+body .account-status{width:100%;justify-content:flex-start;flex-wrap:wrap;gap:6px;min-width:0}
+body .account-status :is(.account-badge,.local-pill){max-width:100%;white-space:normal;overflow-wrap:anywhere}
+body :is(.grid,.side-col,.home-options,.home-shortcuts,.diet-meals,.diet-advice-grid,.tw-layout,.tw-split,.tw-sidebar,.ps-grid,.operator-members){grid-template-columns:minmax(0,1fr)!important}
+body .side-col{display:flex;flex-direction:column}body .tw-sidebar{display:grid}
+body :is(.card,.diet-card,.trainer-card,.ps-card,.operator-section,.lj-card){padding:16px}
+body :is(.hello,.card-head,.diet-header,.diet-card-heading,.trainer-head,.operator-head,.lj-head,.save-row){flex-wrap:wrap;gap:10px;align-items:flex-start}
+body .hello h1{font-size:26px;line-height:1.4}body .hello .week{max-width:100%;flex-wrap:wrap}
+body .pace-tabs{display:flex;flex-wrap:wrap;gap:6px}body .pace-tabs button{white-space:normal;flex:1 1 75px;min-height:44px}
+body :is(.home-recommend,.profile-strip){flex-direction:column;align-items:stretch;gap:12px}
+body :is(.home-recommend>*,.profile-main){min-width:0;max-width:100%;flex-basis:auto}
+body .home-primary{width:100%;white-space:normal}
+body .profile-estimates{grid-template-columns:minmax(0,1fr)}
+body :is(.metrics,.trainer-profile-grid,.trainer-summary-grid,.mi-stats,.diet-nutrients,.tw-stats,.operator-stats,.effort-picker){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body :is(.trainer-fields,.field-grid,.lift-cards,.diet-dialog .field-grid){grid-template-columns:minmax(0,1fr)!important}
+body :is(.trainer-fields,.field-grid,.lift-cards)>*{min-width:0}
+body .exercise{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}body .exercise-info{grid-column:1/-1}
+body .exercise .metric input{width:100%;max-width:120px;min-width:0;font-size:16px}
+body .log-summary{grid-template-columns:43px minmax(0,1fr);gap:10px;min-width:0}
+body .log-volume{grid-column:2;text-align:left}body .log-title{white-space:normal;overflow-wrap:break-word;word-break:keep-all}
+body .log-details{margin-left:0}body .log-detail-row{flex-wrap:wrap;line-height:1.6}
+body :is(.ps-overlay,.trainer-overlay,.account-gate,.diet-backdrop,.dialog-backdrop,.lj-overlay,.operator-overlay,.role-entry){padding:0!important}
+body .trainer-overlay.trainer-workspace{place-items:center}
+body :is(.ps-panel,.trainer-panel,.account-panel,.diet-dialog,.dialog,.lj-panel,.operator-panel,.role-entry-inner){width:min(var(--pacefit-phone-width),100%)!important;max-width:var(--pacefit-phone-width)!important;margin-inline:auto;box-sizing:border-box;padding:18px 14px!important;border-radius:0;max-height:100dvh!important}
+body :is(.ps-panel,.trainer-workspace .trainer-panel,.lj-panel){min-height:100dvh}
+body .trainer-workspace .trainer-head{position:static;padding-top:0;flex-wrap:wrap}
+body .trainer-head>div{min-width:0;flex:1 1 100%}
+body .trainer-head h2{font-size:23px;line-height:1.5}
+body .tw-split>aside{position:static;max-height:none;border-right:0;border-bottom:2px solid #9fb9ae;padding-right:0;padding-bottom:14px}
+body :is(.tw-actions,.tw-filters,.tw-detail-nav){display:flex;flex-wrap:wrap;gap:7px;width:100%}
+body :is(.tw-actions,.tw-filters,.tw-detail-nav)>button{flex:1 1 100px;white-space:normal;word-break:keep-all;line-height:1.5}
+body .tw-detail-nav{position:static}body .tw-member{display:block}
+body .pf-record-drawer{left:50%;right:auto;transform:translateX(-50%);width:min(var(--pacefit-phone-width),100%);box-sizing:border-box;padding:18px 14px}
+body :is(.trainer-card,.ps-card,.operator-panel) table{display:block;max-width:100%;overflow-x:auto}
+body :is(.trainer-card,.ps-card) :is(td,th){min-width:90px;word-break:keep-all;line-height:1.6}
+body .ps-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}
+body .ps-panel h2{font-size:21px;line-height:1.45}body .ps-panel header{align-items:flex-start}
+body .ps-panel header>div{min-width:0;flex:1}body .ps-panel header>button{flex:none}
+body .ps-row>.ps-field{flex-basis:100%}body .ps-card p{font-size:14px;line-height:1.8}
+body .ps-card h3{font-size:17px;line-height:1.5}
+body :is(.ps-panel,.trainer-panel,.account-panel,.diet-dialog,.dialog,.lj-panel) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){min-width:0;max-width:100%;font-size:16px}
+body .ps-row>input[type=date]{flex:1 1 160px;min-width:0;max-width:100%}body .ps-row>select{flex:1 1 120px;min-width:0}
+body .ps-panel input[type=file]{width:100%;font-size:13px;overflow:hidden}
+body :is(.dialog-actions,.account-actions,.diet-dialog-actions,.lj-row,.lj-tools,.lj-dock){flex-wrap:wrap;gap:8px}
+body :is(.dialog-actions,.account-actions,.diet-dialog-actions)>button{flex:1 1 160px;white-space:normal;line-height:1.5}
+body :is(.lj-tools,.lj-dock)>button{flex:1 1 100px;white-space:normal;line-height:1.5}
+body .diet-entry{grid-template-columns:minmax(0,1fr)}body .diet-entry-remove{justify-self:start}
+body .diet-page{max-width:100%;margin-inline:0}body .diet-header h2{font-size:26px}
+body .nutrition-goal-select{flex-wrap:wrap}body .role-choice{min-height:150px;padding:20px}
+body .role-choices{grid-template-columns:minmax(0,1fr)}body .role-entry h1{font-size:30px;margin-top:20px}
+body .ps-launch{right:max(12px,calc((100vw - var(--pacefit-phone-width))/2 + 12px));bottom:calc(12px + env(safe-area-inset-bottom))}
+body .pace-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;max-width:100%;gap:6px}
+body .pace-nav button{padding:10px 6px;min-width:0;white-space:normal;word-break:keep-all;line-height:1.5}
+body .exercise{grid-template-columns:minmax(0,1fr)!important}
+body :is(.exercise-quality,.routine-editor,.routine-choice-row,.manual-quality,.pose-compare){grid-template-columns:minmax(0,1fr)!important}
+body .exercise-actual-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body .exercise-actual-fields>*{min-width:0}
+body :is(.pose-readout,.pose-result-stats){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body .routine-editor>button{width:100%;white-space:normal}
+body :is(.library-grid,.library-detail-grid){grid-template-columns:minmax(0,1fr)!important}
+body .library-heading h2{font-size:26px;line-height:1.4}
+body .pf-period{gap:6px}body .pf-period label{flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:6px}body .pf-period input{flex:1;min-width:0;max-width:100%}
+@media(max-width:380px){
+ body :is(.trainer-profile-grid,.trainer-summary-grid,.mi-stats,.diet-nutrients,.metrics,.operator-stats){grid-template-columns:minmax(0,1fr)!important}
+ body .ps-panel h2{font-size:19px}
+}
