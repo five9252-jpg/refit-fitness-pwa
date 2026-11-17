@@ -129,13 +129,14 @@
   $('#performanceExercise').onchange=event=>{chosenExercise=event.target.value;renderPerformance()};
   const oldLogs=window.renderLogs;
   window.renderLogs=function(){
-    window.historyRange=7;
     oldLogs();
-    const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);
-    const recent=logs().filter(log=>log.date>=localISO(cutoff)&&log.date<=today);
-    $('#journalSummary').textContent=`최근 7일 · ${recent.length}회`;
-    $('#logCount').textContent=`전체 ${logs().length}회`;
-    $('#rangeCaption').textContent='최근 7일';
+    if(!window.PacefitRecordPeriod) {
+      const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);
+      const recent=logs().filter(log=>log.date>=localISO(cutoff)&&log.date<=today);
+      $('#journalSummary').textContent=`최근 7일 · ${recent.length}회`;
+      $('#logCount').textContent=`전체 ${logs().length}회`;
+      $('#rangeCaption').textContent='최근 7일';
+    }
     document.querySelectorAll('#logList .log-item[data-log-id]').forEach(root=>{
       const log=logs().find(item=>item.id===root.dataset.logId);if(!log)return;
       const detail=root.querySelector('.log-details');if(log.cardio&&detail)detail.insertAdjacentHTML('beforeend',`<div class="log-detail-row"><span>유산소 · ${esc(log.cardio.type)}</span><span>${esc(log.cardio.minutes)}분${log.cardio.distance!=null?` · ${esc(log.cardio.distance)}km`:''}</span></div>`);

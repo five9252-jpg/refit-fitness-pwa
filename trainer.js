@@ -34,6 +34,10 @@
   let activeRole = null;
   let viewEpoch = 0;
   const directoryState = {query:'',filter:'all',group:'all',page:1};
+  let directoryRows=[],directoryOwner=null;
+  const memberPeriods=new Map();
+  const periodFor=id=>{if(!memberPeriods.has(id))memberPeriods.set(id,{mode:'week',anchor:window.PacefitRecordPeriod.day(new Date())});return memberPeriods.get(id);};
+  const displayName=(owner,id,fallback)=>window.PacefitTrainerWorkspace.loadAliases?.(owner)?.[id]||fallback;
   const appRoot = document.querySelector('.app');
   const originalOverflow = document.body.style.overflow;
   function syncWorkspace() {
@@ -140,7 +144,7 @@
     const epoch = ++viewEpoch;
     const s = session();
     if (!s) return localView();
-    show(shell('회원 관리', '페이스핏 · 트레이너 작업공간', '<p class="trainer-note" role="status">공유 회원 목록을 불러오는 중…</p>'));
+    show(shell('회원 관리', 'PACEFIT · 트레이너 작업공간', '<p class="trainer-note" role="status">공유 회원 목록을 불러오는 중…</p>'));
     let profileResult = await optionalQuery(s.client.from('trainer_profiles').select('user_id,display_name,invite_code,share_workouts_with_members').eq('user_id',s.user.id).maybeSingle(),'trainerSharing');
     if (!sameSession(s) || epoch !== viewEpoch) return;
     if (!schemaAvailable.trainerSharing) profileResult = await s.client.from('trainer_profiles').select('user_id,display_name,invite_code').eq('user_id',s.user.id).maybeSingle();
@@ -167,7 +171,9 @@
     if (!sameSession(s) || epoch !== viewEpoch) return;
     if (!result) return;
     const code = profile.invite_code.replace(/(.{4})/g,'$1-').replace(/-$/,'');
-    const rows = window.PacefitTrainerWorkspace.members(result.links,result.records);
+    const rawRows = window.PacefitTrainerWorkspace.members(result.links,result.records);
+    const rows = window.PacefitTrainerWorkspace.aliasRows?.(rawRows,s.user.id)||rawRows;
+    directoryRows=rows;directoryOwner=s.user.id;
     show(shell('회원 관리', '페이스핏 · 트레이너 작업공간', `<div class="tw-layout"><section><h3>오늘 확인할 회원을 찾아보세요</h3><p class="trainer-note">공유 운동 기준 · 7일 이상 기록이 없는 회원을 확인하세요. 공유 데이터 없음은 미동의·미저장 등으로 조회되지 않은 상태이며 이유를 단정하지 않습니다. 트레이너가 별도로 작성한 수업 기록은 회원 상세에서 확인하세요.</p><div id="trainerDirectory"></div>${!rows.length?'<p class="trainer-empty">아직 연결된 회원이 없어요. 초대 코드를 회원에게 전달하세요.</p>':''}</section><aside class="tw-sidebar"><div class="trainer-card"><h3>회원 초대 코드</h3><div class="trainer-code">${esc(code)}</div><p>회원이 연결과 정보 공유에 동의해야 볼 수 있어요.</p></div><div class="trainer-card"><h3>내 운동 기록 공개 (선택)</h3><p>켜면 공개한 운동 기록을 연결 회원이 볼 수 있어요. 기본값은 비공개예요.</p><label class="trainer-row trainer-note"><span>회원에게 공개 동의</span><input id="trainerShareOwnChoice" type="checkbox" ${profile.share_workouts_with_members?'checked':''}></label><button class="trainer-subtle" id="publishOwnWorkouts" type="button" ${profile.share_workouts_with_members?'':'disabled'}>내 최근 운동 기록 업데이트</button></div></aside></div>`));
     window.PacefitTrainerWorkspace.mount(overlay.querySelector('#trainerDirectory'),rows,directoryState,memberRecords,{groups:window.PacefitTrainerWorkspace.loadGroups(s.user.id),onGroupChange:(memberId,group)=>{if(!sameSession(s))return false;const ok=window.PacefitTrainerWorkspace.saveGroup(s.user.id,memberId,group);if(!ok)alert('회원 분류를 저장하지 못했습니다. 브라우저 저장 공간을 확인해주세요.');return ok;}});
     const shareOwn=overlay.querySelector('#trainerShareOwnChoice'),publish=overlay.querySelector('#publishOwnWorkouts');shareOwn.disabled=!schemaAvailable.trainerSharing;
@@ -184,7 +190,10 @@
     }).filter(Boolean);
     return {id:`trainer-${row.id}`,source:'trainer',trainerId:row.trainer_id,loggedAt:row.created_at,date:row.entry_date,title:row.title,effort:row.effort,note:row.note,photoIds:[],items};
   };
+  let entryRefreshBusy=false;
   async function refreshTrainerEntries() {
+    if(entryRefreshBusy)return;entryRefreshBusy=true;
+    try {
     const s = session();
     if (!s || !s.exerciseConsent) return;
     const {data,error} = await s.client.from('trainer_log_entries').select('id,trainer_id,entry_date,title,effort,note,items,created_at').eq('member_id',s.user.id).order('created_at',{ascending:false}).limit(500);
@@ -195,6 +204,7 @@
     const received = (data||[]).map(trainerLog).filter(row=>row.items.length);
     if (current.length===received.length && current.every((row,i)=>row.id===received[i].id)) return;
     bridge.replaceState({...state,logs:[...(state.logs||[]).filter(log=>log.source!=='trainer'),...received]});
+    }catch(error){console.warn('Trainer records refresh failed',error);}finally{entryRefreshBusy=false;}
   }
 
   async function getComments(memberId, logKey) {
@@ -239,28 +249,51 @@
     const profile=result.record?.payload?.profile||{};
     const logs=[...(result.record?.payload?.logs||[]),...result.entries.map(trainerLog)].filter(row=>row.id&&Array.isArray(row.items)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     const I=window.PacefitMemberInsights;
-    const graph=I.workoutSummary(logs,profile);
+    const P=window.PacefitRecordPeriod,period=P?periodFor(memberId):null;
+    const filteredLogs=P?P.select(logs,period.mode,period.anchor):logs;
+    const graph=I.workoutSummary(filteredLogs,profile);
     const profileFields=[['운동 경험',profile.experienceOther||profile.experience],['운동 목표',profile.goalOther||profile.goal],['주간 목표',profile.days?`주 ${profile.days}회`:null],['성별',profile.sex||profile.gender],['키',profile.height?`${profile.height}cm`:null]];
     const profileHtml=`<div class="trainer-profile-grid">${profileFields.map(([label,value])=>`<div class="trainer-profile-item"><small>${esc(label)}</small><strong>${esc(value||'미입력')}</strong></div>`).join('')}${I.historyMarkup(result.record?.payload?.bodyMetricsV1,'weight',profile)}${I.historyMarkup(result.record?.payload?.bodyMetricsV1,'bmr',profile)}</div>${I.reportsMarkup(result.record?.payload?.sharedBodyReportsV1,memberId)}<p class="trainer-note">회원이 공유한 정보만 표시합니다. 검사표는 사진별 별도 공유 동의가 필요합니다.</p>`;
-    const dietHtml=I.dietMarkup(result.diets,profile);
+    const dietHtml=I.dietMarkup(P?P.select(result.diets,period.mode,period.anchor,'entry_date'):result.diets,profile);
     const poseHtml=!schemaAvailable.poseSharing?'<p class="trainer-empty">현재 서버는 자세 결과 공유를 지원하지 않습니다. 카메라 영상은 전송하거나 저장하지 않습니다.</p>':result.sharePose&&result.poses.length?result.poses.map(row=>`<div class="trainer-log"><h4>${esc(row.exercise_name)} · ${row.rep_count}회</h4><small>${esc(new Date(row.created_at).toLocaleString('ko-KR'))} · ${row.duration_seconds}초 · 최대 각도 ${row.max_angle??'—'}°</small><p>${esc(row.observed)}</p></div>`).join(''):'<p class="trainer-empty">공유 허용된 자세 분석 결과가 없어요. 카메라 영상은 저장하지 않습니다.</p>';
     const {data:sharedTrainerLogs}=schemaAvailable.trainerSharing ? await optionalQuery(s.client.from('trainer_shared_workouts').select('id,workout_date,title,items,note').eq('trainer_id',result.link.trainer_id).order('workout_date',{ascending:false}).limit(20),'trainerSharing') : {data:[]};
     if (!sameSession(s) || epoch !== viewEpoch) return;
     const trainerLogsHtml=(sharedTrainerLogs||[]).length?(sharedTrainerLogs||[]).map(row=>`<div class="trainer-log"><h4>${esc(row.title)}</h4><small>${esc(row.workout_date)} · 트레이너 공개 운동</small><p>${(row.items||[]).map(trainerItemMarkup).join('<br>')}</p>${row.note?`<p>${esc(row.note)}</p>`:''}</div>`).join(''):'<p class="trainer-empty">트레이너가 공개한 운동 기록이 없어요.</p>';
-    show(shell(profile.name||'회원 기록', '회원이 허용한 운동·자세·식단 기록을 확인합니다.', `<button class="trainer-subtle" id="backToMembers" type="button">← 회원 목록</button><button class="trainer-primary" id="trainerNewPlan" type="button" style="margin-left:8px">다음 운동 제안</button>${result.link.can_write?'<button class="trainer-primary" id="trainerNewLog" type="button" style="margin-left:8px">운동 기록 대신 작성</button>':''}<nav class="tw-detail-nav" aria-label="회원 정보 바로가기">${[['profile','프로필'],['workout','운동·변화'],['diet','식단'],['pose','자세']].map(([key,label])=>`<button type="button" data-detail="${key}" aria-current="${section===key}">${label}</button>`).join('')}</nav><div class="trainer-card tw-detail-section" id="trainerDetail-profile" tabindex="-1"><h3>회원 프로필</h3><p>${esc(profile.name||'이름 미입력')}님의 기본 정보와 운동 목표</p>${result.record?profileHtml:'<p class="trainer-empty">공유 프로필을 조회할 수 없어요. 미동의·미저장 등일 수 있으며 현재 화면에서 사유를 확인할 수 없습니다.</p>'}</div><div class="trainer-card tw-detail-section" id="trainerDetail-workout" tabindex="-1"><h3>운동 변화 그래프</h3>${graph}</div><div class="trainer-card"><h3>운동 기록 ${logs.length}회</h3>${I.workoutLogs(logs,profile)}</div><div class="trainer-card tw-detail-section" id="trainerDetail-pose" tabindex="-1"><h3>자세 체크 ${!schemaAvailable.poseSharing?'· 서버 미지원':result.sharePose?'· 공유 허용':'· 미공유'}</h3>${poseHtml}</div><div class="trainer-card tw-detail-section" id="trainerDetail-diet" tabindex="-1"><h3>식단 기록 · 회원이 공유한 데이터</h3>${dietHtml}</div><div class="trainer-card"><h3>트레이너가 공개한 운동</h3>${trainerLogsHtml}</div><p class="trainer-note">식단·자세 데이터는 회원 동의가 있을 때만 서버에서 읽을 수 있습니다. 사진 분석 원본 영상은 전송하거나 저장하지 않습니다.</p>`));
+    const memberName=displayName(s.user.id,memberId,profile.name||'회원 기록');
+    show(shell(memberName, '회원이 허용한 운동·자세·식단 기록을 확인합니다.', `<button class="trainer-subtle" id="backToMembers" type="button">← 회원 목록</button><button class="trainer-primary" id="trainerNewPlan" type="button" style="margin-left:8px">다음 운동 제안</button>${result.link.can_write?'<button class="trainer-primary" id="trainerNewLog" type="button" style="margin-left:8px">운동 기록 대신 작성</button>':''}<form class="pf-alias" id="trainerAliasForm"><label>내 화면에서 부를 이름<input name="alias" maxlength="40" value="${esc(window.PacefitTrainerWorkspace.loadAliases?.(s.user.id)?.[memberId]||'')}" placeholder="원래 이름 사용"></label><button class="trainer-subtle" type="submit">표시 이름 저장</button><small>현재 브라우저의 내 트레이너 계정에만 저장됩니다. 비우면 원래 이름으로 돌아갑니다.</small><span role="status" id="aliasStatus"></span></form><p class="trainer-note">아래 기간은 운동·식단 기록에 적용합니다. 프로필 이력과 자세 결과는 별도입니다.</p><div id="trainerRecordPeriod"></div><nav class="tw-detail-nav" aria-label="회원 정보 바로가기">${[['profile','프로필'],['workout','운동·변화'],['diet','식단'],['pose','자세']].map(([key,label])=>`<button type="button" data-detail="${key}" aria-current="${section===key}">${label}</button>`).join('')}</nav><div class="trainer-card tw-detail-section" id="trainerDetail-profile" tabindex="-1"><h3>회원 프로필</h3><p>${esc(profile.name||'이름 미입력')}님의 기본 정보와 운동 목표</p>${result.record?profileHtml:'<p class="trainer-empty">공유 프로필을 조회할 수 없어요. 미동의·미저장 등일 수 있으며 현재 화면에서 사유를 확인할 수 없습니다.</p>'}</div><div class="trainer-card tw-detail-section" id="trainerDetail-workout" tabindex="-1"><h3>운동 변화 그래프</h3>${graph}<h3>운동 기록 ${filteredLogs.length}회</h3>${I.workoutLogs(filteredLogs,profile)}</div><div class="trainer-card tw-detail-section" id="trainerDetail-pose" tabindex="-1"><h3>자세 체크 ${!schemaAvailable.poseSharing?'· 서버 미지원':result.sharePose?'· 공유 허용':'· 미공유'}</h3>${poseHtml}</div><div class="trainer-card tw-detail-section" id="trainerDetail-diet" tabindex="-1"><h3>식단 기록 · 회원이 공유한 데이터</h3>${dietHtml}</div><div class="trainer-card"><h3>트레이너가 공개한 운동</h3>${trainerLogsHtml}</div><p class="trainer-note">식단·자세 데이터는 회원 동의가 있을 때만 서버에서 읽을 수 있습니다. 사진 분석 원본 영상은 전송하거나 저장하지 않습니다.</p>`));
+    // Directory cache contains only the last RLS-visible name/workout list, never report images.
+    if(directoryOwner===s.user.id && directoryRows.length) {
+      const content=overlay.querySelector('#trainerContent');
+      const detail=document.createElement('div');detail.className='tw-detail-main';
+      while(content.firstChild)detail.appendChild(content.firstChild);
+      const split=document.createElement('div');split.className='tw-split';
+      const aside=document.createElement('aside');aside.setAttribute('aria-label','회원 목록');
+      split.appendChild(aside);split.appendChild(detail);content.appendChild(split);
+      window.PacefitTrainerWorkspace.mount(aside,window.PacefitTrainerWorkspace.aliasRows?.(directoryRows,s.user.id)||directoryRows,directoryState,memberRecords,{groups:window.PacefitTrainerWorkspace.loadGroups(s.user.id),onGroupChange:(id,group)=>sameSession(s)&&window.PacefitTrainerWorkspace.saveGroup(s.user.id,id,group)});
+      aside.querySelectorAll('.tw-member').forEach(row=>row.dataset.selected=String(row.querySelector('[data-member]')?.dataset.member===memberId));
+    }
+    const aliasForm=overlay.querySelector('#trainerAliasForm');
+    aliasForm.onsubmit=event=>{event.preventDefault();if(!sameSession(s))return;
+      if(!window.PacefitTrainerWorkspace.saveAlias(s.user.id,memberId,aliasForm.elements.alias.value)){overlay.querySelector('#aliasStatus').textContent='저장하지 못했어요. 저장 공간과 40자 제한을 확인해주세요.';return;}
+      memberRecords(memberId,section);
+    };
+    if(P)P.mount(overlay.querySelector('#trainerRecordPeriod'),period,()=>memberRecords(memberId,overlay.querySelector('[data-detail][aria-current="true"]')?.dataset.detail||section));
     const navigateDetail = key => {
       const target=overlay.querySelector('#trainerDetail-'+key);
       if(!target) return;
       overlay.querySelectorAll('[data-detail]').forEach(control=>control.setAttribute('aria-current',String(control.dataset.detail===key)));
-      target.focus(); target.scrollIntoView({block:'start'});
+      overlay.querySelectorAll('.tw-detail-section').forEach(panel=>{panel.hidden=panel!==target;});
+      target.focus(); target.scrollIntoView({block:'nearest'});
     };
     overlay.querySelectorAll('[data-detail]').forEach(control=>control.onclick=()=>navigateDetail(control.dataset.detail));
     navigateDetail(section);
     overlay.querySelector('#backToMembers').onclick=trainerView;
-    overlay.querySelector('#trainerNewPlan').onclick=()=>window.PacefitTrainerPlans?.openComposer({memberId,memberName:profile.name||'회원',memberLogs:logs});
-    const newLog=overlay.querySelector('#trainerNewLog');if(newLog)newLog.onclick=()=>trainerRecordForm(memberId,profile.name||'회원');
+    overlay.querySelector('#trainerNewPlan').onclick=()=>window.PacefitTrainerPlans?.openComposer({memberId,memberName,memberLogs:logs});
+    const newLog=overlay.querySelector('#trainerNewLog');if(newLog)newLog.onclick=()=>trainerRecordForm(memberId,memberName);
+    overlay.querySelectorAll('[data-lesson-log]').forEach(card=>{const log=logs.find(row=>row.id===card.dataset.lessonLog);if(!log)return;const open=document.createElement('button');open.type='button';open.className='lj-new';open.textContent='사진·영상·펜 피드백';open.onclick=()=>window.PacefitLessonJournal?.open({memberId,memberName,log});card.appendChild(open);});
     overlay.querySelectorAll('[data-load-comment]').forEach(control=>control.onclick=()=>loadPortalThread(memberId,control.dataset.loadComment));
     for(const image of overlay.querySelectorAll('[data-diet-photo]')){const {data:signed}=await s.client.storage.from('diet-photos').createSignedUrl(image.dataset.dietPhoto,600);if (!sameSession(s) || epoch !== viewEpoch) return; if(signed?.signedUrl)image.src=signed.signedUrl;else image.hidden=true;}
+    return epoch;
   }
   async function loadPortalThread(memberId, logKey) {
     const root=Array.from(overlay.querySelectorAll('[data-thread]')).find(el=>el.dataset.thread===logKey);
@@ -273,17 +306,26 @@
   }
 
   function trainerRecordForm(memberId, memberName) {
-    viewEpoch++;
+    const composerEpoch=++viewEpoch,composerSession=session();
+    if(!composerSession)return;
     const now=new Date(),today=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
-    show(shell('운동 기록 대신 작성', `${memberName}님의 운동을 지도하며 기록합니다.`, `<button class="trainer-subtle" id="backToMember" type="button">← 회원 기록</button><form id="trainerRecordForm" class="trainer-card"><label class="trainer-field">운동 날짜<input name="date" type="date" max="${today}" value="${today}" required></label><label class="trainer-field">운동 이름<input name="exercise" maxlength="80" list="trainerExercises" placeholder="예: 스쿼트" required><datalist id="trainerExercises">${(window.PACEFIT_LIBRARY||[]).filter(item=>['가슴','등','어깨','팔','하체'].includes(item.category)).map(item=>`<option value="${esc(item.name)}"></option>`).join('')}</datalist></label><div class="trainer-fields"><label class="trainer-field">무게 kg<input name="weight" type="number" min="0" max="1000" step="0.5" value="0" required></label><label class="trainer-field">세트 수<input name="sets" type="number" min="1" max="30" value="3" required></label><label class="trainer-field">세트당 횟수<input name="reps" type="number" min="1" max="100" value="10" required></label></div><label class="trainer-field">오늘 난이도<select name="effort"><option>적당했어요</option><option>쉬웠어요</option><option>힘들었어요</option><option>통증이 있었어요</option></select></label><label class="trainer-field">메모<textarea name="note" maxlength="1000" placeholder="지도 중 확인한 내용을 기록하세요"></textarea></label><p class="trainer-note">저장하면 회원 일지에 ‘트레이너 작성’으로 표시되고 작성한 계정과 시간이 서버에 남습니다.</p><button class="trainer-primary" type="submit">회원 기록으로 저장</button></form>`));
-    overlay.querySelector('#backToMember').onclick=()=>memberRecords(memberId);
+    const drawer=document.createElement('section');drawer.className='pf-record-drawer';drawer.setAttribute('role','dialog');drawer.setAttribute('aria-modal','true');drawer.setAttribute('aria-label','운동 기록 대신 작성');
+    drawer.innerHTML=`<h3>${esc(memberName)} · 운동 기록 작성</h3><button class="trainer-subtle" id="backToMember" type="button">← 회원 기록</button><form id="trainerRecordForm" class="trainer-card"><label class="trainer-field">운동 날짜<input name="date" type="date" max="${today}" value="${today}" required></label><label class="trainer-field">운동 이름<input name="exercise" maxlength="80" list="trainerExercises" placeholder="예: 스쿼트" required><datalist id="trainerExercises">${(window.PACEFIT_LIBRARY||[]).filter(item=>['가슴','등','어깨','팔','하체'].includes(item.category)).map(item=>`<option value="${esc(item.name)}"></option>`).join('')}</datalist></label><div class="trainer-fields"><label class="trainer-field">무게 kg<input name="weight" type="number" min="0" max="1000" step="0.5" value="0" required></label><label class="trainer-field">세트 수<input name="sets" type="number" min="1" max="30" value="3" required></label><label class="trainer-field">세트당 횟수<input name="reps" type="number" min="1" max="100" value="10" required></label></div><label class="trainer-field">오늘 난이도<select name="effort"><option>적당했어요</option><option>쉬웠어요</option><option>힘들었어요</option><option>통증이 있었어요</option></select></label><label class="trainer-field">메모<textarea name="note" maxlength="1000" placeholder="지도 중 확인한 내용을 기록하세요"></textarea></label><p class="trainer-note">저장하면 회원 일지에 ‘트레이너 작성’으로 표시되고 작성한 계정과 시간이 서버에 남습니다.</p><button class="trainer-primary" type="submit">기록 저장 후 사진·영상·필기 추가</button></form>`;
+    const shade=document.createElement('div');shade.className='pf-record-drawer-backdrop';
+    const background=overlay.querySelector('.trainer-panel');background.inert=true;
+    overlay.appendChild(shade);overlay.appendChild(drawer);drawer.querySelector('input')?.focus();
+    drawer.addEventListener('keydown',event=>{if(event.key!=='Tab')return;const controls=Array.from(drawer.querySelectorAll('button:not(:disabled),input,select,textarea'));const first=controls[0],last=controls[controls.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}});
+    overlay.querySelector('#backToMember').onclick=()=>memberRecords(memberId,'workout');
     overlay.querySelector('#trainerRecordForm').onsubmit=async event=>{
       event.preventDefault();const form=event.currentTarget,fields=new FormData(form),date=String(fields.get('date')||''),name=String(fields.get('exercise')||'').trim(),weight=Number(fields.get('weight')),sets=Number(fields.get('sets')),reps=Number(fields.get('reps')),note=String(fields.get('note')||'').trim(),effort=String(fields.get('effort')||'적당했어요');
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>today||!name||name.length>80||!Number.isFinite(weight)||weight<0||weight>1000||!Number.isInteger(sets)||sets<1||sets>30||!Number.isInteger(reps)||reps<1||reps>100)return;
+      if(!window.PacefitRecordPeriod.valid(date)||date>today||!name||name.length>80||!Number.isFinite(weight)||weight<0||weight>1000||!Number.isInteger(sets)||sets<1||sets>30||!Number.isInteger(reps)||reps<1||reps>100)return;
       const save=form.querySelector('[type=submit]');save.disabled=true;
-      const s=session();const {error}=await s.client.from('trainer_log_entries').insert({trainer_id:s.user.id,member_id:memberId,entry_date:date,title:`트레이너 기록 · ${name}`,effort,note,items:[{name,equipment:'',weight,sets,reps,rir:null,formOk:false}]});
+      const s=composerSession;if(!sameSession(s)||composerEpoch!==viewEpoch)return;const {data:created,error}=await s.client.from('trainer_log_entries').insert({trainer_id:s.user.id,member_id:memberId,entry_date:date,title:`트레이너 기록 · ${name}`,effort,note,items:[{name,equipment:'',weight,sets,reps,rir:null,formOk:false}]}).select('id,trainer_id,entry_date,title,effort,note,items,created_at').single();
+      if(!sameSession(s)||composerEpoch!==viewEpoch)return;
       if(error){save.disabled=false;form.insertAdjacentHTML('afterbegin',`<p class="trainer-error">${errorText(error)}</p>`);return;}
-      memberRecords(memberId);
+      const p=periodFor(memberId);p.anchor=date;
+      const detailEpoch=await memberRecords(memberId,'workout');
+      if(sameSession(s)&&detailEpoch===viewEpoch&&created)window.PacefitLessonJournal?.open({memberId,memberName,log:trainerLog(created)});
     };
   }
 
@@ -321,8 +363,9 @@
   });
   window.addEventListener('refit:session-ready',()=>{button.textContent='트레이너 연결';refreshTrainerEntries();decorateJournal();if(activeRole==='trainer')trainerView();else showEntry()});
   window.addEventListener('refit:local-ready',()=>{ if (activeRole!=='trainer' && (!document.getElementById('accountGate') || document.getElementById('accountGate').hidden)) showEntry(); });
-  window.addEventListener('refit:session-ended',()=>{overlay.hidden=true;entry.hidden=true;activeRole=null;viewEpoch++;Object.assign(directoryState,{query:'',filter:'all',group:'all',page:1});overlay.innerHTML='';syncWorkspace();button.textContent='트레이너 연결'});
+  window.addEventListener('refit:session-ended',()=>{overlay.hidden=true;entry.hidden=true;activeRole=null;viewEpoch++;Object.assign(directoryState,{query:'',filter:'all',group:'all',page:1});overlay.innerHTML='';directoryRows=[];directoryOwner=null;memberPeriods.clear();syncWorkspace();button.textContent='트레이너 연결'});
   try { if (JSON.parse(localStorage.getItem('refit-local-consent-v2')||'null')?.acceptedAt && !window.REFIT_CONFIG?.supabaseUrl && !window.REFIT_CONFIG?.supabasePublishableKey) showEntry(); } catch {}
+  window.setInterval?.(()=>{if(!document.hidden&&session()?.exerciseConsent&&activeRole!=='trainer')refreshTrainerEntries();},5000);
   let lastRefresh=0;
   window.addEventListener('focus',()=>{if(session()&&Date.now()-lastRefresh>60000){lastRefresh=Date.now();refreshTrainerEntries()}});
 })();

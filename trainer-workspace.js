@@ -30,10 +30,27 @@
     if(!ownerId||!/^[\w-]{1,100}$/.test(memberId)||!['focus','regular'].includes(group))return false;
     try{root.localStorage.setItem('pacefitTrainerGroupsV1:'+ownerId,JSON.stringify({...loadGroups(ownerId),[memberId]:group}));return true;}catch{return false;}
   }
+  function loadAliases(ownerId) {
+    if(!ownerId)return {};
+    try {
+      const rows=JSON.parse(root.localStorage.getItem('pacefitTrainerAliasesV1:'+ownerId)||'{}');
+      return Object.fromEntries(Object.entries(rows).filter(([id,name])=>/^[\w-]{1,100}$/.test(id)&&typeof name==='string'&&name.trim()&&name.length<=40));
+    } catch {return {};}
+  }
+  function saveAlias(ownerId,memberId,value) {
+    if(!ownerId||!/^[\w-]{1,100}$/.test(memberId)||typeof value!=='string'||value.trim().length>40)return false;
+    const rows=loadAliases(ownerId),name=value.trim();
+    if(name)rows[memberId]=name;else delete rows[memberId];
+    try{root.localStorage.setItem('pacefitTrainerAliasesV1:'+ownerId,JSON.stringify(rows));return true;}catch{return false;}
+  }
+  function aliasRows(rows,ownerId) {
+    const aliases=loadAliases(ownerId);
+    return rows.map(row=>({...row,originalName:row.originalName||row.name,name:aliases[row.id]||row.originalName||row.name}));
+  }
   function markup(rows, state) {
     const query = String(state.query || '').trim().normalize('NFKC').toLocaleLowerCase('ko');
     const scoped = rows.filter(row => !state.group || state.group==='all' || (row.group||'regular')===state.group);
-    const filtered = scoped.filter(row => (state.filter === 'all' || row.status === state.filter) && row.name.normalize('NFKC').toLocaleLowerCase('ko').includes(query));
+    const filtered = scoped.filter(row => (state.filter === 'all' || row.status === state.filter) && [row.name,row.originalName||''].some(name=>name.normalize('NFKC').toLocaleLowerCase('ko').includes(query)));
     filtered.sort((a,b) => a.name.localeCompare(b.name,'ko',{numeric:true}) || a.id.localeCompare(b.id));
     const pageSize = 20, pages = Math.max(1,Math.ceil(filtered.length/pageSize));
     state.page = Math.min(Math.max(1,state.page || 1),pages);
@@ -47,7 +64,7 @@
   }
   function mount(host, rows, state, openMember, options={}) {
     if(options.groups)rows.forEach(row=>{row.group=options.groups[row.id]||'regular';});
-    host.innerHTML = '<label class="trainer-field tw-search">회원 이름 검색<input type="search" maxlength="80" autocomplete="off" placeholder="회원 이름을 입력하세요"></label><div class="tw-results"></div>';
+    host.innerHTML = '<label class="trainer-field tw-search">회원 이름·별명 검색<input type="search" maxlength="80" autocomplete="off" placeholder="이름 또는 내 별명을 입력하세요"></label><div class="tw-results"></div>';
     const input = host.querySelector('input'), results = host.querySelector('.tw-results');
     input.value = state.query;
     const render = () => { results.innerHTML = markup(rows,state); };
@@ -69,7 +86,7 @@
     };
     render();
   }
-  const api = {members,markup,mount,dateValue,loadGroups,saveGroup};
+  const api = {members,markup,mount,dateValue,loadGroups,saveGroup,loadAliases,saveAlias,aliasRows};
   root.PacefitTrainerWorkspace = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

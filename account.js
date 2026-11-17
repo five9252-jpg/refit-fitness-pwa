@@ -239,11 +239,13 @@
     };
     gate.querySelector('#verificationBack').onclick=()=>authView();
   }
-  function consentView(mode) {
+  async function consentView(mode) {
+    const consentOwner=currentUser?.id;
     show(gate, `<section class="account-panel" role="dialog" aria-modal="true" aria-labelledby="consentTitle"><div class="eyebrow">${mode==='signup'?'회원가입 · 개인정보 확인':'계정 이용 · 개인정보 확인'}</div><h1 id="consentTitle">개인정보 수집·이용 동의</h1><p>운영자: <b>${escapeHtml(privacy.operatorName)}</b> · 문의: <b>${escapeHtml(privacy.contactEmail)}</b></p><dl class="notice-list"><dt>필수 정보</dt><dd>로그인 아이디, 이메일 계정 정보, 별명·운동 경험·목표·주간 목표. 비밀번호는 인증 서비스에서 처리합니다.</dd><dt>이용 목적</dt><dd>계정 로그인, 이메일 주소 확인, 프로필 저장, 운동 서비스 제공과 계정 관리</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 권리</dt><dd>필수 항목 동의를 거부하면 온라인 계정을 만들거나 사용할 수 없습니다. 이 기기 전용으로 사용할 수 있습니다.</dd></dl><label class="consent-check"><input id="basicConsent" type="checkbox"><span><b>[필수]</b> 위 개인정보 수집·이용 내용을 확인했고 동의합니다.</span></label><dl class="notice-list"><dt>운동·신체 정보</dt><dd>운동 종목·날짜·무게·세트·횟수·난이도·운동 시간·예상 칼로리·메모, 선택 입력한 성별·키·체중·기초대사량·1RM 참고 기록을 서버에 저장합니다. 동의하면 이 기기에 이미 저장된 기록도 해당 계정으로 동기화될 수 있습니다. 운동 사진은 서버에 올리지 않습니다.</dd><dt>이용 목적</dt><dd>운동 일지 동기화와 개인화된 다음 운동·참고 중량 표시. 트레이너와 기록을 공유하려면 별도로 연결 코드와 공유 권한을 선택합니다.</dd><dt>보유 기간</dt><dd>${escapeHtml(privacy.retention)}</dd><dt>거부 시</dt><dd>동의를 거부해도 계정 기본 기능은 쓸 수 있지만, 운동·신체 기록은 서버에 동기화되지 않아 운영자 조회와 기기 간 기록 동기화를 사용할 수 없습니다.</dd></dl><label class="consent-check"><input id="exerciseConsent" type="checkbox"><span><b>[선택]</b> 운동·신체 정보의 서버 저장과 이용에 동의합니다.</span></label><dl class="notice-list"><dt>저장·처리 위치</dt><dd>${escapeHtml(privacy.dataRegion)}의 Supabase 데이터베이스/Auth에 저장됩니다. ${escapeHtml(privacy.processorNotice)}</dd></dl><div class="account-actions"><button class="save-manual" id="acceptConsent">확인하고 계속</button><button class="cancel" id="consentBack">돌아가기</button></div><p class="account-footnote">동의는 계정 설정에서 철회할 수 있으며, 철회 시 서버 운동 기록 동기화를 중단합니다. 기록 삭제 요청은 운영자 연락처로 접수할 수 있습니다.</p></section>`);
     const fullNotice=document.createElement('p');fullNotice.className='account-footnote';fullNotice.innerHTML='<a href="./privacy.html" target="_blank" rel="noopener">개인정보 처리 안내 전체 보기</a>';
     gate.querySelector('.account-actions').before(fullNotice);
     gate.querySelector('#acceptConsent').onclick = async () => {
+      if(mode==='existing' && currentUser?.id!==consentOwner)return;
       const basic=gate.querySelector('#basicConsent').checked;
       if (!basic) { gate.querySelector('#basicConsent').focus(); return; }
       const exercise=gate.querySelector('#exerciseConsent').checked, acceptedAt=new Date().toISOString();
@@ -260,6 +262,20 @@
       }
     };
     gate.querySelector('#consentBack').onclick = () => currentUser?accountMenu():mode==='signup'?signupView():authView();
+    if(mode==='existing') {
+      const save=gate.querySelector('#acceptConsent'),basic=gate.querySelector('#basicConsent'),exercise=gate.querySelector('#exerciseConsent');
+      save.disabled=basic.disabled=exercise.disabled=true;
+      const status=document.createElement('p');status.setAttribute('role','status');status.className='account-footnote';status.textContent='현재 동의 상태를 서버에서 불러오는 중…';save.parentNode.before(status);
+      try {
+        const {data,error}=await client.from('consent_events').select('basic_data_accepted,exercise_data_accepted').eq('user_id',consentOwner).order('accepted_at',{ascending:false}).limit(1).maybeSingle();
+        if(currentUser?.id!==consentOwner||gate.querySelector('#acceptConsent')!==save)return;
+        if(error||!data)throw error||Error('동의 기록 없음');
+        basic.checked=data.basic_data_accepted===true;exercise.checked=data.exercise_data_accepted===true;
+        save.disabled=basic.disabled=exercise.disabled=false;status.textContent='현재 서버 동의 상태입니다. 서버 저장을 켜면 기존 기기 기록이 동기화될 수 있습니다. 해제와 이미 저장된 데이터 삭제는 별도입니다.';
+      } catch {
+        if(currentUser?.id===consentOwner&&gate.querySelector('#acceptConsent')===save)status.textContent='현재 상태를 불러오지 못해 변경을 막았습니다. 돌아간 뒤 다시 열어주세요.';
+      }
+    }
   }
   async function performSignup(credentials,choices) {
     const {username,email,password}=credentials;
@@ -379,6 +395,7 @@
         if (error) throw error;
         if (bridge&&bridge.clearCurrentPhotos) await bridge.clearCurrentPhotos();
         if (window.RefitDietJournal?.clearLocal) await window.RefitDietJournal.clearLocal();
+        if (window.PacefitLessonJournal?.clearLocal) await window.PacefitLessonJournal.clearLocal();
         if (window.PacefitBodyRecords?.clearLocal) await window.PacefitBodyRecords.clearLocal();
         await client.auth.signOut().catch(()=>{});
         currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;
@@ -409,7 +426,10 @@
       client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle(),
       client.rpc('my_login_id')
     ]);
-    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><label class="account-remember"><input id="menuRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">공용 기기에서는 끄고 사용하세요. 끄면 브라우저를 닫을 때 로그인 상태가 해제됩니다.</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="changeConsent" class="cancel">동의 설정 변경</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><label class="account-remember"><input id="menuRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">공용 기기에서는 끄고 사용하세요. 끄면 브라우저를 닫을 때 로그인 상태가 해제됩니다.</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="changeConsent" class="cancel">운동·신체 서버 저장 동의</button><button id="menuTrainerPermissions" class="cancel">트레이너 공유·대리 작성 설정</button><button id="menuDietPermissions" class="cancel">식단 저장·공유·AI 사진 설정</button><button id="menuBodyPermissions" class="cancel">체성분 사진별 공유 설정</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    gate.querySelector('#menuTrainerPermissions').onclick=()=>{gate.hidden=true;document.querySelector('.trainer-open')?.click();};
+    gate.querySelector('#menuDietPermissions').onclick=()=>{gate.hidden=true;document.getElementById('homeDiet')?.click();document.getElementById('dietConsentOpen')?.click();};
+    gate.querySelector('#menuBodyPermissions').onclick=()=>{gate.hidden=true;window.openProfile?.();document.getElementById('bodyRecordsPanel')?.scrollIntoView({block:'start'});};
     gate.querySelector('#menuRememberLogin').onchange=e=>setRememberLogin(e.target.checked);
     const claimButton=gate.querySelector('#claimLoginId');if(claimButton)claimButton.onclick=()=>claimLoginIdView();
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;gate.querySelector('#changeConsent').onclick=()=>consentView('existing');const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;

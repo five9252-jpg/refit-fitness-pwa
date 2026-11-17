@@ -83,7 +83,7 @@
     };
   }
   window.addEventListener('refit:state-updated',()=>{if(!busy&&!tracking){trackProfile();render();}});
-  window.PacefitBodyRecords={clearLocal:async()=>{const id=owner(),rows=await dbRequest('readonly',store=>store.index('ownerId').getAll(id));for(const row of rows)await dbRequest('readwrite',store=>store.delete(row.id));localStorage.removeItem('pacefitTrainerGroupsV1:'+id);}};
+  window.PacefitBodyRecords={clearLocal:async()=>{const id=owner(),rows=await dbRequest('readonly',store=>store.index('ownerId').getAll(id));for(const row of rows)await dbRequest('readwrite',store=>store.delete(row.id));localStorage.removeItem('pacefitTrainerGroupsV1:'+id);localStorage.removeItem('pacefitTrainerAliasesV1:'+id);}};
   for(const type of ['refit:session-ready','refit:local-ready'])window.addEventListener(type,()=>{ready=true;lastOwner='';lastProfile='';trackProfile();render();});
   window.addEventListener('refit:session-ended',()=>{ready=false;renderEpoch++;lastOwner='';lastProfile='';host.innerHTML='';});
   if(currentSession()||document.getElementById('accountGate')?.hidden){ready=true;trackProfile();}render();
