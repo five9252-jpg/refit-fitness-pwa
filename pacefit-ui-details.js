@@ -1,0 +1,13 @@
+(()=>{
+ 'use strict';
+ const icons={homeChoose:'body-area',homeFree:'workout-log',homeJournal:'journal',homePose:'pose-check',homeProfile:'profile'};
+ const icon=(key,size=44)=>{const img=document.createElement('img');img.src='./assets/ui-3d-web/'+key+'.png';img.alt='';img.width=size;img.height=size;img.loading='lazy';img.style.objectFit='contain';return img;};
+ for(const [id,key] of Object.entries(icons)){const b=document.getElementById(id);if(!b)continue;const holder=b.querySelector('.home-option-icon');if(holder){holder.replaceChildren(icon(key,54));holder.style.cssText+=';width:62px;height:62px;background:transparent';}else b.prepend(icon(key,32));}
+ const style=document.createElement('style');style.textContent='.home-shortcuts button{display:flex;align-items:center;gap:8px}.pf-share-invite{margin-left:8px;border:1px solid #b9d5c7;padding:10px;border-radius:9px;background:#fff;color:#164d46;cursor:pointer}.pf-guide-image{width:48px;height:48px;object-fit:contain}';document.head.append(style);
+ function decorate(){
+  const code=document.querySelector('#trainerOverlay .trainer-code');if(code&&!code.parentElement.querySelector('.pf-share-invite')){const b=document.createElement('button');b.type='button';b.className='pf-share-invite';b.textContent='초대 코드 공유';b.onclick=async()=>{const text='PACEFIT에서 함께 운동 기록을 관리해요. 트레이너 연결 화면에서 초대 코드 '+code.textContent.trim()+'를 입력해주세요.\nhttps://myfacefit.co.kr/';try{if(navigator.share)await navigator.share({title:'PACEFIT 회원 초대',text});else{await navigator.clipboard.writeText(text);b.textContent='초대 내용 복사 완료';}}catch(error){if(error.name!=='AbortError')alert('공유하지 못했어요. 초대 코드를 직접 복사해주세요.');}};code.after(b);}
+  const head=document.querySelector('#trainerOverlay .trainer-head');if(head&&!head.querySelector('[data-pacefit-schedule]')){const b=document.createElement('button');b.type='button';b.dataset.pacefitSchedule='';b.className='trainer-subtle';b.textContent='수업 일정 · 알림';b.onclick=()=>window.PacefitServices?.open('schedule');head.append(b);}
+  const op=document.querySelector('.operator-head');if(op&&!op.querySelector('[data-pacefit-feedback]')){const b=document.createElement('button');b.type='button';b.dataset.pacefitFeedback='';b.className='operator-button';b.textContent='체험 설문·의견';b.onclick=()=>window.PacefitServices?.open('feedback');op.append(b);}
+ }
+ const observer=new MutationObserver(decorate);for(const id of ['trainerOverlay']){const el=document.getElementById(id);if(el)observer.observe(el,{childList:true,subtree:true});}const op=document.querySelector('.operator-overlay');if(op)observer.observe(op,{childList:true,subtree:true});decorate();
+})();

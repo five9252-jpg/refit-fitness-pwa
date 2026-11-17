@@ -1,5 +1,18 @@
-const CACHE_NAME = 'refit-shell-v67-lesson-journal-20261116';
+const CACHE_NAME = 'refit-shell-v68-services-20261117';
 const SHELL_ASSETS = [
+  './pacefit-services-core.js?v=20261117-services-1',
+  './pacefit-services.js?v=20261117-services-1',
+  './pacefit-services.css?v=20261117-services-1',
+  './pacefit-ui-details.js?v=20261117-services-1',
+  './prototype-planners.js?v=20261117-services-1',
+  './assets/ui-3d-web/body-area.png',
+  './assets/ui-3d-web/exercise-search.png',
+  './assets/ui-3d-web/journal.png',
+  './assets/ui-3d-web/nutrition.png',
+  './assets/ui-3d-web/pose-check.png',
+  './assets/ui-3d-web/profile.png',
+  './assets/ui-3d-web/workout-log.png',
+  './assets/ui-3d-web/workout-start.png',
   './',
   './index.html',
   './lesson-journal.css?v=20261116-lesson-1',
