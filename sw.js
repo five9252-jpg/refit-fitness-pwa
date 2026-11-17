@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v72-phone-first-20261117';
+const CACHE_NAME = 'refit-shell-v73-phone-first-20261117';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -78,7 +78,7 @@ const SHELL_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL_ASSETS))
+      .then((cache) => cache.addAll(SHELL_ASSETS.map(asset => new Request(new URL(asset, self.location.href), { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -98,7 +98,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     try {
-      const response = await fetch(request);
+      const freshUI = request.mode === 'navigate' || /\.(css|js|html)$/.test(new URL(request.url).pathname);
+      const response = await fetch(request, freshUI ? { cache: 'no-cache' } : undefined);
       if (response.ok) await cache.put(request, response.clone());
       return response;
     } catch {
@@ -111,6 +112,7 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
 
 
 
