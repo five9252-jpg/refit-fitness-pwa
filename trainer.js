@@ -39,7 +39,7 @@
   const directoryState = {query:'',filter:'all',group:'all',page:1};
   let directoryRows=[],directoryOwner=null;
   const memberPeriods=new Map();
-  const periodFor=id=>{if(!memberPeriods.has(id))memberPeriods.set(id,{mode:'week',anchor:window.PacefitRecordPeriod.day(new Date())});return memberPeriods.get(id);};
+  const periodFor=id=>{if(!memberPeriods.has(id))memberPeriods.set(id,{mode:'all',anchor:window.PacefitRecordPeriod.day(new Date())});return memberPeriods.get(id);};
   const displayName=(owner,id,fallback)=>window.PacefitTrainerWorkspace.loadAliases?.(owner)?.[id]||fallback;
   const appRoot = document.querySelector('.app');
   const originalOverflow = document.body.style.overflow;
