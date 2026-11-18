@@ -20,7 +20,7 @@ const SHELL_ASSETS = [
   './lesson-journal-store.js?v=20261116-lesson-1',
   './lesson-journal-ui.js?v=20261116-lesson-1',
   './pacefit-prototype.css?v=20261116-prototype-1',
-  './record-period.js?v=20261116-prototype-1',
+  './record-period.js?v=20261118-trainer-records-all-1',
   './assets/fonts/suit/SUIT-Regular.ttf',
   './assets/fonts/suit/SUIT-Bold.ttf',
   './privacy.html',
