@@ -8,6 +8,7 @@
   const iso = date => date.toISOString().slice(0,10);
   function bounds(mode, anchor) {
     if(!['day','week','month'].includes(mode)||!valid(anchor))throw Error('조회 기간과 기준 날짜를 확인해주세요.');
+    if(mode==='all')return {start:'0001-01-01',end:'9999-12-31',label:'전체 기간'};
     const start=new Date(anchor+'T00:00:00Z'),end=new Date(start);
     if(mode==='week'){start.setUTCDate(start.getUTCDate()-(start.getUTCDay()+6)%7);end.setTime(start.getTime());end.setUTCDate(end.getUTCDate()+6);}
     if(mode==='month'){start.setUTCDate(1);end.setUTCMonth(end.getUTCMonth()+1,0);}
@@ -19,6 +20,7 @@
   }
   function move(mode,anchor,step) {
     bounds(mode,anchor);
+    if(mode==='all')return anchor;
     const date=new Date(anchor+'T00:00:00Z');
     if(mode==='month'){const n=date.getUTCDate();date.setUTCDate(1);date.setUTCMonth(date.getUTCMonth()+step);const last=new Date(date);last.setUTCMonth(last.getUTCMonth()+1,0);date.setUTCDate(Math.min(n,last.getUTCDate()));}
     else date.setUTCDate(date.getUTCDate()+step*(mode==='week'?7:1));
@@ -26,7 +28,8 @@
   }
   function controls(state) {
     const period=bounds(state.mode,state.anchor);
-    return `<div class="pf-period" role="group" aria-label="기록 조회 기간">${[['day','일별'],['week','주별'],['month','월별']].map(([mode,label])=>`<button type="button" data-period="${mode}" aria-pressed="${state.mode===mode}">${label}</button>`).join('')}<button type="button" data-period-step="-1" aria-label="이전 기간">‹</button><label>기준일 <input type="date" value="${state.anchor}" data-period-date required></label><button type="button" data-period-step="1" aria-label="다음 기간">›</button><span role="status">${period.label}</span></div>`;
+    const nav=state.mode==='all'?'':`<button type="button" data-period-step="-1" aria-label="이전 기간">‹</button><label>기준일 <input type="date" value="${state.anchor}" data-period-date required></label><button type="button" data-period-step="1" aria-label="다음 기간">›</button>`;
+    return `<div class="pf-period" role="group" aria-label="기록 조회 기간">${[['all','전체'],['day','일별'],['week','주별'],['month','월별']].map(([mode,label])=>`<button type="button" data-period="${mode}" aria-pressed="${state.mode===mode}">${label}</button>`).join('')}${nav}<span role="status">${period.label}</span></div>`;
   }
   function mount(host,state,onChange) {
     host.innerHTML=controls(state);
