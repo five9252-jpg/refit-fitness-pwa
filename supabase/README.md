@@ -68,3 +68,8 @@ Supabase Auth의 Send Email Hook을 Resend로 전환했습니다. 발송 성공�
 이 Edge Function은 Supabase Send Email Hook 서명을 검사하고, 메일의 인증 URL을 Supabase `/auth/v1/verify`로 구성합니다. 확인·초대·비밀번호 재설정·로그인 링크·이메일 변경·재인증 액션을 지원하며, 토큰/이메일/요청 본문은 로그에 기록하지 않습니다. Hook이 활성화된 동안 SMTP는 자동 대체 경로로 동작하지 않습니다. 오류가 나면 Hook을 끄고 기존 SMTP 설정으로 되돌린 뒤 원인을 확인합니다. 함수 코드는 `functions/send-auth-email/index.ts`에 있습니다.
 
 Supabase의 현재 문서상 `ap-northeast-2`는 서울 리전입니다. 선택한 리전은 주 데이터 저장 위치를 제어하지만 모든 운영 처리까지 해당 리전 내로 한정한다는 보장은 아니므로, 국외 이전/위탁 안내는 실제 프로젝트와 계약 조건에 맞춰 검토해야 합니다.
+
+
+## 트레이너 일정 및 수업일지 개선
+
+`trainer-class-journal-enhancements.sql`은 운영 중인 수업 일정과 수업일지에 PT/OT 분류, 고정 반복 수업 표시, 세트별 운동 목록, 일지 완료 단계를 추가합니다. 기존 일정·텍스트 일지와 RLS 정책은 유지하며, 운동 세부내용과 트레이너 메모는 트레이너 전용입니다.
