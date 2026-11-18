@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v80-lesson-editor-page-20261118';
+const CACHE_NAME = 'refit-shell-v81-lesson-media-20261118';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
