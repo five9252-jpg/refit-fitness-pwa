@@ -48,7 +48,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261118-trainer-lesson-1',
-  './trainer.js?v=20261118-trainer-lesson-1',
+  './trainer.js?v=20261118-trainer-records-all-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
