@@ -146,6 +146,7 @@
   const muscleStyle = document.createElement('style');
   muscleStyle.textContent = `
     .exercise-muscles,.library-muscles{display:flex;flex-wrap:wrap;gap:4px 10px;color:#607875;font-size:10px;line-height:1.45}
+    .library-visual{background:#171b1d!important}.library-visual img{width:100%;height:100%;object-fit:contain;background:#171b1d}
     .exercise-muscles{margin-top:3px}.exercise-muscles b,.library-muscles b{color:#023F46;font-size:9px;font-weight:850}
     .library-muscles{margin-top:5px}.library-muscles i{font-style:normal;color:#95aaa2}
     .library-detail-visual+.library-muscles{font-size:12px;margin:12px 0 8px}.library-detail-visual+.library-muscles b{font-size:10px}
@@ -181,41 +182,30 @@
         if (match(/스쿼트/)) return /맨몸|에어|피스톨|시시/.test(name) ? 'pacefit-goblet-squat-v2.jpg' : 'pacefit-barbell-back-squat-v2.jpg';
         return 'pacefit-hip-thrust-v2.jpg';
       }
-      if (category === '가슴') {
-        if (match(/플라이/)) return 'dumbbell-fly-muscle-map.jpg';
-        if (match(/인클라인/)) return 'incline-dumbbell-press-muscle-map.jpg';
-        if (match(/체스트 프레스|펙덱|딥스/)) return 'chest-press-muscle-map.jpg';
-        return 'bench-press-muscle-map.jpg';
-      }
+      if (category === '가슴') return 'pacefit-bench-press-v2.jpg';
       if (category === '등') {
-        if (match(/풀업|친업/)) return 'pull-up-muscle-map.jpg';
-        if (match(/풀다운|랫풀/)) return 'lat-pulldown-muscle-map.jpg';
-        if (match(/데드리프트|랙풀|하이퍼|익스텐션/)) return 'conventional-deadlift-muscle-map.jpg';
-        if (match(/로우/)) return 'barbell-row-muscle-map.jpg';
-        return 'seated-row-muscle-map.jpg';
+        if (match(/풀업|친업|풀다운|랫.?풀/)) return 'pacefit-pull-up-v2.jpg';
+        if (match(/데드리프트|랙풀|하이퍼|익스텐션/)) return 'pacefit-deadlift-v2.jpg';
+        return 'pacefit-barbell-row-v2.jpg';
       }
       if (category === '어깨') {
-        if (match(/레터럴/)) return 'lateral-raise-muscle-map.jpg';
-        if (match(/프론트 레이즈/)) return 'dumbbell-front-raise-muscle-map.jpg';
-        if (match(/페이스 풀|리버스 플라이|리어 델토이드/)) return 'face-pull-muscle-map.jpg';
-        if (match(/슈러그/)) return 'barbell-row-muscle-map.jpg';
-        return 'overhead-press-muscle-map.jpg';
+        if (match(/프레스/)) return 'pacefit-overhead-press-v2.jpg';
+        return 'pacefit-lateral-raise-v2.jpg';
       }
       if (category === '팔') {
-        if (match(/리스트|악력|롤러|파머스/)) return 'farmers-carry-muscle-map.jpg';
-        if (match(/삼두|트라이셉|푸시.?다운|푸시다운|스컬 크러셔|JM 프레스/)) return 'triceps-pushdown-muscle-map.jpg';
-        if (match(/해머/)) return 'hammer-curl-muscle-map.jpg';
-        return 'barbell-curl-muscle-map.jpg';
+        if (match(/삼두|트라이셉|푸시.?다운|스컬 크러셔|JM 프레스/)) return 'pacefit-overhead-press-v2.jpg';
+        return 'pacefit-barbell-curl-v2.jpg';
       }
-      if (category === '복근') return 'bodyweight-squat-muscle-map.jpg';
-      if (category === '역도') return 'conventional-deadlift-muscle-map.jpg';
-      if (category === '유산소') return 'dumbbell-step-up-muscle-map.jpg';
-      if (category === '기타') return 'bodyweight-squat-muscle-map.jpg';
-      return 'bodyweight-squat-muscle-map.jpg';
+      if (category === '복근') return 'pacefit-barbell-back-squat-v2.jpg';
+      if (category === '역도') return 'pacefit-deadlift-v2.jpg';
+      if (category === '유산소') return 'pacefit-lunge-v2.jpg';
+      return 'pacefit-barbell-back-squat-v2.jpg';
     };
     if (Array.isArray(window.PACEFIT_LIBRARY)) {
       window.PACEFIT_LIBRARY.forEach(item => {
-        if (!exerciseAtlasCell[item.name]) exerciseAtlasCell[item.name] = { file: representativeImage(item), representative: true };
+        const file = exerciseFiles[item.name] || representativeImage(item);
+        const image = window.PacefitExerciseArt?.[file];
+        if (image) exerciseAtlasCell[item.name] = { file: image, representative: !exerciseFiles[item.name] };
       });
     }
   }
@@ -247,4 +237,5 @@
     renderPlan();
   }
 })();
+
 
