@@ -196,7 +196,8 @@
         if (match(/삼두|트라이셉|푸시.?다운|스컬 크러셔|JM 프레스/)) return 'pacefit-overhead-press-v2.jpg';
         return 'pacefit-barbell-curl-v2.jpg';
       }
-      if (category === '복근') return 'pacefit-barbell-back-squat-v2.jpg';
+      // Core entries lack movement-specific art; show the core-area illustration instead.
+      if (category === '복근') return 'pacefit-area-core.jpg';
       if (category === '역도') return 'pacefit-deadlift-v2.jpg';
       if (category === '유산소') return 'pacefit-lunge-v2.jpg';
       return 'pacefit-barbell-back-squat-v2.jpg';
@@ -206,6 +207,7 @@
         const file = exerciseFiles[item.name] || representativeImage(item);
         const image = window.PacefitExerciseArt?.[file];
         if (image) exerciseAtlasCell[item.name] = { file: image, representative: !exerciseFiles[item.name] };
+        else if (item.category === '복근') exerciseAtlasCell[item.name] = { file, representative: true };
       });
     }
   }
