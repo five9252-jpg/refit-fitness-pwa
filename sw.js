@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v78-core-art-trainer-consent-20261118';
+const CACHE_NAME = 'refit-shell-v79-area-art-audit-20261118';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -52,12 +52,12 @@ const SHELL_ASSETS = [
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
-  './exercise-library-ui.js',
+  './exercise-library-ui.js?v=20261118-area-art-audit-1',
   './exercise-art-data.js',
   './exercise-art-lower-1.js',
   './exercise-art-lower-2.js',
   './exercise-art-lower-3.js',
-  './exercise-visuals.js?v=20261118-core-art-1',
+  './exercise-visuals.js?v=20261118-area-art-audit-1',
   './assets/exercises/pacefit-area-chest.jpg',
   './assets/exercises/pacefit-area-back.jpg',
   './assets/exercises/pacefit-area-shoulders.jpg',
