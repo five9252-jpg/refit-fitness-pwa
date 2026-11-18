@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v73-phone-first-20261117';
+const CACHE_NAME = 'refit-shell-v74-trainer-schedule-20261118';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -48,7 +48,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261116-prototype-1',
-  './trainer.js?v=20261116-lesson-1',
+  './trainer.js?v=20261118-class-schedule-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
