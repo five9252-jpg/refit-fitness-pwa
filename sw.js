@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v74-trainer-schedule-20261118';
+const CACHE_NAME = 'refit-shell-v75-journal-mobile-art-20261118';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -43,7 +43,7 @@ const SHELL_ASSETS = [
   './assets/diet/seafood.svg',
   './assets/diet/dairy.svg',
   './routine-by-part.js?v=20261105-plans-3',
-  './workout-enhancements.js?v=20261116-prototype-1',
+  './workout-enhancements.js?v=20261118-journal-mobile-art-unify-1',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
