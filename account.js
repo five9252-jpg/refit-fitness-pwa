@@ -29,6 +29,7 @@
   }
   const bridge = window.RefitAccountBridge;
   let client = null, currentUser = null, cloudExerciseConsent = false, syncTimer = 0, syncBusy = false, pendingSync = false, finishingUserId = null;
+  let lastCloudUpdatedAt = 0, localDirty = false, loadingCloud = false, refreshBusy = false, lastRefreshAt = 0;
   let signupCredentials = null;
   const loginIdPattern = /^[a-z][a-z0-9_]{3,19}$/;
   const authAction = new URLSearchParams(location.search).get('auth');
@@ -309,19 +310,29 @@
     Object.assign(next,window.PacefitMemberInsights?.cloudBodyFields(state,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});
     return next;
   }
-  function scheduleSync() { if(!currentUser)return;pill.textContent='서버 저장 대기 중';clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,650); }
+  function scheduleSync() { if(!currentUser||loadingCloud)return;localDirty=true;pill.textContent='서버 저장 대기 중';clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,650); }
   async function syncNow() {
     if(!currentUser||!bridge)return;
     if(syncBusy){pendingSync=true;return;}
-    syncBusy=true; pill.textContent='서버에 저장 중';
-    try {const {error}=await client.from('user_app_data').upsert({user_id:currentUser.id,payload:cloudPayload(),updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;pill.textContent=cloudExerciseConsent?'서버에 저장됨':'프로필만 서버 저장';}
+    syncBusy=true;syncTimer=0; pill.textContent='서버에 저장 중';
+    try {
+      const ownerId=currentUser.id;
+      const {data:remote,error:readError}=await client.from('user_app_data').select('updated_at').eq('user_id',ownerId).maybeSingle();
+      if(readError)throw readError;
+      if(remote&&Date.parse(remote.updated_at)>lastCloudUpdatedAt+500){pill.textContent='다른 기기 기록 확인 필요';return;}
+      const updatedAt=new Date().toISOString();
+      const {error}=await client.from('user_app_data').upsert({user_id:ownerId,payload:cloudPayload(),updated_at:updatedAt},{onConflict:'user_id'});
+      if(error)throw error;
+      lastCloudUpdatedAt=Date.parse(updatedAt);localDirty=false;
+      pill.textContent=cloudExerciseConsent?'서버에 저장됨':'프로필만 서버 저장';
+    }
     catch(error){pill.textContent='기기에 저장됨 · 서버 저장 실패';console.warn('Refit cloud sync failed',error);}
     finally{syncBusy=false;if(pendingSync){pendingSync=false;scheduleSync();}}
   }
   async function loadCloudState() {
-    const {data,error}=await client.from('user_app_data').select('payload').eq('user_id',currentUser.id).maybeSingle();
+    const {data,error}=await client.from('user_app_data').select('payload,updated_at').eq('user_id',currentUser.id).maybeSingle();
     if(error)throw error;
-    if(data&&data.payload){const payload=data.payload;if(!cloudExerciseConsent){payload.logs=[];if(payload.profile)payload.profile={name:payload.profile.name,experience:payload.profile.experience,experienceOther:payload.profile.experienceOther,goal:payload.profile.goal,goalOther:payload.profile.goalOther,days:payload.profile.days};}Object.assign(payload,window.PacefitMemberInsights?.cloudBodyFields(payload,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});bridge.replaceState(payload);}
+    if(data&&data.payload){const payload=data.payload;if(!cloudExerciseConsent){payload.logs=[];if(payload.profile)payload.profile={name:payload.profile.name,experience:payload.profile.experience,experienceOther:payload.profile.experienceOther,goal:payload.profile.goal,goalOther:payload.profile.goalOther,days:payload.profile.days};}Object.assign(payload,window.PacefitMemberInsights?.cloudBodyFields(payload,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});loadingCloud=true;try{bridge.replaceState(payload);}finally{loadingCloud=false;}lastCloudUpdatedAt=Date.parse(data.updated_at)||0;localDirty=false;}
     else {scheduleSync();}
     const profileBackdrop=document.getElementById('profileBackdrop');if(profileBackdrop)profileBackdrop.classList.remove('open');
     const profileText=document.querySelector('#profileBackdrop .dialog>p');if(profileText)profileText.textContent='프로필은 계정에 동기화됩니다. 운동·신체 정보 동의 여부에 따라 운동 기록과 신체 정보 저장이 달라집니다.';
@@ -333,6 +344,20 @@
     window.dispatchEvent(new CustomEvent('refit:session-ready'));
     accountButton.onclick=accountMenu;
     void refreshAdminButton(currentUser.id);
+  }
+  async function refreshCloudIfNewer() {
+    if(!currentUser||refreshBusy||syncBusy||document.hidden||Date.now()-lastRefreshAt<3000)return;
+    refreshBusy=true;lastRefreshAt=Date.now();
+    try {
+      const ownerId=currentUser.id;
+      const {data,error}=await client.from('user_app_data').select('updated_at').eq('user_id',ownerId).maybeSingle();
+      if(error)throw error;
+      if(currentUser?.id!==ownerId||!data||Date.parse(data.updated_at)<=lastCloudUpdatedAt+500)return;
+      if(localDirty){pill.textContent='다른 기기 기록 확인 필요';return;}
+      await loadCloudState();
+      pill.textContent=cloudExerciseConsent?'다른 기기 기록 반영됨':'프로필만 서버 반영';
+    } catch(error) {console.warn('Refit cloud refresh failed',error);}
+    finally {refreshBusy=false;}
   }
   async function refreshAdminButton(userId) {
     adminButton.hidden = true;
@@ -426,7 +451,7 @@
       client.from('admin_memberships').select('user_id').eq('user_id',currentUser.id).maybeSingle(),
       client.rpc('my_login_id')
     ]);
-    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><label class="account-remember"><input id="menuRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">공용 기기에서는 끄고 사용하세요. 끄면 브라우저를 닫을 때 로그인 상태가 해제됩니다.</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="openConsentHub" class="cancel">동의·공유 설정</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
+    show(gate,`<section class="account-panel"><div class="eyebrow">로그인 중</div><h1>${escapeHtml(loginId||currentUser.email||'계정')}</h1><p>인증 이메일: ${escapeHtml(currentUser.email||'—')}<br>운동·신체 정보 ${cloudExerciseConsent?'서버 동기화에 동의함':'서버 동기화에 동의하지 않음'}</p><label class="account-remember"><input id="menuRememberLogin" type="checkbox" ${rememberLogin()?'checked':''}> 이 기기에서 자동 로그인</label><p class="account-footnote">공용 기기에서는 끄고 사용하세요. 끄면 브라우저를 닫을 때 로그인 상태가 해제됩니다.</p><div class="account-actions">${membership?'<button id="openAdmin" class="save-manual">운영자 데이터 보기</button>':''}${!loginId?'<button id="claimLoginId" class="save-manual">로그인 아이디 만들기</button>':''}<button id="refreshCloudRecords" class="cancel">다른 기기 기록 불러오기</button><button id="openConsentHub" class="cancel">동의·공유 설정</button>${privacy.recoveryEnabled===true?'<button id="restoreRecords" class="cancel">탈퇴 전 기록 복구</button>':''}<button id="signOut" class="cancel">로그아웃</button><button id="withdrawAccount" class="cancel">계정 탈퇴</button><button id="closeAccountMenu" class="cancel">닫기</button></div><p class="account-footnote">동의를 철회하거나 기록 삭제를 요청하려면 운영자에게 문의하세요: ${escapeHtml(privacy.contactEmail)}</p></section>`);
     gate.querySelector('#openConsentHub').onclick=()=>{
       show(gate,`<section class="account-panel account-consent-hub"><div class="eyebrow">내 정보</div><h1>동의·공유 설정</h1><p>필요한 항목만 선택해 설정할 수 있어요. 선택 동의는 자동으로 켜지지 않습니다.</p><div class="account-actions"><button id="changeConsent" class="cancel">운동·신체 서버 저장</button><button id="menuTrainerPermissions" class="cancel">트레이너 공유·대리 작성</button><button id="menuDietPermissions" class="cancel">식단 저장·공유·사진 인식</button><button id="menuBodyPermissions" class="cancel">체성분 사진 공유</button></div><details><summary>동의 항목과 개인정보 안내 보기</summary><p>각 항목에서 저장·공유 범위를 확인하고 변경할 수 있습니다. <a href="./privacy.html" target="_blank" rel="noopener">개인정보 처리 안내 전체 보기</a></p></details><button id="consentHubBack" class="cancel">계정으로 돌아가기</button></section>`);
       gate.querySelector('#changeConsent').onclick=()=>consentView('existing');
@@ -435,7 +460,8 @@
       gate.querySelector('#menuBodyPermissions').onclick=()=>{gate.hidden=true;document.getElementById('editProfile')?.click();document.getElementById('bodyRecordsPanel')?.scrollIntoView({block:'start'});};
       gate.querySelector('#consentHubBack').onclick=()=>accountMenu();
     };
-    gate.querySelector('#menuRememberLogin').onchange=e=>setRememberLogin(e.target.checked);
+    gate.querySelector('#refreshCloudRecords').onclick=async()=>{if(localDirty&&!window.confirm('이 기기에서 서버에 저장하지 못한 변경이 있어요. 서버의 최신 기록으로 바꿀까요?'))return;clearTimeout(syncTimer);localDirty=false;try{await loadCloudState();pill.textContent='서버 기록 불러옴';}catch(error){pill.textContent='서버 기록을 불러오지 못함';console.warn('Refit manual refresh failed',error);}};
+     gate.querySelector('#menuRememberLogin').onchange=e=>setRememberLogin(e.target.checked);
     const claimButton=gate.querySelector('#claimLoginId');if(claimButton)claimButton.onclick=()=>claimLoginIdView();
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
      gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);adminButton.hidden=true;await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
@@ -451,6 +477,8 @@
   const basePersist=window.persist;
   if(typeof basePersist==='function')window.persist=function(){const ok=basePersist();if(ok&&currentUser)scheduleSync();return ok;};
   window.addEventListener('online',scheduleSync);
+  window.addEventListener('focus',()=>{void refreshCloudIfNewer();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshCloudIfNewer();});
   accountButton.onclick=()=>authView();
   gate.hidden=false;
   show(gate,'<section class="account-panel"><div class="eyebrow">안전한 계정 연결</div><h1>연결 상태를 확인하고 있어요</h1><p>계정과 동의 기록을 확인한 다음 화면을 열겠습니다.</p></section>');
