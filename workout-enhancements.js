@@ -27,6 +27,9 @@
     @media(max-width:520px){.cardio-fields{grid-template-columns:1fr 1fr}.cardio-fields label:first-child{grid-column:1/-1}.journal-calendar,.journal-performance{padding:13px}.calendar-day{min-height:48px}.calendar-empty{min-height:48px}#journalCard>.card-head p{display:none}}
   `;
   document.head.append(style);
+  const compactStyle=document.createElement('style');
+  compactStyle.textContent=`.calendar-session-exercises{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}.calendar-session-exercises li{padding:8px 10px;border-radius:9px;background:#edf4f3}.log-exercise-block{margin:9px 0;padding:11px;border-radius:12px;background:#f0f5f6;border:1px solid #e2ebeb}.log-exercise-block summary{cursor:pointer;list-style:none}.log-exercise-block summary::-webkit-details-marker{display:none}.log-exercise-title{font-weight:850;color:#173c42}.log-exercise-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:9px 0}.log-exercise-stats span{padding:7px;border-radius:8px;background:#fff;text-align:center;font-size:11px}.log-exercise-stats b{display:block;font-size:13px;color:#173c42}.log-exercise-more{font-size:11px;color:#315d53}.log-exercise-block .log-set-row{padding:6px 8px;margin-top:4px;border-radius:7px;background:#fff}@media(max-width:520px){.log-exercise-stats span{font-size:10px}.log-exercise-stats b{font-size:12px}}`;
+  document.head.append(compactStyle);
 
   const editor = $('.routine-editor');
   editor.insertAdjacentHTML('afterbegin', `<div class="add-search-ui"><label for="addExerciseSearch">운동 이름 검색</label><input id="addExerciseSearch" type="search" autocomplete="off" placeholder="예: 스쿼트, 프레스" aria-describedby="addExerciseHint"><div class="add-part-chips" role="group" aria-label="운동 부위 선택"></div><div class="add-search-results" id="addExerciseResults" aria-live="polite"></div><small class="add-search-empty" id="addExerciseHint">이름을 모르겠다면 운동할 부위를 눌러보세요.</small></div>`);
@@ -82,12 +85,11 @@
   function detailRows(log) {
     const items=(log.items||[]).map(item => {
       const sets=Array.isArray(item.setDetails)&&item.setDetails.length ? item.setDetails : Array.from({length:Number(item.sets)||1},()=>({weight:item.weight,reps:item.reps}));
-      return `<section class="log-exercise-block"><div class="log-exercise-title">${esc(item.name)}${item.equipment?` · ${esc(item.equipment)}`:''}</div>${sets.map((set,n)=>`<div class="log-set-row"><span>${n+1}세트</span><span>${esc(set.weight)}kg × ${esc(set.reps)}회</span></div>`).join('')}</section>`;
+      const highest=Math.max(0,...sets.map(set=>Number(set.weight)||0));
+      const totalReps=sets.reduce((sum,set)=>sum+(Number(set.reps)||0),0);
+      return `<details class="log-exercise-block"><summary><span class="log-exercise-title">${esc(item.name)}${item.equipment?` · ${esc(item.equipment)}`:''}</span><span class="log-exercise-stats"><span>최고 중량<b>${esc(highest)}kg</b></span><span>세트<b>${sets.length}세트</b></span><span>총 횟수<b>${totalReps}회</b></span></span><span class="log-exercise-more">세트별 기록 펼쳐 보기 ▾</span></summary>${sets.map((set,n)=>`<div class="log-set-row"><span>${n+1}세트</span><span>${esc(set.weight)}kg × ${esc(set.reps)}회${Number.isFinite(Number(set.rpe))&&set.rpe!=null?` · RPE ${esc(set.rpe)}`:''}</span></div>`).join('')}</details>`;
     }).join('');
-    const cardio=log.cardio ? `<div class="log-detail-row"><span>유산소 · ${esc(log.cardio.type)}</span><span>${esc(log.cardio.minutes)}분${log.cardio.distance!=null?` · ${esc(log.cardio.distance)}km`:''}</span></div>` : '';
-    const note=log.note?`<p class="log-note">${esc(log.note)}</p>`:'';
-    const photos=(log.photoIds||[]).map((id,n)=>`<img data-photo-id="${esc(id)}" alt="운동 사진 ${n+1}">`).join('');
-    return items+cardio+note+(photos?`<div class="log-photo-grid">${photos}</div>`:'');
+    return items;
   }
   function renderCalendar() {
     const first=new Date(shownYear,shownMonth,1), offset=(first.getDay()+6)%7, count=new Date(shownYear,shownMonth+1,0).getDate();
@@ -99,7 +101,7 @@
       return `<button type="button" class="calendar-day" data-date="${iso}" data-today="${iso===today}" aria-pressed="${iso===selectedDate}" aria-label="${shownMonth+1}월 ${day}일${dayLogs.length?`, 운동 ${dayLogs.length}회, 난이도 ${esc(dayLogs.at(-1).effort||'미기록')}`:''}"><span>${day}</span><span class="day-face" aria-hidden="true">${face}</span>${dayLogs.length>1?`<span class="day-count">${dayLogs.length}회</span>`:''}</button>`;
     }).join('');
     const dayLogs=byDate.get(selectedDate)||[];
-    $('#calendarDayLogs').innerHTML=`<h4>${parseISO(selectedDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})} · ${dayLogs.length}회</h4>`+(dayLogs.length?dayLogs.map(log=>{const exerciseNames=(log.items||[]).map(item=>item.name).filter(Boolean);if(log.cardio)exerciseNames.push(`유산소 · ${log.cardio.type||'기록'}`);const names=exerciseNames.length?`<ul class="calendar-session-exercises">${exerciseNames.map(name=>`<li>${esc(name)}</li>`).join('')}</ul>`:'<p class="add-search-empty">종목별 기록이 없는 운동이에요.</p>';return `<article class="calendar-session log-item" data-log-id="${esc(log.id||'')}"><div class="calendar-session-heading">${effortFace(log)} ${esc(log.title||'운동 기록')} · ${esc(log.effort||'난이도 미기록')}</div>${names}<details><summary>세트·메모·사진 보기</summary><div class="log-details">${detailRows(log)}</div></details></article>`}).join(''):'<p class="add-search-empty">이날의 운동 기록이 없어요.</p>');
+    $('#calendarDayLogs').innerHTML=`<h4>${parseISO(selectedDate).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})} · ${dayLogs.length}회</h4>`+(dayLogs.length?dayLogs.map(log=>`<article class="calendar-session log-item" data-log-id="${esc(log.id||'')}"><div class="calendar-session-heading">${effortFace(log)} ${esc(log.title||'운동 기록')} · ${esc(log.effort||'난이도 미기록')}</div><div class="log-details">${detailRows(log)}</div>${log.cardio?`<p class="log-note">유산소 · ${esc(log.cardio.type||'기록')} ${esc(log.cardio.minutes||0)}분</p>`:''}${log.note?`<p class="log-note">${esc(log.note)}</p>`:''}${(log.photoIds||[]).length?`<details><summary>사진 보기</summary><div class="log-photo-grid">${log.photoIds.map((id,n)=>`<img data-photo-id="${esc(id)}" alt="운동 사진 ${n+1}">`).join('')}</div></details>`:''}</article>`).join(''):'<p class="add-search-empty">이날의 운동 기록이 없어요.</p>');
     if (window.hydrateLogPhotos) window.hydrateLogPhotos();
   }
   $('#calendarPrev').onclick=()=>{shownMonth--;if(shownMonth<0){shownMonth=11;shownYear--;}renderCalendar()};
@@ -152,6 +154,5 @@
   };
   window.renderPlan();window.renderLogs();
 })();
-
 
 

@@ -33,15 +33,15 @@
     '노르딕 햄스트링 컬': 'pacefit-nordic-hamstring-curl-v2.jpg',
   };
   const areaFiles = {
-    '가슴': 'pacefit-area-chest.jpg',
-    '등': 'pacefit-area-back.jpg',
-    '어깨': 'pacefit-area-shoulders.jpg',
-    '팔': 'pacefit-area-arms.jpg',
-    '하체': 'pacefit-area-legs.jpg',
-    '복근': 'pacefit-area-core.jpg',
-    '역도': 'pacefit-area-whole-body.jpg',
-    '유산소': 'pacefit-area-whole-body.jpg',
-    '기타': 'pacefit-area-whole-body.jpg',
+    '가슴': 'pacefit-area-chest-v2.jpg',
+    '등': 'pacefit-area-back-v2.jpg',
+    '어깨': 'pacefit-area-shoulders-v2.jpg',
+    '팔': 'pacefit-area-arms-v2.jpg',
+    '하체': 'pacefit-area-legs-v2.jpg',
+    '복근': 'pacefit-area-core-v2.jpg',
+    '역도': 'pacefit-area-whole-body-v2.jpg',
+    '유산소': 'pacefit-area-whole-body-v2.jpg',
+    '기타': 'pacefit-area-whole-body-v2.jpg',
   };
   const muscleInfo = {
     '체스트 프레스': { main: '가슴', assist: '앞어깨 · 삼두' },
@@ -167,13 +167,11 @@
         // A movement image is shown only when its mapping names that exercise.
         // All other entries use neutral body-area art rather than a different
         // exercise pose that could mislead someone learning the movement.
-        if (!exerciseAtlasCell[item.name]?.file) {
-          exerciseAtlasCell[item.name] = {
-            file: areaFiles[item.category] || areaFiles['기타'],
-            representative: true,
-            areaArt: true,
-          };
-        }
+        exerciseAtlasCell[item.name] = {
+          file: areaFiles[item.category] || areaFiles['기타'],
+          representative: true,
+          areaArt: true,
+        };
       });
     }
   }
@@ -205,5 +203,4 @@
     renderPlan();
   }
 })();
-
 
