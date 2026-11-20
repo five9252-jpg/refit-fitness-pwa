@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v95-overall-records-20261120';
+const CACHE_NAME = 'refit-shell-v96-overall-records-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -46,7 +46,7 @@ const SHELL_ASSETS = [
   './assets/diet/seafood.svg',
   './assets/diet/dairy.svg',
   './routine-by-part.js?v=20261120-ui-1',
-  './workout-enhancements.js?v=20261120-records-1',
+  './workout-enhancements.js?v=20261120-records-3',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
