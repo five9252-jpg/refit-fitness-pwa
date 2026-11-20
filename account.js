@@ -203,7 +203,7 @@
       const email=input.value.trim();
       const {error}=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:location.origin+location.pathname}});
       if(error){resendEmailView(authErrorKo(error));return;}
-      verificationView(email,'새 인증 메일을 보냈어요. 가장 최근 메일의 번호를 사용해주세요.');
+      verificationView(email,'요청을 접수했어요. 아직 인증하지 않은 계정에만 메일이 발송됩니다. 이미 가입한 계정이라면 로그인하거나 비밀번호 찾기를 이용해주세요.');
     };
     gate.querySelector('#resendEmailBack').onclick=()=>authView();
   }
@@ -226,7 +226,7 @@
     gate.querySelector('#signupBack').onclick=()=>authView();
   }
   function verificationView(email, message='') {
-    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">2단계 · 이메일 확인</div><h1>인증 메일을 확인해주세요</h1><p>${escapeHtml(email)}로 보낸 인증번호를 입력하세요. 메일의 인증 버튼을 눌러도 됩니다.</p>${message?`<p class="account-info" role="status">${escapeHtml(message)}</p>`:''}<div class="field"><label for="emailCode">이메일 인증번호</label><input id="emailCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{6,8}" required></div><div class="account-actions"><button id="verifyEmailCode" class="save-manual">이메일 인증 완료</button><button id="resendSignupEmail" class="cancel">인증 메일 다시 보내기</button><button id="verificationBack" class="cancel">로그인 화면</button></div></section>`);
+    show(gate, `<section class="account-panel" role="dialog" aria-modal="true"><div class="eyebrow">2단계 · 이메일 확인</div><h1>인증 메일을 확인해주세요</h1><p>새 계정이라면 ${escapeHtml(email)}로 인증 메일이 발송됩니다. 이미 가입·인증한 이메일에는 새 가입 메일이 오지 않으니 로그인하거나 비밀번호 찾기를 이용해주세요.</p>${message?`<p class="account-info" role="status">${escapeHtml(message)}</p>`:''}<div class="field"><label for="emailCode">이메일 인증번호</label><input id="emailCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{6,8}" required></div><div class="account-actions"><button id="verifyEmailCode" class="save-manual">이메일 인증 완료</button><button id="resendSignupEmail" class="cancel">인증 메일 다시 보내기</button><button id="verificationBack" class="cancel">로그인 화면</button></div></section>`);
     gate.querySelector('#verifyEmailCode').onclick=async()=>{
       const token=gate.querySelector('#emailCode').value.trim();
       if(!/^[0-9]{6,8}$/.test(token)){verificationView(email,'메일에 적힌 숫자 6~8자리를 입력해주세요.');return;}
@@ -236,7 +236,7 @@
     };
     gate.querySelector('#resendSignupEmail').onclick=async()=>{
       const {error}=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:location.origin+location.pathname}});
-      verificationView(email,error?authErrorKo(error):'새 인증 메일을 보냈어요. 가장 최근 메일의 번호를 사용해주세요.');
+      verificationView(email,error?authErrorKo(error):'요청을 접수했어요. 아직 인증하지 않은 계정에만 메일이 발송됩니다. 이미 가입한 계정이라면 로그인하거나 비밀번호 찾기를 이용해주세요.');
     };
     gate.querySelector('#verificationBack').onclick=()=>authView();
   }
@@ -285,7 +285,7 @@
     const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{pacefit_username:username,refit_consent:{version:privacy.noticeVersion,basic:choices.basic===true,exercise:choices.exercise===true,acceptedAt,operator:privacy.operatorName,contact:privacy.contactEmail,retention:privacy.retention}}}});
     signupCredentials=null;
     if(error){signupView(authErrorKo(error));return;}
-    if(!data.session){verificationView(email);return;}
+    if(!data.session){verificationView(email,'가입 요청을 접수했어요. 새 계정이면 인증 메일이 도착합니다. 이미 가입한 이메일이라면 새 메일이 오지 않으니 로그인하거나 비밀번호 찾기를 이용해주세요.');return;}
     if(data.user){const saved=await storeConsent(data.user.id,choices.basic===true,choices.exercise===true,acceptedAt);if(saved.error){authView('계정은 만들었지만 동의 기록을 저장하지 못했어요. 로그인 후 다시 확인해주세요.');return;}}
     sessionStorage.removeItem('refit-pending-consent');await finishSession(data.session.user);
   }

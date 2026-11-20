@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v86-profile-depth-20261120';
+const CACHE_NAME = 'refit-shell-v87-signup-mail-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -32,7 +32,7 @@ const SHELL_ASSETS = [
   './member-insights.css?v=20261116-2',
   './member-insights.js?v=20261116-lesson-1',
   './body-records.js?v=20261116-prototype-1',
-  './account.js?v=20261119-sync-refresh-2',
+  './account.js?v=20261120-signup-mail-1',
   './operator-dashboard.js?v=20261113-raw-sync-1',
   './voice-journal.js',
   './diet-journal.js?v=20261119-consent-fix-1',
