@@ -21,6 +21,12 @@ html{background:var(--pf-deeper);scrollbar-color:#577e76 var(--pf-deeper)}
 body{background:radial-gradient(circle at 50% -12%,#205a4f 0,#0b3734 31%,#061f21 78%) fixed;color:var(--pf-light)}
 body .app{background:linear-gradient(170deg,#0a3733 0%,#07312f 28%,#06292a 63%,#071e20 100%)!important;box-shadow:0 18px 75px #0006;min-height:100dvh}
 body .app,body .app *{min-width:0}
+body .role-entry{background:radial-gradient(circle at 50% 0,#20584d,#092e2e 52%,#061e20 100%)!important;color:#eff8ee}
+body .role-entry h1{color:#f8fbf0!important}
+body .role-entry p,body .role-entry small{color:#c4d8cc}
+body .role-entry .role-choice{background:linear-gradient(145deg,#faf9f0,#e8efe5);color:#173b34;border:1px solid #b9d3c4!important;box-shadow:0 14px 30px #001a1b7d}
+body .role-entry .role-choice:hover,body .role-entry .role-choice:focus-visible{border-color:var(--pf-lime)!important;box-shadow:0 14px 30px #001a1b7d,0 0 0 2px var(--pf-lime)}
+body .role-entry .role-choice small{color:#567469}
 body :is(button,input,select,textarea){-webkit-tap-highlight-color:transparent}
 body :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--pf-lime)!important;outline-offset:2px}
 body :is(.topbar,.hello,.pace-home,.exercise-library,.grid,.diet-page){max-width:480px;margin-left:auto;margin-right:auto}
