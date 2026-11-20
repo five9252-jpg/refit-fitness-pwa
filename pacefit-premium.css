@@ -120,6 +120,7 @@ body .trainer-panel #trainerContent::after{height:calc(125px + env(safe-area-ins
 .dialog :is(input,select,textarea),.diet-dialog :is(input,select,textarea),.pose-dialog :is(input,select,textarea){color:#16382f}
 body .trainer-overlay,body .trainer-overlay.trainer-workspace{background:#001c1ec9}
 body .trainer-overlay .trainer-panel{background:linear-gradient(165deg,#0a3d37,#052b2c 62%,#062022);color:#eff8eb;border:1px solid #9cc7ac69;border-radius:25px;box-shadow:0 25px 75px #001719ad}
+body .trainer-overlay .trainer-head{background:#0a3d37!important;color:#eff8eb!important;border-bottom:1px solid #d8e9da35}
 body .trainer-overlay .trainer-head h2{color:#f7fbef}
 body .trainer-overlay .trainer-head p{color:#bcd4c5}
 body .trainer-overlay .trainer-head .trainer-close{background:#ffffff15;color:#eff8ec;border-color:#b6d7c45c}
