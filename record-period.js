@@ -1,13 +1,13 @@
 /* Calendar periods use Korean dates, Monday weeks and actual calendar months. */
 ((root) => {
   'use strict';
-  const day = date => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+  const day = date => { const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).map(part=>[part.type,part.value])); return `${parts.year}-${parts.month}-${parts.day}`; };
   function valid(value) {
     return typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value+'T00:00:00Z')) && new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
   }
   const iso = date => date.toISOString().slice(0,10);
   function bounds(mode, anchor) {
-    if(!['day','week','month'].includes(mode)||!valid(anchor))throw Error('조회 기간과 기준 날짜를 확인해주세요.');
+    if(!['all','day','week','month'].includes(mode)||!valid(anchor))throw Error('조회 기간과 기준 날짜를 확인해주세요.');
     if(mode==='all')return {start:'0001-01-01',end:'9999-12-31',label:'전체 기간'};
     const start=new Date(anchor+'T00:00:00Z'),end=new Date(start);
     if(mode==='week'){start.setUTCDate(start.getUTCDate()-(start.getUTCDay()+6)%7);end.setTime(start.getTime());end.setUTCDate(end.getUTCDate()+6);}
