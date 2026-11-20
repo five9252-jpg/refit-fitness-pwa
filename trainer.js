@@ -462,6 +462,18 @@
     if (!s) return;
     show(shell('회원 정보', '회원이 허용한 정보를 새로 조회합니다.', '<button class="trainer-subtle" id="loadingBackToMembers" type="button">← 회원 목록</button><p class="trainer-note" role="status">공유 정보를 불러오는 중…</p>'));
     overlay.querySelector('#loadingBackToMembers').onclick=trainerView;
+    const showLoadFailure = message => {
+      if (epoch !== viewEpoch || !sameSession(s)) return;
+      show(shell('회원 정보를 열지 못했어요', '잠시 후 다시 시도해주세요.', `<p class="trainer-error" role="alert">${esc(message)}</p><button class="trainer-primary" id="retryMemberRecords" type="button">다시 불러오기</button><button class="trainer-subtle" id="failedBackToMembers" type="button">← 회원 목록</button>`));
+      overlay.querySelector('#retryMemberRecords').onclick=()=>memberRecords(memberId,section);
+      overlay.querySelector('#failedBackToMembers').onclick=trainerView;
+    };
+    const loadingTimeout=setTimeout(()=>{
+      if (epoch !== viewEpoch || !sameSession(s)) return;
+      showLoadFailure('서버 응답이 지연되고 있어요. 연결을 확인한 뒤 다시 불러와 주세요.');
+      viewEpoch++;
+    },15000);
+    try {
     const result = await tryQuery(async () => {
       const link = assertResult(await s.client.from('trainer_member_links').select('trainer_id,can_write,status').eq('trainer_id',s.user.id).eq('member_id',memberId).single());
       if (link.status!=='active') throw Error('연결이 해제된 회원입니다.');
@@ -527,6 +539,12 @@
     overlay.querySelectorAll('[data-load-comment]').forEach(control=>control.onclick=()=>loadPortalThread(memberId,control.dataset.loadComment));
     for(const image of overlay.querySelectorAll('[data-diet-photo]')){const {data:signed}=await s.client.storage.from('diet-photos').createSignedUrl(image.dataset.dietPhoto,600);if (!sameSession(s) || epoch !== viewEpoch) return; if(signed?.signedUrl)image.src=signed.signedUrl;else image.hidden=true;}
     return epoch;
+    } catch(error) {
+      console.error('Pacefit member detail failed',error);
+      showLoadFailure(error?.message||'회원 정보 화면을 만드는 중 오류가 났어요.');
+    } finally {
+      clearTimeout(loadingTimeout);
+    }
   }
   async function loadPortalThread(memberId, logKey) {
     const root=Array.from(overlay.querySelectorAll('[data-thread]')).find(el=>el.dataset.thread===logKey);
