@@ -1,9 +1,10 @@
-const CACHE_NAME = 'refit-shell-v87-signup-mail-20261120';
+const CACHE_NAME = 'refit-shell-v88-bottom-monthly-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
   './pacefit-services.css?v=20261117-services-1',
   './pacefit-depth.css?v=20261120-1',
+  './navigation.css?v=20261120-1',
   './profile-onboarding.js?v=20261120-1',
   './pacefit-ui-details.js?v=20261117-services-1',
   './prototype-planners.js?v=20261117-services-1',
@@ -29,8 +30,8 @@ const SHELL_ASSETS = [
   './manifest.webmanifest',
   './pwa-register.js',
   './backend-config.js?v=20261114-food-search-1',
-  './member-insights.css?v=20261116-2',
-  './member-insights.js?v=20261116-lesson-1',
+  './member-insights.css?v=20261120-monthly-1',
+  './member-insights.js?v=20261120-monthly-1',
   './body-records.js?v=20261116-prototype-1',
   './account.js?v=20261120-signup-mail-1',
   './operator-dashboard.js?v=20261113-raw-sync-1',
@@ -50,7 +51,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261119-trainer-workspace-2',
-  './trainer.js?v=20261119-schedule-board-1',
+  './trainer.js?v=20261120-bottom-monthly-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
