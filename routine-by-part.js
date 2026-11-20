@@ -3,7 +3,8 @@
   const bridge = window.RefitAccountBridge;
   if (!bridge || typeof window.getPlan !== 'function' || typeof window.renderPlan !== 'function') return;
 
-  const parts = ['가슴', '등', '어깨', '팔', '하체'];
+  const bodyParts = ['가슴', '등', '어깨', '팔', '하체'];
+  const parts = [...bodyParts, '자유'];
   const defaults = {
     가슴: ['체스트 프레스', '인클라인 덤벨 프레스', '덤벨 체스트 프레스'],
     등: ['랫 풀다운', '시티드 로우', '시티드 하이백 로우'],
@@ -77,6 +78,10 @@
 
   window.getCurrentRoutine = function (part) {
     if (!parts.includes(part)) return oldCurrentRoutine(part);
+    if (part === '자유') {
+      const edits = state().routineEdits?.자유;
+      return Array.isArray(edits) ? edits.map(row => catalog.get(row?.name)).filter(Boolean).slice(0, 12) : [];
+    }
     const applied = state().trainerPlanApplied;
     const baseEdits = JSON.stringify(state().routineEdits?.[part] ?? null);
     if (applied?.date === today() && applied.bodyPart === part && applied.baseEdits === baseEdits &&
@@ -123,7 +128,7 @@
     if (window.commitState(next, `${part} 운동을 준비했어요.`) && goToWorkout) document.getElementById('homeStart').click();
   }
   function partButtons(root, current, fromHome) {
-    root.innerHTML = parts.map(part => `<button class="part-choice" type="button" data-part="${part}" aria-pressed="${part === current}">${part}</button>`).join('');
+    root.innerHTML = bodyParts.map(part => `<button class="part-choice" type="button" data-part="${part}" aria-pressed="${part === current}">${part}</button>`).join('');
     root.querySelectorAll('[data-part]').forEach(button => button.onclick = () => choosePart(button.dataset.part, fromHome));
   }
   function setMarkup(number, reps, weight = '', inherited = false) {
@@ -189,6 +194,11 @@
     document.getElementById('planTitle').textContent = trainerPlan ? `${split} · 트레이너 제안` : `${split} 운동`;
     document.getElementById('planDesc').textContent = trainerPlan ? `${trainerPlan.trainerName || '트레이너'}님의 제안을 오늘 운동에 적용했어요. 무게는 참고값이며 실제 운동은 직접 기록해 주세요.` : latest ? `${dateLabel(latest.date)} ${split} 운동 기록에서 종목을 골랐어요. 종목별 무게는 같은 운동·기구의 지난 기록을 참고해요.` : `${split} 운동을 처음 기록해요. 가벼운 무게로 시작하고 종목은 자유롭게 바꿀 수 있어요.`;
     document.getElementById('basisText').textContent = `선택한 ${split} 부위에서 최근에 한 종목을 먼저 보여줍니다. 중량은 같은 종목·기구의 기록을 따로 확인해요.`;
+    if (split === '자유') {
+      document.getElementById('planTitle').textContent = '자유 운동 기록';
+      document.getElementById('planDesc').textContent = '빈 목록에서 원하는 종목을 검색하거나 부위별로 찾아 추가하세요.';
+      document.getElementById('basisText').textContent = '운동을 여러 개 추가하고 각 세트의 무게와 횟수를 기록할 수 있어요.';
+    }
     document.getElementById('homePlanTitle').textContent = `${split} 운동`;
     document.getElementById('homePlanDesc').textContent = latest ? `최근 ${split} 운동을 참고했어요.` : '하고 싶은 부위를 고르면 운동을 추천해요.';
     partButtons(homeParts.querySelector('#homePartChoices'), split, true);
@@ -316,6 +326,15 @@
     if (photos.error) window.toast('운동 기록은 저장했지만 사진은 저장되지 않았어요.');
     if (!profile && !current.onboardingSkipped) window.openProfile();
   };
+
+  document.getElementById('homeFree').addEventListener('click', event => {
+    event.stopImmediatePropagation();
+    const current = state();
+    const routineEdits = {...(current.routineEdits || {}), 자유: []};
+    if (window.commitState({...current, routineEdits, routineChoice:{date:today(),part:'자유'}}, '자유 운동 기록을 시작해요.')) {
+      document.getElementById('homeStart').click();
+    }
+  }, true);
 
   window.persist();
 })();
