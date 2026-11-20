@@ -1,8 +1,10 @@
-const CACHE_NAME = 'refit-shell-v85-schedule-board-20261119';
+const CACHE_NAME = 'refit-shell-v86-profile-depth-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
   './pacefit-services.css?v=20261117-services-1',
+  './pacefit-depth.css?v=20261120-1',
+  './profile-onboarding.js?v=20261120-1',
   './pacefit-ui-details.js?v=20261117-services-1',
   './prototype-planners.js?v=20261117-services-1',
   './assets/ui-3d-web/body-area.png',
