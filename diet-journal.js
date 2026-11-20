@@ -58,14 +58,24 @@
   function drawTotals(rows) {
     const totals=rows.reduce((sum,row)=>{const n=row.nutrients||{};for(const k of ['kcal','protein','carbs','fat'])sum[k]+=Number(n[k]||0);return sum;},{kcal:0,protein:0,carbs:0,fat:0});
     $('dietKcal').textContent=Math.round(totals.kcal);$('dietProtein').textContent=totals.protein.toFixed(1);$('dietCarbs').textContent=totals.carbs.toFixed(1);$('dietFat').textContent=totals.fat.toFixed(1);
+    document.querySelectorAll('[data-nutrient-progress]').forEach(node=>{
+      const key=node.dataset.nutrientProgress,target=Number(node.dataset.target)||0,value=totals[key]||0;
+      const percent=target>0?Math.round(value/target*100):0;
+      node.querySelector('span').textContent=target>0?`목표 ${Math.round(target)}${key==='kcal'?'kcal':'g'} · ${percent}%`:'목표 미설정';
+      node.querySelector('i').style.width=`${Math.min(100,Math.max(0,percent))}%`;
+    });
   }
   function renderTargets() {
     const profile=window.RefitAccountBridge?.getState?.()?.profile||{},bmr=Number(profile.bmr),weight=Number(profile.weight),factor=Math.min(1.6,1.4+Math.min(5,Number(profile.days)||2)*.04);
     const goal=$('nutritionGoal'),saved=localStorage.getItem(nutritionGoalKey());if(saved&&['loss','maintain','gain'].includes(saved))goal.value=saved;
     const root=$('nutritionTargetCards'),intro=$('nutritionTargetIntro');
-    if(!Number.isFinite(bmr)||bmr<500||!Number.isFinite(weight)||weight<20){intro.textContent='프로필에 기초대사량과 체중을 입력하면 계산할 수 있어요.';root.innerHTML='<p class="diet-empty">프로필 설정에서 기초대사량·체중을 입력해 주세요.</p>';return;}
-    const maintenance=Math.round(bmr*factor/50)*50,targets={loss:Math.max(1000,maintenance-300),maintain:maintenance,gain:maintenance+250},labels={loss:'감량',maintain:'유지',gain:'증량'},keys=['loss','maintain','gain'];intro.textContent=`입력한 기초대사량 ${Math.round(bmr)}kcal · 주 ${Number(profile.days)||2}회 목표를 참고했어요.`;
-    root.innerHTML=keys.map(key=>{const kcal=targets[key],protein=Math.round(weight*1.2),fat=Math.round(kcal*.30/9),carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));return `<article class="nutrition-target-card ${goal.value===key?'selected':''}"><strong>${labels[key]}${goal.value===key?' · 선택':''}</strong><b>${kcal.toLocaleString()}<small>kcal/일</small></b><span>단백질 ${protein}g · 탄수화물 ${carbs}g</span><span>지방 ${fat}g</span></article>`}).join('');
+    if(!Number.isFinite(bmr)||bmr<500||!Number.isFinite(weight)||weight<20){intro.textContent='프로필에 기초대사량과 체중을 입력하면 계산할 수 있어요.';root.innerHTML='<p class="diet-empty">프로필 설정에서 기초대사량·체중을 입력해 주세요.</p>';document.querySelectorAll('[data-nutrient-progress]').forEach(node=>{node.dataset.target=0;node.querySelector('span').textContent='목표 미설정';node.querySelector('i').style.width='0%';});return;}
+    const maintenance=Math.round(bmr*factor/50)*50,targets={loss:Math.max(1000,maintenance-300),maintain:maintenance,gain:maintenance+250},labels={loss:'감량',maintain:'유지',gain:'증량'};
+    const kcal=targets[goal.value],protein=Math.round(weight*1.2),fat=Math.round(kcal*.30/9),carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
+    intro.textContent='선택한 식단 목표의 참고 열량입니다.';
+    root.innerHTML=`<article class="nutrition-target-card selected"><strong>${labels[goal.value]} 목표</strong><b>${kcal.toLocaleString()}<small>kcal/일</small></b></article>`;
+    const targetsByKey={kcal,protein,carbs,fat};
+    document.querySelectorAll('[data-nutrient-progress]').forEach(node=>{const key=node.dataset.nutrientProgress,target=targetsByKey[key],value=Number($('diet'+({kcal:'Kcal',protein:'Protein',carbs:'Carbs',fat:'Fat'}[key])).textContent)||0,percent=Math.round(value/target*100);node.dataset.target=target;node.querySelector('span').textContent=`목표 ${target}${key==='kcal'?'kcal':'g'} · ${percent}%`;node.querySelector('i').style.width=`${Math.min(100,Math.max(0,percent))}%`;});
   }
   async function getRows() {
     lastLoadError='';
@@ -82,12 +92,12 @@
   }
   async function render() {
     urls.forEach(url=>URL.revokeObjectURL(url));urls=[];
-    const rows=await getRows(); drawTotals(rows);
+    const rows=await getRows(); renderTargets(); drawTotals(rows);
     root.innerHTML=meals.map(meal=>{const list=rows.filter(r=>r.meal===meal);return `<section class="diet-meal"><div class="diet-meal-heading"><h3>${meal}</h3><button class="diet-add-meal" data-diet-open="${meal}" type="button">＋ 기록</button></div><div class="diet-entry-list">${list.length?list.map(row=>`<article class="diet-entry"><div class="diet-entry-main" data-photo-host="${escape(row.id)}">${row.photoUrl?`<img class="diet-entry-photo" src="${escape(row.photoUrl)}" alt="${escape(row.food)} 사진">`:foodIcon(row.food,'','diet-entry-icon')}<div class="diet-entry-copy"><strong>${escape(row.food||'식사 메모')}</strong>${row.amount?`<span>${Number.isFinite(Number(row.amount))?`${escape(row.amount)}g`:escape(row.amount)}</span>`:''}<span>열량 ${showNutrient(row.nutrients?.kcal,0)}kcal · 단백질 ${showNutrient(row.nutrients?.protein)}g</span>${row.note?`<p>${escape(row.note)}</p>`:''}${row.photoId&&!row.photoUrl?'<span>사진 포함</span>':''}</div></div><button class="diet-entry-remove" type="button" data-diet-remove="${escape(row.id)}" data-server="${row.server?'true':'false'}">삭제</button></article>`).join(''):'<p class="diet-empty">아직 기록이 없어요.</p>'}</div></section>`;}).join('');
     for(const row of rows.filter(item=>item.photoId&&!item.server)){try{const saved=await photoGet(row.photoId),host=root.querySelector(`[data-photo-host="${CSS.escape(row.id)}"]`);if(saved?.blob&&host){const img=document.createElement('img');img.className='diet-entry-photo';img.alt=`${row.food||'식단'} 사진`;img.src=URL.createObjectURL(saved.blob);urls.push(img.src);host.prepend(img);}}catch{}}
     $('dietStorageNote').textContent=lastLoadError?`서버 식단 기록을 불러오지 못했습니다: ${lastLoadError}`:cloudReady()?'식단 기록과 사진은 계정 서버에 저장됩니다. 오늘 기록을 보여줍니다. 연결된 트레이너에게는 별도 공유 설정을 켠 경우에만 표시됩니다.':session?'서버 저장 동의가 꺼져 있어 식단 기록과 사진은 이 브라우저에 저장됩니다.':'로그인 전에는 식단 기록과 사진이 이 브라우저에 저장됩니다.';
     $('dietDbStatus').textContent=foodSearchConfigured()?'공식 K-FIND 검색 결과를 고르면 기준량에 맞춰 영양 합계에 반영합니다. 직접 입력 음식은 합계에서 제외됩니다.':'공식 K-FIND 데이터 동기화와 검색 함수 배포 후 영양 합계가 활성화됩니다.';
-    $('dietServerConsent').checked=consent().server;$('dietConsentBar').hidden=false;$('dietConsentBar').querySelector('strong').textContent=cloudReady()?'식단 데이터 저장 설정':'계정 서버 저장·사진 인식 설정';$('dietConsentBar').querySelector('p').textContent=cloudReady()?'서버 저장 동의 상태를 변경하거나 AI 사진 전송 동의를 설정할 수 있어요.':'서버 저장과 AI 사진 전송은 각각 별도 동의가 필요합니다.';$('dietConsentOpen').textContent=cloudReady()?'저장 동의 변경':'동의 설정';
+    $('dietServerConsent').checked=consent().server;
   }
   function reset() { clearTimeout(searchTimer);searchSeq++;form.reset(); selectedPhoto=null;selectedFood=null;$('dietSearchResults').innerHTML='';$('dietSelectedFoods').innerHTML='';$('dietAiConsent').checked=consent().ai; if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';$('dietPhotoPreview').innerHTML='';$('dietPhotoPreview').hidden=true;refreshAnalyze(); }
   function openForm(meal) { reset();$('dietMeal').value=meals.includes(meal)?meal:'간식';backdrop.classList.add('open');backdrop.setAttribute('aria-hidden','false');$('dietFoodSearch').focus(); }
