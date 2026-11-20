@@ -151,7 +151,7 @@ body[data-view=journal] .progress-more summary{font-size:12px}
 </style>
 <link rel="stylesheet" href="./pacefit-services.css?v=20261117-services-1">
 <link rel="stylesheet" href="./pacefit-depth.css?v=20261120-1">
-<link rel="stylesheet" href="./navigation.css?v=20261120-4">
+<link rel="stylesheet" href="./navigation.css?v=20261120-records-1">
 </head>
 <body>
   <div class="app">
@@ -183,7 +183,7 @@ body[data-view=journal] .progress-more summary{font-size:12px}
     <nav class="pf-bottom-nav" aria-label="개인 화면 바로가기"><button type="button" data-view-target="home" aria-label="홈"><span aria-hidden="true"><img src="./assets/ui-3d-web/workout-start.png" alt=""></span><small>홈</small></button><button type="button" data-view-target="workout" aria-label="운동"><span aria-hidden="true"><img src="./assets/ui-3d-web/body-area.png" alt=""></span><small>운동</small></button><button type="button" data-view-target="diet" aria-label="식단"><span aria-hidden="true"><img src="./assets/ui-3d-web/nutrition.png" alt=""></span><small>식단</small></button><button type="button" data-view-target="journal" aria-label="기록"><span aria-hidden="true"><img src="./assets/ui-3d-web/journal.png" alt=""></span><small>기록</small></button><button type="button" id="bottomProfile" aria-label="내 정보"><span aria-hidden="true"><img src="./assets/ui-3d-web/profile.png" alt=""></span><small>내 정보</small></button></nav>
   </div>
   <div class="dialog-backdrop" id="profileBackdrop" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle"><div class="dialog">
-    <div class="eyebrow">기본 프로필 · 선택 운동 기록</div><h2 id="profileDialogTitle">운동 프로필 설정</h2><p>입력한 정보는 이 브라우저에 저장돼요. 성별·키·체중·기초대사량은 선택 사항입니다. 칼로리 추정에는 체중과 운동 시간만 사용해요.</p>
+    <div class="profile-dialog-head"><div><div class="eyebrow">기본 프로필 · 선택 운동 기록</div><h2 id="profileDialogTitle">운동 프로필 설정</h2></div><button type="button" class="profile-edit" id="closeProfileDialog" aria-label="프로필 설정 닫기">닫기</button></div><p>입력한 정보는 계정 저장 설정에 따라 보관돼요. 성별·키·체중·기초대사량은 선택 사항입니다. 칼로리 추정에는 체중과 운동 시간만 사용해요.</p>
     <label class="field"><span>이름 또는 별명</span><input id="profileName" maxlength="30" placeholder="예: 민지" /></label>
     <label class="field"><span>운동 경험</span><select id="profileExperience"><option value="처음 시작해요">처음 시작해요</option><option value="가끔 운동해요">가끔 운동해요</option><option value="다시 시작해요">다시 시작해요</option><option value="지속적으로 운동을 하고 있어요">지속적으로 운동을 하고 있어요</option><option value="기타">기타</option></select></label>
     <label class="field" id="experienceOtherWrap" hidden><span>운동 경험을 적어주세요</span><input id="profileExperienceOther" maxlength="60" placeholder="내 경험을 짧게 적어주세요" /></label>
@@ -355,7 +355,7 @@ body[data-view=journal] .progress-more summary{font-size:12px}
 <script src="./exercise-visuals.js?v=20261119-consistent-art-1" defer></script>
 <script src="./exercise-library-ui.js?v=20261118-area-art-audit-1" defer></script>
 <script src="./routine-by-part.js?v=20261120-ui-1" defer></script>
-<script src="./workout-enhancements.js?v=20261120-ui-1" defer></script>
+<script src="./workout-enhancements.js?v=20261120-records-1" defer></script>
 <script src="./calorie-estimate.js" defer></script>
 <script src="./operator-dashboard.js?v=20261113-raw-sync-1" defer></script>
 <link rel="stylesheet" href="./member-insights.css?v=20261120-monthly-1">
@@ -369,16 +369,17 @@ body[data-view=journal] .progress-more summary{font-size:12px}
 <script src="./lesson-journal-core.js?v=20261116-lesson-1" defer></script>
 <script src="./lesson-journal-store.js?v=20261116-lesson-1" defer></script>
 <script src="./lesson-journal-ui.js?v=20261116-lesson-1" defer></script>
-<script src="./trainer.js?v=20261120-ui-1" defer></script>
+<script src="./trainer.js?v=20261120-records-1" defer></script>
 <script src="./trainer-plans.js?v=20261105-plans-2" defer></script>
 <script src="./voice-journal.js" defer></script>
-<script src="./diet-journal.js?v=20261120-ui-1" defer></script>
+<script src="./diet-journal.js?v=20261120-records-1" defer></script>
   <div class="pose-backdrop" id="poseBackdrop" role="dialog" aria-modal="true" aria-labelledby="poseTitle" aria-hidden="true"><section class="pose-dialog"><div class="pose-dialog-head"><div><div class="eyebrow">카메라 실험 기능</div><h2 id="poseTitle">스쿼트 자세 체크</h2></div><button class="pose-close" id="closePoseCheck" type="button">닫기</button></div><p class="pose-dialog-intro" id="poseGuideText">옆면에서 머리부터 발끝까지 보이게 촬영하세요.</p><label class="pose-exercise-field" for="poseExercise">분석할 운동<select id="poseExercise"><option value="squat">스쿼트</option><option value="overhead">오버헤드 프레스</option><option value="bench">벤치프레스</option><option value="deadlift">데드리프트</option><option value="lunge">런지</option></select></label><p class="pose-privacy"><strong>개인정보 안내</strong> · 카메라 사용은 시작 버튼을 눌렀을 때만 시작됩니다. 영상은 이 기기 안에서 분석하고 저장하거나 서버로 보내지 않습니다. 분석에 필요한 라이브러리와 모델 파일은 외부 CDN에서 내려받습니다.</p><div class="pose-guide"><span>① 옆면에서 촬영</span><span>② 전신이 화면 안에</span><span>③ 밝고 안정된 장소</span></div><div class="pose-stage"><video id="poseVideo" playsinline muted aria-label="실시간 카메라 화면"></video><canvas id="poseCanvas" aria-hidden="true"></canvas><div class="pose-stage-message" id="poseStageMessage">카메라를 켜기 전에 촬영 안내와 개인정보 안내를 확인해주세요.</div></div><div class="pose-readout" aria-live="polite"><div class="pose-stat"><span>반복 횟수</span><strong id="poseRepCount">0회</strong></div><div class="pose-stat"><span id="poseMetricLabel">무릎 굽힘 추정</span><strong id="poseKneeAngle">—</strong></div><div class="pose-stat"><span>움직임</span><strong id="posePhase">대기 중</strong></div></div><p class="pose-feedback" id="poseFeedback" aria-live="polite">몸이 화면에 잘 잡히면 관절 선이 표시됩니다.</p><div class="pose-actions"><button class="pose-action" id="startPoseCamera" type="button">카메라 켜고 시작</button><button class="pose-action" id="finishPoseCheck" type="button" disabled>분석 끝내고 결과 보기</button><button class="pose-action secondary" id="stopPoseCamera" type="button" disabled>카메라 끄기</button></div><section class="pose-result" id="poseResult" aria-live="polite" hidden><h3 id="poseResultTitle">스쿼트 분석 결과</h3><div class="pose-result-stats"><div><span>감지한 반복</span><strong id="poseResultCount">0회</strong></div><div><span>분석 시간</span><strong id="poseResultTime">0초</strong></div><div><span id="poseResultMetricLabel">최대 무릎 굽힘</span><strong id="poseResultBend">—</strong></div></div><p id="poseResultMessage"></p><div class="pose-compare"><div class="pose-compare-card"><h3>움직임 가이드</h3><p id="poseReference"></p></div><div class="pose-compare-card"><h3>내 움직임</h3><p id="poseObserved"></p></div></div></section><p class="pose-disclaimer">초기 실험용 동작 추정 기능입니다. 2D 카메라 각도와 가림에 따라 결과가 달라질 수 있어요. 운동 자세의 안전성이나 정확도를 판정하거나 의료 조언을 제공하지 않습니다. 불편하거나 아프면 즉시 멈춰주세요.</p></section></div>  <script src="./pose-check.js?v=18" defer></script>
 <script>
   (() => {
     const views = new Set(['home', 'workout', 'diet', 'journal', 'progress', 'library']);
     function showView(view) {
       if (!views.has(view)) view = 'home';
+      document.getElementById('profileBackdrop')?.classList.remove('open');
       document.body.dataset.view = view;
       document.querySelectorAll('[data-view-target]').forEach(button => {
         if (button.dataset.viewTarget === view) button.setAttribute('aria-current', 'page');
@@ -388,6 +389,7 @@ body[data-view=journal] .progress-more summary{font-size:12px}
     }
     document.querySelectorAll('[data-view-target]').forEach(button => button.addEventListener('click', () => showView(button.dataset.viewTarget)));
     document.getElementById('bottomProfile').addEventListener('click', () => document.getElementById('editProfile').click());
+    document.getElementById('closeProfileDialog').addEventListener('click', () => document.getElementById('profileBackdrop').classList.remove('open'));
     document.getElementById('homeStart').addEventListener('click', () => showView('workout'));
     document.getElementById('homeChoose').addEventListener('click', () => {
       showView('workout');
