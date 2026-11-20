@@ -1,0 +1,12 @@
+.pf-bottom-nav,.trainer-bottom-nav{display:none}
+@media(max-width:640px){
+  body .app{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+  .pace-nav{display:none!important}
+  .pf-bottom-nav{position:fixed;z-index:50;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:min(450px,calc(100% - 22px));padding:7px 5px;border:1px solid #cbded6;border-radius:22px;background:#fff;box-shadow:0 12px 34px #102f2a26}
+  .pf-bottom-nav button,.trainer-bottom-nav button{display:grid;justify-items:center;align-content:center;gap:2px;min-height:49px;min-width:0;border:0;border-radius:15px;background:transparent;color:#5c716b;font:inherit;font-weight:750;cursor:pointer}
+  .pf-bottom-nav button[aria-current=page],.trainer-bottom-nav button[aria-current=true]{background:#e5f1ea;color:#164b46}
+  .pf-bottom-nav button span,.trainer-bottom-nav button span{font-size:21px;line-height:1}
+  .pf-bottom-nav button small,.trainer-bottom-nav button small{font-size:10px;white-space:nowrap}
+  .trainer-panel{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}
+  .trainer-bottom-nav{position:fixed;z-index:1110;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:min(450px,calc(100% - 22px));padding:6px;border:1px solid #cbded6;border-radius:19px;background:#fff;box-shadow:0 -5px 24px #102f2a1a}
+}
