@@ -1,0 +1,138 @@
+/* PACEFIT visual system, approved dark teal and lime direction (2026-11-20).
+   Keep application data and existing interactions in their original components. */
+:root{
+  --bg:#071f20;
+  --surface:#f7f5eb;
+  --ink:#142d2b;
+  --muted:#5e716d;
+  --green:#063d39;
+  --green-2:#e7f0e5;
+  --lime:#d7fa50;
+  --line:#d8e4dc;
+  --shadow:0 14px 36px rgba(0,23,24,.18);
+  --pf-deep:#062f2d;
+  --pf-deeper:#041e20;
+  --pf-card:#f8f6ed;
+  --pf-card-alt:#ecf3e9;
+  --pf-lime:#d7fa50;
+  --pf-light:#eef7ef;
+}
+html{background:var(--pf-deeper);scrollbar-color:#577e76 var(--pf-deeper)}
+body{background:radial-gradient(circle at 50% -12%,#205a4f 0,#0b3734 31%,#061f21 78%) fixed;color:var(--pf-light)}
+body .app{background:linear-gradient(170deg,#0a3733 0%,#07312f 28%,#06292a 63%,#071e20 100%)!important;box-shadow:0 18px 75px #0006;min-height:100dvh}
+body .app,body .app *{min-width:0}
+body :is(button,input,select,textarea){-webkit-tap-highlight-color:transparent}
+body :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--pf-lime)!important;outline-offset:2px}
+body :is(.topbar,.hello,.pace-home,.exercise-library,.grid,.diet-page){max-width:480px;margin-left:auto;margin-right:auto}
+.topbar{padding:19px 7px 11px!important;border-bottom:1px solid #ffffff1a}
+.topbar .brand{filter:drop-shadow(0 3px 8px #0004)}
+.topbar .brand-logo-web{width:min(172px,39vw);max-height:55px;background:var(--pf-card);border-radius:12px;padding:4px 8px;box-shadow:0 5px 13px #0004}
+.topbar .brand-tagline{color:#b5d1c7;font-size:10px}
+.topbar .top-right .avatar{background:linear-gradient(145deg,#668b79,#315a54);color:#f4ffde;box-shadow:inset 0 1px 0 #ffffff66,0 4px 10px #0004}
+.topbar .profile-edit{background:#ffffff12;border:1px solid #b3d5c866;color:#ecf8ea;border-radius:13px}
+.topbar .profile-edit:hover{background:#ffffff22}
+.topbar .account-status{color:#b9d1c9}
+.topbar .local-pill{color:#c6d9d0;background:#ffffff12;border-color:#c6e1d247}
+.hello{padding:20px 4px 7px}
+.hello .date{color:#bdd3c7;font-size:12px}
+.hello h1{font-size:clamp(24px,6.5vw,32px);color:#f8fbf4;line-height:1.25}
+.hello h1 span{color:var(--pf-lime)}
+.pace-nav{background:#062b2b!important;border-color:#ffffff27!important;box-shadow:0 6px 18px #0004}
+.pace-nav button{color:#c4d8d0!important}
+.pace-nav button[aria-current=page]{background:var(--pf-lime)!important;color:#102c22!important}
+.pace-home{margin-top:14px}
+.home-intro{text-align:left;margin:0 4px 22px}
+.home-intro .eyebrow,.library-heading .eyebrow{color:var(--pf-lime)}
+.home-intro h2,.library-heading h2{color:#f9f9ee;font-size:clamp(27px,7vw,34px);line-height:1.22}
+.home-intro p,.library-heading p,.library-count,.library-source{color:#b8d0c7}
+body .home-recommend{position:relative;display:block;overflow:hidden;min-height:210px;padding:26px;border:1px solid #78a89862!important;border-radius:27px;background:radial-gradient(circle at 96% 10%,#7da95b77 0,transparent 36%),linear-gradient(132deg,#1b6151,#0b423a 60%,#092c2a)!important;box-shadow:0 20px 36px #001c1f88,inset 0 1px 0 #ffffff53!important}
+.home-recommend:after{content:"";position:absolute;right:-18px;top:34px;width:145px;height:145px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#d7fa50a0,#618c50 28%,#244e40 58%,transparent 70%);opacity:.6;pointer-events:none}
+.home-recommend>div,.home-recommend>button{position:relative;z-index:1}
+.home-kicker{display:inline-block;padding:5px 11px;border-radius:99px;background:var(--pf-lime);color:#17352b!important;font-size:11px}
+.home-recommend h3{color:white;font-size:clamp(24px,6vw,30px);margin:13px 0 5px}
+.home-recommend p{color:#d7e9da;max-width:260px}
+.home-recommend .home-primary{min-height:44px;margin-top:23px;padding:10px 22px;border-radius:999px;background:var(--pf-lime);color:#102d25;box-shadow:0 5px 14px #001b1f7a}
+.home-options{gap:11px}
+.home-options button{background:linear-gradient(150deg,#f9f7ee,#eaf1e5);border-color:#e8f2e6;border-radius:22px;box-shadow:0 12px 24px #00191d48}
+.home-options strong{color:#153c35}
+.home-options small{color:#60756d}
+.home-option-icon{background:#dff0d1;color:#195248}
+.home-shortcuts button{color:#d7e7d9}
+.home-shortcuts button:hover{color:var(--pf-lime)}
+.profile-strip{max-width:480px;margin-left:auto;margin-right:auto;background:linear-gradient(145deg,#164d45,#0b3b37)!important;border:1px solid #b6dbc65e;color:#f2f8ec;box-shadow:0 15px 28px #001f205c}
+.profile-strip .profile-goal,.profile-strip .profile-name,.profile-strip .profile-disclosure summary{color:#e8f8db}
+.profile-strip .profile-meta,.profile-strip .profile-estimates,.profile-strip .profile-estimates small{color:#c4d7cb}
+.profile-strip .profile-estimates b{color:var(--pf-lime)}
+.profile-strip .profile-edit{background:var(--pf-lime);color:#163a2f;border:0}
+.profile-avatar{background:#102c2b;color:var(--pf-lime);box-shadow:inset 0 1px 0 #ffffff44}
+.demo-note{max-width:480px;margin-left:auto;margin-right:auto;background:#b5d1c920!important;border:1px solid #bedbcb38;color:#d8e9dc}
+.demo-note button{color:var(--pf-lime)}
+body .card,body .diet-card,body .library-card{background:var(--pf-card);color:var(--pf-ink,var(--ink));border:1px solid #d9e8d8;border-radius:23px;box-shadow:0 16px 35px #001b1e6a,inset 0 1px 0 #fff!important}
+body .card h2,body .diet-card h3{color:#103a35}
+body .card-head p,body .diet-card-heading p{color:#61766c}
+body .badge{background:#d7edcf;color:#185042}
+body :is(.save-btn,.home-primary,.diet-primary,.diet-save,.trainer-primary,.trainer-comment-form button){background:var(--pf-lime);color:#13392d;border:0;border-radius:13px;font-weight:800;box-shadow:0 5px 11px #082b2555}
+body :is(.save-btn,.home-primary,.diet-primary,.diet-save,.trainer-primary):hover{background:#e3ff75}
+body :is(.metric-card,.exercise-actual,.log-details,.journal-disclosure,.log-extra-disclosure,.diet-nutrients>div,.nutrition-target-grid>*,.diet-advice-grid article){background:var(--pf-card-alt);border-color:#d9e6d8}
+body :is(.routine-card,.progress-card,.support-details){margin-bottom:14px}
+.exercise-library{margin-top:18px}
+.library-heading{text-align:left;padding:0 4px}
+.library-heading h2{margin:5px 0}
+.library-controls{background:linear-gradient(145deg,#184e46,#0a3a35);border:1px solid #a7cdb367;border-radius:22px;box-shadow:0 15px 32px #001b1e77}
+.library-controls label{color:#e9f4e9}
+.library-controls input{background:#ffffffeb;border-color:#bad1c4;color:#143d32}
+.library-filters button{background:#ffffff18;border-color:#b9d8c079;color:#e9f7e6}
+.library-filters button[aria-pressed=true]{background:var(--pf-lime);color:#143a2d;border-color:var(--pf-lime)}
+.library-grid{grid-template-columns:1fr}
+.library-card{min-height:91px;transition:transform .18s ease,box-shadow .18s ease}
+.library-card:hover{transform:translateY(-2px);box-shadow:0 20px 32px #001a1e8a!important}
+.library-visual{background:#172a2b;border-radius:15px}
+.library-visual img{object-fit:contain}
+.library-card-copy strong{font-size:14px;color:#173a35}
+.library-card-copy small{color:#63756f}
+.library-more{background:var(--pf-lime);color:#16372c;border:0;border-radius:99px}
+.library-source a{color:#def791}
+.diet-header h2{color:#f8fbf2}
+.diet-header p{color:#c6ddd0}
+.diet-header .eyebrow{color:var(--pf-lime)}
+.diet-page .diet-card{margin-bottom:14px}
+.diet-storage-note{color:#bbd1c6}
+.diet-advice-more>summary{color:#16483a}
+.pf-bottom-nav,.trainer-bottom-nav{background:linear-gradient(160deg,#0a3733,#052a2a)!important;border:1px solid #a2ceb052!important;box-shadow:0 8px 30px #001716a8,inset 0 1px 0 #ffffff21!important;backdrop-filter:blur(18px)}
+.pf-bottom-nav button,.trainer-bottom-nav button{color:#c8dcd0!important}
+.pf-bottom-nav button[aria-current=page],.trainer-bottom-nav button[aria-current=true]{background:#d7fa5026!important;color:var(--pf-lime)!important}
+.pf-bottom-nav button img,.trainer-bottom-nav button img{filter:drop-shadow(0 2px 2px #0006)}
+.pf-bottom-nav button[aria-current=page] img,.trainer-bottom-nav button[aria-current=true] img{filter:drop-shadow(0 2px 4px #d7fa5080)}
+.pf-bottom-nav button small,.trainer-bottom-nav button small{color:inherit}
+body .app{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+body .trainer-panel{padding-bottom:calc(176px + env(safe-area-inset-bottom))!important}
+body .trainer-panel #trainerContent::after{height:calc(125px + env(safe-area-inset-bottom))}
+.dialog-backdrop,.diet-backdrop,.pose-backdrop{background:#001b1dbb}
+.dialog,.diet-dialog,.pose-dialog,.lj-panel{background:#f9f8f1;color:#17372f;border-radius:25px;box-shadow:0 27px 70px #00181891}
+.dialog :is(input,select,textarea),.diet-dialog :is(input,select,textarea),.pose-dialog :is(input,select,textarea){color:#16382f}
+body .trainer-overlay,body .trainer-overlay.trainer-workspace{background:#001c1ec9}
+body .trainer-overlay .trainer-panel{background:linear-gradient(165deg,#0a3d37,#052b2c 62%,#062022);color:#eff8eb;border:1px solid #9cc7ac69;border-radius:25px;box-shadow:0 25px 75px #001719ad}
+body .trainer-overlay .trainer-head h2{color:#f7fbef}
+body .trainer-overlay .trainer-head p{color:#bcd4c5}
+body .trainer-overlay .trainer-head .trainer-close{background:#ffffff15;color:#eff8ec;border-color:#b6d7c45c}
+body .trainer-overlay .trainer-tabs button:not(.active){background:#ffffff12;color:#e2f2e3;border-color:#c3ddc172}
+body .trainer-overlay .trainer-tabs button.active{background:var(--pf-lime);color:#133c2d;border-color:var(--pf-lime)}
+body .trainer-overlay .trainer-card{background:var(--pf-card);color:#15392f;border:1px solid #d9e5d4;border-radius:20px;box-shadow:0 13px 26px #001c1f63}
+body .trainer-overlay .trainer-card h3{color:#123b32}
+body .trainer-overlay .trainer-card p{color:#5b7168}
+body .trainer-overlay .trainer-primary{background:var(--pf-lime);color:#153a2f}
+body .trainer-overlay .trainer-note{color:#6b7b71}
+body .trainer-overlay .trainer-bottom-nav{color:#f2f8ed}
+body .trainer-overlay :is(.tw-member,.tw-member-card,.class-journal-card,.lesson-setting-card){border-radius:18px}
+body .trainer-overlay :is(input,select,textarea){max-width:100%}
+@media(max-width:600px){
+  body .app{padding-left:16px;padding-right:16px}
+  .topbar{padding-top:12px!important}
+  .topbar .brand-logo-web{width:min(150px,36vw)}
+  .home-recommend{padding:22px!important}
+  .library-heading h2{font-size:28px}
+  body .card,body .diet-card{border-radius:20px}
+  .pf-bottom-nav,.trainer-bottom-nav{bottom:calc(10px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){.library-card{transition:none}}
+
