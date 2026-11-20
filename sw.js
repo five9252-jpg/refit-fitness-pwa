@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v92-schedule-settings-20261120';
+const CACHE_NAME = 'refit-shell-v93-trainer-diet-workout-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -36,7 +36,7 @@ const SHELL_ASSETS = [
   './account.js?v=20261120-signup-mail-1',
   './operator-dashboard.js?v=20261113-raw-sync-1',
   './voice-journal.js',
-  './diet-journal.js?v=20261119-consent-fix-1',
+  './diet-journal.js?v=20261120-ui-1',
   './diet-journal.css',
   './docs/diet-guidance.md',
   './assets/diet/grain.svg',
@@ -45,13 +45,13 @@ const SHELL_ASSETS = [
   './assets/diet/fruit.svg',
   './assets/diet/seafood.svg',
   './assets/diet/dairy.svg',
-  './routine-by-part.js?v=20261105-plans-3',
-  './workout-enhancements.js?v=20261119-journal-summary-1',
+  './routine-by-part.js?v=20261120-ui-1',
+  './workout-enhancements.js?v=20261120-ui-1',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261119-trainer-workspace-2',
-  './trainer.js?v=20261120-schedule-settings-1',
+  './trainer.js?v=20261120-ui-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
