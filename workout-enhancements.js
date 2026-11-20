@@ -12,6 +12,7 @@
   let shownMonth = new Date().getMonth();
   let shownYear = new Date().getFullYear();
   let chosenExercise = '';
+  let performancePeriod = 'week';
 
   const style = document.createElement('style');
   style.textContent = `
@@ -26,6 +27,7 @@
     @media(max-width:900px){.journal-overview{grid-template-columns:minmax(0,1fr);gap:10px;width:100%;max-width:100%}.journal-overview>.journal-calendar,.journal-overview>.journal-performance{width:100%;min-width:0;height:auto;box-sizing:border-box}.journal-calendar{order:0}.journal-performance{order:1}.journal-performance>*{max-width:100%;min-width:0}.performance-charts,.performance-chart{min-width:0;max-width:100%}}
     @media(max-width:520px){.cardio-fields{grid-template-columns:1fr 1fr}.cardio-fields label:first-child{grid-column:1/-1}.journal-calendar,.journal-performance{padding:13px}.calendar-day{min-height:48px}.calendar-empty{min-height:48px}#journalCard>.card-head p{display:none}}
   `;
+  style.textContent += `.performance-period{display:flex;gap:7px;margin:10px 0 14px}.performance-period button{padding:8px 14px;border:1px solid #cadbd6;border-radius:999px;background:#fff;color:#15534d;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.performance-period button[aria-pressed="true"]{background:#15534d;color:#fff}.journal-performance label[for="performanceExercise"]{display:block;margin-top:16px;font-size:12px;font-weight:800}.journal-performance #performanceExercise{width:100%;margin-top:6px}`;
   document.head.append(style);
   const compactStyle=document.createElement('style');
   compactStyle.textContent=`.calendar-session-exercises{list-style:none;padding:0;margin:10px 0;display:grid;gap:6px}.calendar-session-exercises li{padding:8px 10px;border-radius:9px;background:#edf4f3}.log-exercise-block{margin:9px 0;padding:11px;border-radius:12px;background:#f0f5f6;border:1px solid #e2ebeb}.log-exercise-block summary{cursor:pointer;list-style:none}.log-exercise-block summary::-webkit-details-marker{display:none}.log-exercise-title{font-weight:850;color:#173c42}.log-exercise-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:9px 0}.log-exercise-stats span{padding:7px;border-radius:8px;background:#fff;text-align:center;font-size:11px}.log-exercise-stats b{display:block;font-size:13px;color:#173c42}.log-exercise-more{font-size:11px;color:#315d53}.log-exercise-block .log-set-row{padding:6px 8px;margin-top:4px;border-radius:7px;background:#fff}@media(max-width:520px){.log-exercise-stats span{font-size:10px}.log-exercise-stats b{font-size:12px}}`;
@@ -72,7 +74,7 @@
   const journalHead=card.querySelector('.card-head');if(journalHead&&!$('#exportWorkoutImage'))journalHead.insertAdjacentHTML('beforeend','<button type="button" class="view-all" id="exportWorkoutImage" style="width:auto;margin:0;padding:8px 11px">이미지로 저장</button>');
   $('#exportWorkoutImage')?.addEventListener('click',()=>{const data=logs().slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);if(!data.length){alert('저장할 운동 기록이 아직 없어요.');return;}const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=900;const ctx=canvas.getContext('2d');ctx.fillStyle='#f5f8f4';ctx.fillRect(0,0,1200,900);ctx.fillStyle='#174b3b';ctx.fillRect(0,0,1200,155);ctx.fillStyle='#fff';ctx.font='bold 42px sans-serif';ctx.fillText('페이스핏 · 운동 기록',64,76);ctx.font='24px sans-serif';ctx.fillText(`${data.length}회 기록 · 최근 운동 요약`,66,120);const counts=data.slice(0,7).reverse(),max=Math.max(1,...counts.map(row=>(row.items||[]).reduce((sum,item)=>sum+(Number(item.weight)||0)*(Number(item.sets)||0)*(Number(item.reps)||0),0)));counts.forEach((row,index)=>{const x=80+index*150,h=210*((row.items||[]).reduce((sum,item)=>sum+(Number(item.weight)||0)*(Number(item.sets)||0)*(Number(item.reps)||0),0)/max);ctx.fillStyle='#c4e64c';ctx.fillRect(x,385-h,72,h);ctx.fillStyle='#31584b';ctx.font='18px sans-serif';ctx.fillText(row.date.slice(5),x,415);});ctx.fillStyle='#173b32';ctx.font='bold 22px sans-serif';ctx.fillText('최근 기록',70,485);data.forEach((row,index)=>{const y=535+index*31;if(y>850)return;ctx.fillStyle=index%2?'#fff':'#eaf1eb';ctx.fillRect(65,y-22,1070,29);ctx.fillStyle='#173b32';ctx.font='17px sans-serif';const names=(row.items||[]).slice(0,3).map(item=>`${item.name} ${item.weight||0}kg`).join(' · ');ctx.fillText(`${row.date}   ${row.title||'운동 기록'}   ${names||`유산소 ${row.cardio?.minutes||0}분`}`,80,y);});const link=document.createElement('a');link.download=`페이스핏-운동기록-${today}.png`;link.href=canvas.toDataURL('image/png');link.click();});
   card.querySelector('#journalDisclosure').insertAdjacentHTML('beforebegin', `<section class="journal-calendar" aria-label="운동일지 달력"><div class="calendar-head"><h3>운동 달력</h3><button type="button" id="calendarPrev" aria-label="이전 달">‹</button><strong id="calendarMonth"></strong><button type="button" id="calendarNext" aria-label="다음 달">›</button></div><div class="calendar-weekdays" aria-hidden="true"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div><div class="calendar-grid" id="calendarGrid"></div><div class="calendar-day-panel" id="calendarDayLogs"></div></section>`);
-  $('#journalDisclosure').insertAdjacentHTML('afterend', `<details class="journal-performance" aria-label="운동 기록 변화"><summary>운동 기록 변화</summary><p class="performance-note">같은 운동·기구의 세트별 최고 무게와 그 무게에서 한 횟수를 비교해요.</p><label for="performanceExercise">비교할 운동</label><select id="performanceExercise"></select><div class="performance-charts" id="performanceCharts"></div><p class="performance-note">무게나 횟수의 변화는 운동 수행 기록입니다. 자세·휴식·노력 정도가 다르면 직접적인 근력 향상으로 단정하기 어려워요. <a href="./docs/운동기록-변화-근거.md" target="_blank" rel="noopener">자료와 해석 기준 보기</a></p></details>`);
+  $('#journalDisclosure').insertAdjacentHTML('afterend', `<details class="journal-performance" aria-label="운동 기록 변화"><summary>운동 기록 변화</summary><div class="performance-period" role="group" aria-label="기록 변화 기간"><button type="button" data-performance-period="week" aria-pressed="true">주별</button><button type="button" data-performance-period="month" aria-pressed="false">월별</button></div><div class="performance-charts" id="performanceCharts"></div><label for="performanceExercise">비교할 운동</label><select id="performanceExercise"></select><p class="performance-note">같은 운동·기구의 세트별 최고 무게와 그 무게에서 한 횟수를 비교해요. 자세·휴식·노력 정도가 다르면 직접적인 근력 향상으로 단정하기 어려워요. <a href="./docs/운동기록-변화-근거.md" target="_blank" rel="noopener">자료와 해석 기준 보기</a></p></details>`);
   $('#journalDisclosure').open=false;
   const journalOverview=document.createElement("div");journalOverview.className="journal-overview";const calendarSection=card.querySelector(".journal-calendar"),performanceSection=card.querySelector(".journal-performance");card.insertBefore(journalOverview,card.querySelector("#journalDisclosure"));journalOverview.append(calendarSection,performanceSection);performanceSection.open=true;
   function effortFace(log) {
@@ -112,7 +114,16 @@
       const sets=Array.isArray(item.setDetails)&&item.setDetails.length?item.setDetails:[{weight:item.weight,reps:item.reps}];
       const valid=sets.filter(set=>Number.isFinite(Number(set.weight))&&Number.isInteger(Number(set.reps))&&Number(set.reps)>0).sort((a,b)=>Number(b.weight)-Number(a.weight)||Number(b.reps)-Number(a.reps));
       return valid.length?{date:log.date,weight:Number(valid[0].weight),reps:Number(valid[0].reps),loggedAt:log.loggedAt||''}:null;
-    }).filter(Boolean)).sort((a,b)=>a.date.localeCompare(b.date)||a.loggedAt.localeCompare(b.loggedAt)).slice(-12);
+    }).filter(Boolean)).sort((a,b)=>a.date.localeCompare(b.date)||a.loggedAt.localeCompare(b.loggedAt)).slice(-300);
+  }
+  function groupedPoints(points) {
+    const grouped=new Map();
+    for(const point of points){
+      const d=parseISO(point.date),start=performancePeriod==='month'?new Date(d.getFullYear(),d.getMonth(),1):new Date(d.getFullYear(),d.getMonth(),d.getDate()-(d.getDay()+6)%7);
+      const date=localISO(start),old=grouped.get(date);
+      if(!old||point.weight>old.weight||(point.weight===old.weight&&point.reps>old.reps))grouped.set(date,{...point,date});
+    }
+    return [...grouped.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);
   }
   function chart(title,points,field,unit) {
     const values=points.map(point=>point[field]), min=Math.min(...values), max=Math.max(...values), floor=Math.max(0,min-(max-min||1)*.2), ceiling=max+(max-min||1)*.2;
@@ -127,10 +138,11 @@
     if(!keys.includes(chosenExercise))chosenExercise=keys.at(-1)||'';
     select.innerHTML=keys.map(key=>{const [name,equipment]=JSON.parse(key);return `<option value="${esc(key)}">${esc(name)}${equipment?` · ${esc(equipment)}`:''}</option>`}).join('');
     select.value=chosenExercise;
-    const points=chosenExercise?pointsFor(chosenExercise):[];
+    const points=chosenExercise?groupedPoints(pointsFor(chosenExercise)):[];
     $('#performanceCharts').innerHTML=points.length<2?`<p class="add-search-empty">${points.length?'같은 운동을 한 번 더 기록하면 변화 그래프가 나타나요.':'운동을 기록하면 변화 그래프가 나타나요.'}</p>`:chart('세트 최고 무게',points,'weight','kg')+chart('그 무게에서의 반복',points,'reps','회');
   }
   $('#performanceExercise').onchange=event=>{chosenExercise=event.target.value;renderPerformance()};
+  document.querySelector('.performance-period').onclick=event=>{const button=event.target.closest('[data-performance-period]');if(!button)return;performancePeriod=button.dataset.performancePeriod;document.querySelectorAll('[data-performance-period]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderPerformance()};
   const oldLogs=window.renderLogs;
   window.renderLogs=function(){
     oldLogs();
