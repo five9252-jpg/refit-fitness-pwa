@@ -131,14 +131,33 @@
         let photoPath=null;if(selectedPhoto){const blob=await preparePhoto(selectedPhoto);photoPath=`${session.user.id}/${today()}/${id}.jpg`;const {error:uploadError}=await session.client.storage.from('diet-photos').upload(photoPath,blob,{contentType:blob.type||'image/jpeg',upsert:false});if(uploadError)throw uploadError;}
         const {error}=await session.client.from('diet_entries').insert({id,user_id:session.user.id,entry_date:row.date,meal:row.meal,food_name:row.food,amount_g:row.amount||null,note:row.note||null,food_code:row.foodCode,source_name:row.source,nutrients:row.nutrients,photo_path:photoPath});if(error){if(photoPath)await session.client.storage.from('diet-photos').remove([photoPath]);throw error;}
       }else{if(selectedPhoto){row.photoId=`photo-${id}`;await photoPut(row.photoId,await preparePhoto(selectedPhoto));}write([...read(),row]);}
-      closeForm();await render();toast(cloudReady()?'식단 기록과 사진을 서버에 저장했습니다.':'식단 기록을 이 기기에 저장했습니다.');
+      closeForm();await render();window.dispatchEvent(new Event('pacefit:diet-updated'));toast(cloudReady()?'식단 기록과 사진을 서버에 저장했습니다.':'식단 기록을 이 기기에 저장했습니다.');
     }catch(error){toast(`식단 저장에 실패했습니다: ${String(error?.message||'연결 또는 서버 설정 오류').slice(0,180)}`);}
   });
   $('nutritionGoal').addEventListener('change',()=>{localStorage.setItem(nutritionGoalKey(),$('nutritionGoal').value);renderTargets();});
   window.addEventListener('refit:state-updated',renderTargets);
-  window.addEventListener('refit:session-ready',async event=>{session=window.RefitAccountSession||event.detail||null;if(session?.client){try{const {data}=await session.client.from('diet_consents').select('*').eq('user_id',session.user.id).maybeSingle();const c={server:data?.server_storage===true,ai:data?.ai_photo_analysis===true,trainerShare:data?.share_with_trainer===true};localStorage.setItem(CONSENT_KEY,JSON.stringify(c));}catch{} }render();renderTargets();});
-  window.addEventListener('refit:session-ended',()=>{session=null;localStorage.setItem(CONSENT_KEY,'{"server":false,"ai":false}');render();});
+  window.addEventListener('refit:session-ready',async event=>{session=window.RefitAccountSession||event.detail||null;if(session?.client){try{const {data}=await session.client.from('diet_consents').select('*').eq('user_id',session.user.id).maybeSingle();const c={server:data?.server_storage===true,ai:data?.ai_photo_analysis===true,trainerShare:data?.share_with_trainer===true};localStorage.setItem(CONSENT_KEY,JSON.stringify(c));}catch{} }render();renderTargets();window.dispatchEvent(new Event('pacefit:diet-updated'));});
+  window.addEventListener('refit:session-ended',()=>{session=null;localStorage.setItem(CONSENT_KEY,'{"server":false,"ai":false}');render();window.dispatchEvent(new Event('pacefit:diet-updated'));});
   if(window.RefitAccountSession){session=window.RefitAccountSession;render();}
-  window.RefitDietJournal={clearLocal:async()=>{try{const rows=read();write([]);localStorage.removeItem('pacefitDietJournalV1');for(const row of rows)if(row.photoId)await photoDel(row.photoId);}catch{localStorage.removeItem(STORE_KEY);localStorage.removeItem('pacefitDietJournalV1');}}};
+  async function history(from,to){
+    if(cloudReady()){
+      const {data,error}=await session.client.from('diet_entries').select('entry_date,meal,food_name,nutrients').eq('user_id',session.user.id).gte('entry_date',from).lte('entry_date',to).order('entry_date');
+      if(error)throw error;
+      return (data||[]).map(row=>({date:row.entry_date,meal:row.meal,food:row.food_name,nutrients:row.nutrients||{}}));
+    }
+    if(session?.user)return [];
+    return read().filter(row=>row.date>=from&&row.date<=to);
+  }
+  function goalTargets(){
+    const profile=window.RefitAccountBridge?.getState?.()?.profile||{},bmr=Number(profile.bmr),weight=Number(profile.weight);
+    if(!Number.isFinite(bmr)||bmr<500||!Number.isFinite(weight)||weight<20)return null;
+    const saved=localStorage.getItem(nutritionGoalKey()),goal=['loss','maintain','gain'].includes(saved)?saved:'maintain';
+    const factor=Math.min(1.6,1.4+Math.min(5,Number(profile.days)||2)*.04),maintenance=Math.round(bmr*factor/50)*50;
+    const kcal=goal==='loss'?Math.max(1000,maintenance-300):goal==='gain'?maintenance+250:maintenance;
+    const protein=Math.round(weight*1.2),fat=Math.round(kcal*.30/9),carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
+    return {goal,kcal,protein,fat,carbs};
+  }
+  window.RefitDietJournal={history,goalTargets,clearLocal:async()=>{try{const rows=read();write([]);localStorage.removeItem('pacefitDietJournalV1');for(const row of rows)if(row.photoId)await photoDel(row.photoId);}catch{localStorage.removeItem(STORE_KEY);localStorage.removeItem('pacefitDietJournalV1');}}};
+  window.dispatchEvent(new Event('pacefit:diet-updated'));
   render();renderTargets();
 })();
