@@ -11,6 +11,11 @@
   .pf-bottom-nav button img,.trainer-bottom-nav button img{display:block;width:29px;height:29px;object-fit:contain;filter:drop-shadow(0 2px 2px #102f2a25)}
   .pf-bottom-nav button small,.trainer-bottom-nav button small{font-size:10px;white-space:nowrap}
   .trainer-panel{padding-bottom:calc(164px + env(safe-area-inset-bottom))!important;scroll-padding-bottom:calc(164px + env(safe-area-inset-bottom))}
+  .trainer-panel #trainerContent::after{content:"";display:block;height:calc(116px + env(safe-area-inset-bottom));pointer-events:none}
+  .trainer-panel .class-journal-actions,.trainer-panel .class-next-plan-editor,.trainer-panel .lesson-template-setting{scroll-margin-bottom:calc(124px + env(safe-area-inset-bottom))}
   .trainer-bottom-nav{position:fixed;z-index:1110;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:min(450px,calc(100% - 22px));padding:6px;border:1px solid #cbded6;border-radius:19px;background:#fff;box-shadow:0 -5px 24px #102f2a1a}
   body .ps-launch{bottom:calc(86px + env(safe-area-inset-bottom))}
-
+  body:has(.trainer-overlay:not([hidden])) .ps-launch,body:has(.trainer-overlay:not([hidden])) .pf-bottom-nav,body:has(#profileBackdrop.open) .pf-bottom-nav,body:has(.diet-backdrop.open) .pf-bottom-nav,body:has(.lj-overlay:not([hidden])) .pf-bottom-nav{display:none!important}
+  .class-ink-template-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .class-ink-template-actions [hidden]{display:none!important}
+  .class-ink-template-actions .trainer-note{flex-basis:100%}
