@@ -29,7 +29,8 @@
   }
   const bridge = window.RefitAccountBridge;
   let client = null, currentUser = null, cloudExerciseConsent = false, syncTimer = 0, syncBusy = false, pendingSync = false, finishingUserId = null;
-  let lastCloudUpdatedAt = 0, localDirty = false, loadingCloud = false, refreshBusy = false, lastRefreshAt = 0;
+  let accountEpoch = 0;
+  let lastCloudUpdatedAt = 0, cloudVersion = null, cloudOwner = null, editRevision = 0, localDirty = false, loadingCloud = false, refreshBusy = false, lastRefreshAt = 0;
   let signupCredentials = null;
   const loginIdPattern = /^[a-z][a-z0-9_]{3,19}$/;
   const authAction = new URLSearchParams(location.search).get('auth');
@@ -294,11 +295,13 @@
     return {error};
   }
   async function ensureConsent(user) {
+    const epoch=accountEpoch; const active=()=>accountEpoch===epoch&&currentUser?.id===user.id;
     const {data,error}=await client.from('consent_events').select('notice_version,basic_data_accepted,exercise_data_accepted').eq('user_id',user.id).order('accepted_at',{ascending:false}).limit(1).maybeSingle();
+    if(!active())return false;
     if(error) throw error;
     if(data&&data.notice_version===privacy.noticeVersion&&data.basic_data_accepted){cloudExerciseConsent=data.exercise_data_accepted===true;return true;}
     const meta=user.user_metadata&&user.user_metadata.refit_consent;
-    if(meta&&meta.version===privacy.noticeVersion&&meta.basic===true){const saved=await storeConsent(user.id,true,meta.exercise===true,meta.acceptedAt||new Date().toISOString());if(saved.error)throw saved.error;cloudExerciseConsent=meta.exercise===true;return true;}
+    if(meta&&meta.version===privacy.noticeVersion&&meta.basic===true){const saved=await storeConsent(user.id,true,meta.exercise===true,meta.acceptedAt||new Date().toISOString());if(!active())return false;if(saved.error)throw saved.error;cloudExerciseConsent=meta.exercise===true;return true;}
     currentUser=user; consentView('existing'); return false;
   }
   function cloudPayload() {
@@ -310,28 +313,38 @@
     Object.assign(next,window.PacefitMemberInsights?.cloudBodyFields(state,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});
     return next;
   }
-  function scheduleSync() { if(!currentUser||loadingCloud)return;localDirty=true;pill.textContent='서버 저장 대기 중';clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,650); }
+  function scheduleSync() { if(!currentUser||loadingCloud)return;localDirty=true;editRevision++;pill.textContent='서버 저장 대기 중';clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,650); }
   async function syncNow() {
     if(!currentUser||!bridge)return;
     if(syncBusy){pendingSync=true;return;}
+    const epoch=accountEpoch;
     syncBusy=true;syncTimer=0; pill.textContent='서버에 저장 중';
     try {
-      const ownerId=currentUser.id;
-      const {data:remote,error:readError}=await client.from('user_app_data').select('updated_at').eq('user_id',ownerId).maybeSingle();
-      if(readError)throw readError;
-      if(remote&&Date.parse(remote.updated_at)>lastCloudUpdatedAt+500){pill.textContent='다른 기기 기록 확인 필요';return;}
-      const updatedAt=new Date().toISOString();
-      const {error}=await client.from('user_app_data').upsert({user_id:ownerId,payload:cloudPayload(),updated_at:updatedAt},{onConflict:'user_id'});
+      const ownerId=currentUser.id,revision=editRevision;
+      if(cloudOwner!==ownerId)return;
+      const updatedAt=new Date(Math.max(Date.now(),lastCloudUpdatedAt+1)).toISOString();
+      const row={user_id:ownerId,payload:cloudPayload(),updated_at:updatedAt};
+      // The version predicate and write are one database operation. Never overwrite a newer snapshot.
+      const request=cloudVersion===null?client.from('user_app_data').insert(row):client.from('user_app_data').update(row).eq('user_id',ownerId).eq('updated_at',cloudVersion);
+      const {data:saved,error}=await request.select('updated_at').maybeSingle();
+      if(accountEpoch!==epoch||currentUser?.id!==ownerId||cloudOwner!==ownerId)return;
+      if(error?.code==='23505'||(!error&&!saved)){pill.textContent='다른 기기 변경과 충돌 · 계정에서 서버 기록 확인';pendingSync=false;return;}
       if(error)throw error;
-      lastCloudUpdatedAt=Date.parse(updatedAt);localDirty=false;
+      cloudVersion=saved.updated_at;lastCloudUpdatedAt=Date.parse(cloudVersion);localDirty=editRevision!==revision;
+      if(localDirty){pendingSync=true;return;}
       pill.textContent=cloudExerciseConsent?'서버에 저장됨':'프로필만 서버 저장';
     }
-    catch(error){pill.textContent='기기에 저장됨 · 서버 저장 실패';console.warn('Refit cloud sync failed',error);}
+    catch(error){if(accountEpoch!==epoch)return;pill.textContent='기기에 저장됨 · 서버 저장 실패';console.warn('Refit cloud sync failed',error);}
     finally{syncBusy=false;if(pendingSync){pendingSync=false;scheduleSync();}}
   }
   async function loadCloudState() {
-    const {data,error}=await client.from('user_app_data').select('payload,updated_at').eq('user_id',currentUser.id).maybeSingle();
+    if(!currentUser)return;
+    const ownerId=currentUser.id,revision=editRevision,epoch=accountEpoch;
+    const {data,error}=await client.from('user_app_data').select('payload,updated_at').eq('user_id',ownerId).maybeSingle();
+    if(accountEpoch!==epoch||currentUser?.id!==ownerId)return;
     if(error)throw error;
+    if(localDirty&&editRevision!==revision){pill.textContent='새 변경이 있어 서버 불러오기를 멈췄어요';return;}
+    cloudOwner=ownerId;cloudVersion=data?.updated_at||null;lastCloudUpdatedAt=Date.parse(cloudVersion)||0;
     if(data&&data.payload){const payload=data.payload;if(!cloudExerciseConsent){payload.logs=[];if(payload.profile)payload.profile={name:payload.profile.name,experience:payload.profile.experience,experienceOther:payload.profile.experienceOther,goal:payload.profile.goal,goalOther:payload.profile.goalOther,days:payload.profile.days};}Object.assign(payload,window.PacefitMemberInsights?.cloudBodyFields(payload,cloudExerciseConsent,currentUser?.id)||{bodyMetricsV1:[],sharedBodyReportsV1:[]});loadingCloud=true;try{bridge.replaceState(payload);}finally{loadingCloud=false;}lastCloudUpdatedAt=Date.parse(data.updated_at)||0;localDirty=false;}
     else {scheduleSync();}
     const profileBackdrop=document.getElementById('profileBackdrop');if(profileBackdrop)profileBackdrop.classList.remove('open');
@@ -352,7 +365,7 @@
       const ownerId=currentUser.id;
       const {data,error}=await client.from('user_app_data').select('updated_at').eq('user_id',ownerId).maybeSingle();
       if(error)throw error;
-      if(currentUser?.id!==ownerId||!data||Date.parse(data.updated_at)<=lastCloudUpdatedAt+500)return;
+      if(currentUser?.id!==ownerId||!data||data.updated_at===cloudVersion)return;
       if(localDirty){pill.textContent='다른 기기 기록 확인 필요';return;}
       await loadCloudState();
       pill.textContent=cloudExerciseConsent?'다른 기기 기록 반영됨':'프로필만 서버 반영';
@@ -466,12 +479,25 @@
     const admin=gate.querySelector('#openAdmin');if(admin)admin.onclick=showAdmin;const restoreButton=gate.querySelector('#restoreRecords');if(restoreButton)restoreButton.onclick=restoreRecords;gate.querySelector('#withdrawAccount').onclick=withdrawView;gate.querySelector('#closeAccountMenu').onclick=()=>gate.hidden=true;
      gate.querySelector('#signOut').onclick=async()=>{clearTimeout(syncTimer);adminButton.hidden=true;await client.auth.signOut();currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();document.getElementById('localPill').textContent='로그아웃됨';authView();};
   }
+  function detachPreviousAccountState(previousOwner) {
+    // Preserve unassigned device data without silently uploading it to a newly signed-in account.
+    const state=bridge.getState();
+    if(state){
+      const key='pacefitDetachedStateV1:'+encodeURIComponent(previousOwner||'unassigned')+':'+Date.now()+':'+accountEpoch;
+      localStorage.setItem(key,JSON.stringify(state));
+    }
+    loadingCloud=true;
+    try {bridge.resetForLogout();} finally {loadingCloud=false;}
+  }
   async function finishSession(user) {
     if(finishingUserId===user.id)return;
     finishingUserId=user.id;
-    currentUser=user;
-    try {if(!(await ensureConsent(user)))return;await loadCloudState();if(authAction==='find-id')await foundIdView();}
-    catch(error){show(gate,`<section class="account-panel"><h1>계정 데이터를 불러오지 못했어요</h1><p class="account-error">${escapeHtml(authErrorKo(error))}</p><button id="retryAccount" class="cancel">다시 시도</button><button id="signOutError" class="cancel">로그아웃</button></section>`);gate.querySelector('#retryAccount').onclick=()=>finishSession(user);gate.querySelector('#signOutError').onclick=async()=>{await client.auth.signOut();currentUser=null;authView();};}
+    if(currentUser?.id!==user.id){
+      try {detachPreviousAccountState(currentUser?.id);} catch(error){finishingUserId=null;pill.textContent='기기 기록을 보관하지 못해 계정 전환을 멈췄어요';return;}
+      accountEpoch++;clearTimeout(syncTimer);cloudOwner=null;cloudVersion=null;lastCloudUpdatedAt=0;localDirty=false;pendingSync=false;editRevision++;}
+    currentUser=user;const epoch=accountEpoch;
+    try {if(!(await ensureConsent(user))||epoch!==accountEpoch)return;await loadCloudState();if(epoch!==accountEpoch)return;if(authAction==='find-id')await foundIdView();}
+    catch(error){if(epoch!==accountEpoch)return;show(gate,`<section class="account-panel"><h1>계정 데이터를 불러오지 못했어요</h1><p class="account-error">${escapeHtml(authErrorKo(error))}</p><button id="retryAccount" class="cancel">다시 시도</button><button id="signOutError" class="cancel">로그아웃</button></section>`);gate.querySelector('#retryAccount').onclick=()=>finishSession(user);gate.querySelector('#signOutError').onclick=async()=>{await client.auth.signOut();currentUser=null;authView();};}
     finally {if(finishingUserId===user.id)finishingUserId=null;}
   }
   const basePersist=window.persist;
@@ -493,7 +519,7 @@
       if(authAction==='reset-password'){setTimeout(()=>newPasswordView(),0);return;}
       setTimeout(()=>finishSession(session.user),0);
     }
-    if(event==='SIGNED_OUT'){adminButton.hidden=true;currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}
+    if(event==='SIGNED_OUT'){accountEpoch++;clearTimeout(syncTimer);cloudOwner=null;cloudVersion=null;pendingSync=false;adminButton.hidden=true;currentUser=null;cloudExerciseConsent=false;window.RefitAccountSession=null;window.dispatchEvent(new CustomEvent('refit:session-ended'));userBadge.textContent='';bridge.resetForLogout();authView();}
   });
   }
 })();

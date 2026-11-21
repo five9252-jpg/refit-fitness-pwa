@@ -184,3 +184,31 @@ body .mi-period-diet{padding:15px;border-radius:20px;background:#e5efdf;margin:1
 body .mi-range{font-weight:700;color:#254c40!important}
 body .trainer-diet-day{padding-top:18px;margin-top:18px;border-top:1px solid #d3e0d7}
 @media(max-width:600px){body .trainer-overlay .mi-stats{grid-template-columns:repeat(2,minmax(0,1fr))}body .trainer-card{padding:18px}body .trainer-panel .trainer-detail-section{padding:14px}body .mi-stat strong{word-break:keep-all;overflow-wrap:normal}body .mi-exercise p{word-break:keep-all;overflow-wrap:anywhere}}
+/* Trainer management: quiet secondary settings, tablet workspace. */
+body .trainer-overlay .tw-help{margin:12px 0;padding:10px 12px;border-radius:14px;background:#ffffff0a}
+body .trainer-overlay .tw-help>summary{cursor:pointer;font-size:12px;color:#c5dbd0;min-height:28px;line-height:28px}
+body .trainer-overlay .tw-help .trainer-note{color:#c5dbd0}
+body .trainer-overlay .tw-management-setting>summary{cursor:pointer;font-size:14px;font-weight:750;min-height:28px;line-height:28px}
+body .trainer-overlay .tw-management-setting[open]>summary{margin-bottom:12px}
+body .trainer-overlay .tw-alias-setting .pf-alias{margin-bottom:0}
+@media(min-width:768px){
+  body .trainer-overlay.trainer-workspace .trainer-panel{width:min(1120px,calc(100vw - 48px))!important;max-width:1120px!important;padding:24px 28px calc(160px + env(safe-area-inset-bottom))!important}
+  body .trainer-overlay .tw-layout{grid-template-columns:minmax(0,1fr) 260px!important;gap:24px}
+  body .trainer-overlay .tw-split{grid-template-columns:260px minmax(0,1fr)!important}
+  body .trainer-overlay .tw-split>aside{border-bottom:0;border-right:1px solid #9fb9ae55;padding-right:14px}
+  body .trainer-overlay .tw-recent{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+  body .trainer-overlay .tw-recent>:is(h3,p){grid-column:1/-1;margin:0}
+  body .trainer-overlay .tw-recent-row{margin:0;min-width:0}
+  body .trainer-overlay :is(.trainer-profile-grid,.mi-stats){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  body .trainer-overlay .trainer-fields{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  body .trainer-overlay .mi-metric-charts{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* DB meal editors remain optional and readable on phones. */
+body .plan-food-details{margin-top:10px;border-top:1px solid #dce6df;padding-top:10px;font-size:12px;min-width:0}
+body .plan-food-details summary{cursor:pointer;color:#235949;line-height:1.6}
+body .plan-food-details input{min-width:0;width:100%;box-sizing:border-box}
+body .plan-food-details button{margin:5px 0;min-height:36px;white-space:normal}
+body .plan-food-details ul{padding-left:18px}
+body .plan-food-details [data-plan-results]{display:grid;gap:5px;max-height:220px;overflow:auto}
+@media(max-width:600px){body .diet-plan-meals{grid-template-columns:1fr!important}body .diet-plan-meal{padding:8px 0;border-bottom:1px solid #dce6df}}

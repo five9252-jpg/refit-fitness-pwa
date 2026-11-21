@@ -33,14 +33,9 @@
     const met=String(log.effort||'').includes('힘들')?6:3.5;
     return {kcal:Math.round(met*3.5*weight/200*minutes/5)*5,approximate:recorded===null,label:recorded===null?'시간 미기록 · 1회 3초·세트 사이 60초·현재 체중으로 참고 추정':'입력 시간·현재 체중 기준 MET 추정'};
   }
-  function nutrition(profile={},mode) {
-    const weight=num(profile.weight,20,300),bmr=num(profile.bmr,500,4000);
-    if(weight===null||bmr===null)return null;
-    if(!['loss','maintain','gain'].includes(mode))mode=/감량|체중 줄|살 빼/.test(profile.goalOther||profile.goal||'')?'loss':/증량|근육 증가/.test(profile.goalOther||profile.goal||'')?'gain':'maintain';
-    const days=num(profile.days,1,5)??2,factor=Math.min(1.6,1.4+days*.04),maintenance=Math.round(bmr*factor/50)*50;
-    const kcal=mode==='loss'?Math.max(1000,maintenance-300):mode==='gain'?maintenance+250:maintenance;
-    const protein=Math.round(weight*1.2),fat=Math.round(kcal*.30/9),carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
-    return {kcal,protein,fat,carbs,mode,label:{loss:'감량',maintain:'유지',gain:'증량'}[mode]};
+  function nutrition(profile={},mode,metrics=[]) {
+    const engine=root.PacefitNutrition||(typeof require==='function'?require('./nutrition-targets.js'):null);
+    return engine?.targets(profile,mode,metrics)||null;
   }
   function foodKey(name='') {
     const first=String(name).split(/[·,+]/)[0];
@@ -87,8 +82,8 @@
     }).join('');
     return '<section class="mi-period-diet"><h4>선택 기간 영양 목표</h4>'+(period?'<p class="mi-range">'+esc(period.label)+'</p>':'')+'<div class="mi-nutrition-grid">'+cards+'</div><p class="trainer-note">식단 기록이 있는 '+days+'일의 섭취 합계를 일일 목표 × 기록일 수와 비교합니다. 미기록일은 0 섭취로 처리하지 않으며, 기록일에도 빠진 끼니가 있을 수 있습니다. 현재 프로필의 목표 참고값 기준이며 높을수록 좋은 점수는 아닙니다.</p></section>';
   }
-  function dietMarkup(rows,profile={},mode,period) {
-    const target=nutrition(profile,mode),byDay=new Map();
+  function dietMarkup(rows,profile={},mode,period,metrics=[]) {
+    const target=nutrition(profile,mode,metrics),byDay=new Map();
     for(const row of rows){const date=validDate(row.entry_date)?row.entry_date:'날짜 미입력';if(!byDay.has(date))byDay.set(date,[]);byDay.get(date).push(row);}
     const days=[...byDay].sort(([a],[b])=>b.localeCompare(a));
     const content=days.map(([date,entries])=>{const sums={kcal:0,protein:0,carbs:0,fat:0},known={kcal:0,protein:0,carbs:0,fat:0};for(const row of entries)for(const key of Object.keys(sums)){const n=num(row.nutrients?.[key]);if(n!==null){sums[key]+=n;known[key]++;}}
