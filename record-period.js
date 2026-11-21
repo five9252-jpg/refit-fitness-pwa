@@ -1,7 +1,10 @@
 /* Calendar periods use Korean dates, Monday weeks and actual calendar months. */
 ((root) => {
   'use strict';
-  const day = date => { const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).map(part=>[part.type,part.value])); return `${parts.year}-${parts.month}-${parts.day}`; };
+  const day = date => {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).map(part=>[part.type,part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
   function valid(value) {
     return typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value+'T00:00:00Z')) && new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
   }
@@ -41,7 +44,7 @@
   function controls(state) {
     const period=bounds(state.mode,state.anchor);
     const nav=state.mode==='all'?'':`<button type="button" data-period-step="-1" aria-label="이전 기간">‹</button><label>기준일 <input type="date" value="${state.anchor}" data-period-date required></label><button type="button" data-period-step="1" aria-label="다음 기간">›</button>`;
-    return `<div class="pf-period" role="group" aria-label="기록 조회 기간">${[['all','전체'],['day','일별'],['week','주별'],['month','월별']].map(([mode,label])=>`<button type="button" data-period="${mode}" aria-pressed="${state.mode===mode}">${label}</button>`).join('')}${nav}<span role="status">${period.label}</span></div>`;
+    return `<div class="pf-period" role="group" aria-label="기록 조회 기간">${[['all','전체'],['day','일별'],['week','주별'],['month','월별']].map(([mode,label])=>`<button type="button" data-period="${mode}" aria-pressed="${state.mode===mode}">${label}</button>`).join('')}<div class="pf-period-navigation">${nav}</div><strong class="pf-period-range" role="status">${period.label}</strong></div>`;
   }
   function mount(host,state,onChange) {
     host.innerHTML=controls(state);
