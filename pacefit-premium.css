@@ -148,4 +148,39 @@ body .trainer-overlay :is(input,select,textarea){max-width:100%}
   .pf-bottom-nav,.trainer-bottom-nav{bottom:calc(10px + env(safe-area-inset-bottom))}
 }
 @media(prefers-reduced-motion:reduce){.library-card{transition:none}}
-
+/* Shared detail surfaces: same soft depth as the home screen. */
+body :is(.trainer-panel,.dialog,.diet-dialog){--detail-ink:#163e38;--detail-muted:#526e65}
+body :is(.trainer-card,.diet-card,.dialog,.body-records-panel,.lesson-editor-section,.trainer-detail-section){border:1px solid rgba(189,218,203,.65);border-radius:24px;background:linear-gradient(140deg,#fffef7,#edf5ee);box-shadow:0 12px 30px rgba(0,25,23,.12),inset 0 1px 0 #fff;color:var(--detail-ink,#163e38)}
+body .trainer-overlay :is(.trainer-profile-item,.trainer-stat,.mi-stat,.mi-month-grid>div){border:0;border-radius:17px;padding:15px;background:linear-gradient(135deg,#fff,#e7f1e9);box-shadow:0 4px 12px rgba(18,64,52,.06),inset 0 1px 0 #fff}
+body .trainer-overlay .tw-detail-nav{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border-radius:21px;background:rgba(220,242,226,.09);margin:16px 0}
+body .trainer-overlay .tw-detail-nav button{flex:1 1 65px;border-radius:14px;min-height:42px}
+body :is(.trainer-panel,.dialog,.diet-card) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){border:1px solid #bdd1c6;border-radius:14px;box-shadow:inset 0 2px 5px rgba(24,63,52,.04);min-width:0}
+body .trainer-overlay .trainer-card :is(h3,h4){color:#173f36}
+body .trainer-overlay .trainer-card p{color:#526e65}
+body .pf-period{display:flex;flex-wrap:wrap;gap:8px;padding:16px;border-radius:22px;background:linear-gradient(135deg,#eaf5ed,#fffdf5);color:#163e38;box-shadow:0 10px 24px #001e1b20;margin:16px 0}
+body .pf-period>button{flex:1;border-radius:12px;min-height:40px}
+body .pf-period .pf-period-navigation{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:8px;width:100%;align-items:end}
+body .pf-period-navigation:empty{display:none}
+body .pf-period-navigation label{display:grid;gap:5px;font-size:11px;color:#526e65;min-width:0}
+body .pf-period-navigation input{width:100%;box-sizing:border-box}
+body .pf-period .pf-period-range{display:block;width:100%;font-size:15px;color:#174b40;line-height:1.5;padding-top:9px;border-top:1px solid #d5e3d9;font-variant-numeric:tabular-nums}
+body .mi-metric-charts{display:grid;gap:12px;margin:18px 0}
+body .mi-metric-chart{border-radius:18px;padding:14px;background:linear-gradient(140deg,#fff,#edf5ee);box-shadow:0 5px 15px #174b4009;min-width:0}
+body .mi-metric-chart h4{margin:0;font-size:13px}
+body .mi-volume-chart{overflow-x:auto;align-items:end;min-height:110px;padding-bottom:8px}
+body .mi-volume-chart>div{min-width:38px;flex:1}
+body .mi-volume-chart strong{display:block;font-size:11px;color:#214e42;margin-bottom:5px}
+body .mi-metric-chart:nth-child(2) .mi-volume-chart span{background:#65aaa0}
+body .mi-metric-chart:nth-child(3) .mi-volume-chart span{background:#b19c6d}
+body .mi-metric-chart>small{font-size:11px;color:#526e65}
+body .mi-workout-day{margin:12px 0;border-radius:18px;background:#ffffffa6;box-shadow:0 4px 16px #173f3608;overflow:hidden;border:1px solid #d9e6dc}
+body .mi-workout-day>summary{cursor:pointer;padding:17px;color:#174b40;line-height:1.6}
+body .mi-workout-day>summary span{display:block;padding-left:17px;font-size:12px;color:#526e65}
+body .mi-workout-day .trainer-log{padding:16px;margin:0;border-top:1px solid #e0e9e2}
+body .mi-nutrition-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body .mi-nutrition{border:0;border-radius:17px;background:linear-gradient(135deg,#fff,#edf4e9);padding:14px;box-shadow:0 4px 14px #173f3608}
+body .mi-nutrition b{font-size:13px;color:#285b49}
+body .mi-period-diet{padding:15px;border-radius:20px;background:#e5efdf;margin:18px 0}
+body .mi-range{font-weight:700;color:#254c40!important}
+body .trainer-diet-day{padding-top:18px;margin-top:18px;border-top:1px solid #d3e0d7}
+@media(max-width:600px){body .trainer-overlay .mi-stats{grid-template-columns:repeat(2,minmax(0,1fr))}body .trainer-card{padding:18px}body .trainer-panel .trainer-detail-section{padding:14px}body .mi-stat strong{word-break:keep-all;overflow-wrap:normal}body .mi-exercise p{word-break:keep-all;overflow-wrap:anywhere}}
