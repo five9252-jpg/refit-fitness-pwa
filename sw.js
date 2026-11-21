@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v109-report-nav-20261121';
+const CACHE_NAME = 'refit-shell-v110-report-range-20261121';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -24,7 +24,7 @@ const SHELL_ASSETS = [
   './lesson-journal-store.js?v=20261116-lesson-1',
   './lesson-journal-ui.js?v=20261116-lesson-1',
   './pacefit-prototype.css?v=20261116-prototype-1',
-  './record-period.js?v=20261118-trainer-records-all-1',
+  './record-period.js?v=20261121-report-range-1',
   './assets/fonts/suit/SUIT-Regular.ttf',
   './assets/fonts/suit/SUIT-Bold.ttf',
   './privacy.html',
@@ -53,7 +53,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261119-trainer-workspace-2',
-  './trainer.js?v=20261121-report-nav-1',
+  './trainer.js?v=20261121-report-range-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
