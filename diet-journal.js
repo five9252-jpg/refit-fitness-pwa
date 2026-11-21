@@ -78,13 +78,14 @@
     } catch { if (requestId === searchSeq) results.innerHTML='<p class="diet-empty">식품 DB를 아직 사용할 수 없습니다. 관리자 설정 후 이용하거나 음식명을 직접 입력해 주세요.</p>'; }
   }
   function drawTotals(rows) {
+    const incomplete=rows.some(row=>['kcal','protein','carbs','fat'].some(key=>row.nutrients?.[key]==null));
     const totals=rows.reduce((sum,row)=>{const n=row.nutrients||{};for(const k of ['kcal','protein','carbs','fat'])sum[k]+=Number(n[k]||0);return sum;},{kcal:0,protein:0,carbs:0,fat:0});
-    $('dietKcal').textContent=Math.round(totals.kcal);$('dietProtein').textContent=totals.protein.toFixed(1);$('dietCarbs').textContent=totals.carbs.toFixed(1);$('dietFat').textContent=totals.fat.toFixed(1);
+    $('dietKcal').textContent=incomplete?'—':Math.round(totals.kcal);$('dietProtein').textContent=incomplete?'—':totals.protein.toFixed(1);$('dietCarbs').textContent=incomplete?'—':totals.carbs.toFixed(1);$('dietFat').textContent=incomplete?'—':totals.fat.toFixed(1);
     document.querySelectorAll('[data-nutrient-progress]').forEach(node=>{
       const key=node.dataset.nutrientProgress,target=Number(node.dataset.target)||0,value=totals[key]||0;
       const percent=target>0?Math.round(value/target*100):0;
-      node.querySelector('span').textContent=target>0?`목표 ${Math.round(target)}${key==='kcal'?'kcal':'g'} · ${percent}%`:'목표 미설정';
-      node.querySelector('i').style.width=`${Math.min(100,Math.max(0,percent))}%`;
+      node.querySelector('span').textContent=incomplete?'영양정보 없는 음식 포함 · 합계 미표시':target>0?`목표 ${Math.round(target)}${key==='kcal'?'kcal':'g'} · ${percent}%`:'목표 미설정';
+      node.querySelector('i').style.width=incomplete?'0%':`${Math.min(100,Math.max(0,percent))}%`;
     });
   }
   function renderTargets() {
@@ -195,5 +196,6 @@
   window.dispatchEvent(new Event('pacefit:diet-updated'));
   render();renderTargets();
 })();
+
 
 
