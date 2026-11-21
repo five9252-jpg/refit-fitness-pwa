@@ -33,8 +33,8 @@ body :is(button,input,select,textarea){-webkit-tap-highlight-color:transparent}
 body :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--pf-lime)!important;outline-offset:2px}
 body :is(.topbar,.hello,.pace-home,.exercise-library,.grid,.diet-page){max-width:480px;margin-left:auto;margin-right:auto}
 .topbar{padding:19px 7px 11px!important;border-bottom:1px solid #ffffff1a}
-.topbar .brand{filter:drop-shadow(0 3px 8px #0004)}
-.topbar .brand-logo-web{width:min(172px,39vw);max-height:55px;background:var(--pf-card);border-radius:12px;padding:4px 8px;box-shadow:0 5px 13px #0004}
+.topbar .brand{padding:5px 18px 5px 6px;border-radius:15px;background:linear-gradient(100deg,#f8f6ed 0%,#e5eee6 64%,#e5eee600 100%);filter:drop-shadow(0 3px 8px #0004)}
+.topbar .brand-logo-web{width:min(172px,39vw);max-height:55px;background:transparent;border-radius:0;padding:0;box-shadow:none}
 .topbar .brand-tagline{color:#b5d1c7;font-size:10px}
 .topbar .top-right .avatar{background:linear-gradient(145deg,#668b79,#315a54);color:#f4ffde;box-shadow:inset 0 1px 0 #ffffff66,0 4px 10px #0004}
 .topbar .profile-edit{background:#ffffff12;border:1px solid #b3d5c866;color:#ecf8ea;border-radius:13px}
@@ -65,7 +65,8 @@ body .home-recommend{position:relative;display:block;overflow:hidden;min-height:
 .home-options strong{color:#153c35}
 .home-options small{color:#60756d}
 .home-option-icon{background:#dff0d1;color:#195248}
-.home-shortcuts button{color:#d7e7d9}
+.home-shortcuts{gap:11px;margin-top:27px;margin-bottom:28px}
+.home-shortcuts button{color:#d7e7d9;border:1px solid #b6d4c344;border-radius:16px;background:#ffffff0d;padding:10px 15px;box-shadow:0 4px 12px #001b1e30}
 .home-shortcuts button:hover{color:var(--pf-lime)}
 .profile-strip{max-width:480px;margin-left:auto;margin-right:auto;background:linear-gradient(145deg,#164d45,#0b3b37)!important;border:1px solid #b6dbc65e;color:#f2f8ec;box-shadow:0 15px 28px #001f205c}
 .profile-strip .profile-goal,.profile-strip .profile-name,.profile-strip .profile-disclosure summary{color:#e8f8db}
@@ -107,20 +108,23 @@ body :is(.routine-card,.progress-card,.support-details){margin-bottom:14px}
 .diet-storage-note{color:#bbd1c6}
 .diet-advice-more>summary{color:#16483a}
 .pf-bottom-nav,.trainer-bottom-nav{background:linear-gradient(160deg,#0a3733,#052a2a)!important;border:1px solid #a2ceb052!important;box-shadow:0 8px 30px #001716a8,inset 0 1px 0 #ffffff21!important;backdrop-filter:blur(18px)}
+.pf-bottom-nav,.trainer-bottom-nav{gap:6px!important;padding:8px!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;width:min(438px,calc(100% - 32px))!important}
+.pf-bottom-nav::before,.trainer-bottom-nav::before{content:"";position:absolute;left:16px;right:16px;top:-12px;height:1px;background:#b7d6c447;pointer-events:none}
 .pf-bottom-nav button,.trainer-bottom-nav button{color:#c8dcd0!important}
 .pf-bottom-nav button[aria-current=page],.trainer-bottom-nav button[aria-current=true]{background:#d7fa5026!important;color:var(--pf-lime)!important}
 .pf-bottom-nav button img,.trainer-bottom-nav button img{filter:drop-shadow(0 2px 2px #0006)}
 .pf-bottom-nav button[aria-current=page] img,.trainer-bottom-nav button[aria-current=true] img{filter:drop-shadow(0 2px 4px #d7fa5080)}
 .pf-bottom-nav button small,.trainer-bottom-nav button small{color:inherit}
-body .app{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
-body .trainer-panel{padding-bottom:calc(176px + env(safe-area-inset-bottom))!important}
-body .trainer-panel #trainerContent::after{height:calc(125px + env(safe-area-inset-bottom))}
+body .app{padding-bottom:calc(185px + env(safe-area-inset-bottom))!important}
+body .trainer-panel{padding-bottom:calc(191px + env(safe-area-inset-bottom))!important}
+body .trainer-panel #trainerContent::after{height:calc(140px + env(safe-area-inset-bottom))}
 .dialog-backdrop,.diet-backdrop,.pose-backdrop{background:#001b1dbb}
 .dialog,.diet-dialog,.pose-dialog,.lj-panel{background:#f9f8f1;color:#17372f;border-radius:25px;box-shadow:0 27px 70px #00181891}
 .dialog :is(input,select,textarea),.diet-dialog :is(input,select,textarea),.pose-dialog :is(input,select,textarea){color:#16382f}
 body .trainer-overlay,body .trainer-overlay.trainer-workspace{background:#001c1ec9}
 body .trainer-overlay .trainer-panel{background:linear-gradient(165deg,#0a3d37,#052b2c 62%,#062022);color:#eff8eb;border:1px solid #9cc7ac69;border-radius:25px;box-shadow:0 25px 75px #001719ad}
 body .trainer-overlay .trainer-head{background:#0a3d37!important;color:#eff8eb!important;border-bottom:1px solid #d8e9da35}
+body .trainer-overlay .trainer-head .trainer-brand-logo{display:block;width:146px;max-width:45vw;height:auto;padding:5px 15px 5px 5px;border-radius:12px;background:linear-gradient(100deg,#f8f6ed,#e5eee6 70%,#e5eee600);margin-bottom:8px}
 body .trainer-overlay .trainer-head h2{color:#f7fbef}
 body .trainer-overlay .trainer-head p{color:#bcd4c5}
 body .trainer-overlay .trainer-head .trainer-close{background:#ffffff15;color:#eff8ec;border-color:#b6d7c45c}
