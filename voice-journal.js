@@ -4,7 +4,7 @@
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let active = null;
   const styles = document.createElement('style');
-  styles.textContent = `.voice-journal{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:7px 0 10px}.voice-journal button{min-height:38px;border:1px solid #cbdcca;border-radius:10px;background:#eff6ed;color:#28543b;padding:8px 12px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.voice-journal button[aria-pressed="true"]{background:#315b43;color:#fff}.voice-journal button:disabled{opacity:.55;cursor:not-allowed}.voice-journal-status{font-size:11px;color:#5d6d61;line-height:1.5}.voice-journal-help{display:block;margin:0 0 10px;color:#6c786e;font-size:10px;line-height:1.5}`;
+  styles.textContent = `.voice-journal{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:7px 0 10px}.voice-journal button{min-height:38px;border:1px solid #cbdcca;border-radius:10px;background:#eff6ed;color:#28543b;padding:8px 12px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.voice-journal button[aria-pressed="true"]{background:#315b43;color:#fff}.voice-journal button:disabled{opacity:.55;cursor:not-allowed}.voice-journal-status{font-size:11px;color:#5d6d61;line-height:1.5}.voice-journal-help{display:block;margin:0 0 10px;color:#6c786e;font-size:10px;line-height:1.5}.class-journal-form [data-summary-text][hidden]+.voice-journal,.class-journal-form [data-summary-text][hidden]+.voice-journal+.voice-journal-help{display:none}`;
   document.head.appendChild(styles);
 
   const status = (entry, message) => { entry.querySelector('.voice-journal-status').textContent = message; };
@@ -12,15 +12,15 @@
     if (!active) return;
     try { active.recognition.stop(); } catch { /* already ended */ }
   }
-  function mount(textarea) {
-    if (!textarea || textarea.dataset.voiceMounted) return;
-    textarea.dataset.voiceMounted = 'true';
+  function mount(field, fieldName) {
+    if (!field || field.dataset.voiceMounted) return;
+    field.dataset.voiceMounted = 'true';
     const entry = document.createElement('div');
     entry.className = 'voice-journal';
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = Recognition ? '🎙 음성으로 메모' : '음성 입력 미지원';
-    button.setAttribute('aria-label', `${textarea.id === 'manualNote' ? '자유 운동 기록' : '운동 기록'} 메모 음성 입력`);
+    button.setAttribute('aria-label', `${fieldName} 음성 입력`);
     button.setAttribute('aria-pressed', 'false');
     button.disabled = !Recognition;
     const label = document.createElement('span');
@@ -28,11 +28,11 @@
     label.setAttribute('role', 'status');
     label.textContent = Recognition ? '말한 내용은 확인 후 저장할 수 있어요.' : '이 브라우저에서는 키보드로 입력해주세요.';
     entry.append(button, label);
-    const field = textarea.closest('label') || textarea;
-    field.insertAdjacentElement('afterend', entry);
+    const container = field.closest('label') || field;
+    container.insertAdjacentElement('afterend', entry);
     const help = document.createElement('small');
     help.className = 'voice-journal-help';
-    help.textContent = '마이크를 누르면 음성이 브라우저의 인식 서비스에서 처리될 수 있습니다. 페이스핏은 음성 파일을 저장하지 않으며, 인식된 글은 기록 저장 버튼을 누를 때만 저장합니다.';
+    help.textContent = '마이크를 누르면 브라우저에 따라 음성이 외부 인식 서비스로 전송될 수 있습니다. 페이스핏은 음성 파일을 저장하지 않으며, 인식된 글은 확인·수정 후 저장 버튼을 누를 때 저장됩니다.';
     entry.insertAdjacentElement('afterend', help);
 
     button.addEventListener('click', () => {
@@ -51,21 +51,21 @@
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-      const current = {recognition,button,textarea,entry};
+      const current = {recognition,button,field,entry};
       active = current;
       button.setAttribute('aria-pressed', 'true');
       button.textContent = '■ 듣기 중지';
       status(entry, '마이크를 연결하고 있어요…');
-      recognition.onstart = () => { if (active === current) status(entry, '듣고 있어요. 운동 내용을 말해주세요.'); };
+      recognition.onstart = () => { if (active === current) status(entry, `듣고 있어요. ${fieldName} 내용을 말해주세요.`); };
       recognition.onresult = event => {
-        if (active !== current || !document.contains(textarea)) return;
+        if (active !== current || !document.contains(field)) return;
         const spoken = Array.from(event.results).filter(result => result.isFinal)
           .map(result => result[0]?.transcript?.trim()).filter(Boolean).join(' ');
         if (!spoken) return;
-        const combined = [textarea.value.trim(), spoken].filter(Boolean).join('\n');
-        const limit = textarea.maxLength > 0 ? textarea.maxLength : 1000;
-        textarea.value = combined.slice(0, limit);
-        textarea.dispatchEvent(new Event('input', {bubbles:true}));
+        const combined = [field.value.trim(), spoken].filter(Boolean).join(field.tagName === 'TEXTAREA' ? '\n' : ' ');
+        const limit = field.maxLength > 0 ? field.maxLength : 1000;
+        field.value = combined.slice(0, limit);
+        field.dispatchEvent(new Event('input', {bubbles:true}));
         status(entry, combined.length > limit ? '글자 수 제한까지 입력했어요. 내용을 확인해주세요.' : '인식한 글을 메모에 넣었어요. 확인 후 기록을 저장하세요.');
       };
       recognition.onerror = event => {
@@ -84,13 +84,24 @@
       catch { recognition.onend(); status(entry, '음성 입력을 시작하지 못했어요. 다시 시도해주세요.'); }
     });
   }
-  mount(document.getElementById('workoutNote'));
-  mount(document.getElementById('manualNote'));
+  mount(document.getElementById('workoutNote'), '개인 운동 메모');
+  mount(document.getElementById('manualNote'), '자유 운동 기록 메모');
   const trainerOverlay = document.getElementById('trainerOverlay');
   if (trainerOverlay) new MutationObserver(() => {
     const note = trainerOverlay.querySelector('#trainerRecordForm textarea[name="note"]');
-    if (note) mount(note);
-    if (active && !document.contains(active.textarea)) stopActive();
+    if (note) mount(note, '트레이너 운동 기록 메모');
+    const lessonFields = [
+      ['textarea[name="lesson_summary"]', '수업 요약'],
+      ['textarea[name="private_notes"]', '트레이너 전용 메모'],
+      ['input[name="exercise_note"]', '운동별 코멘트'],
+      ['textarea[name="next_steps"]', '다음 수업 계획']
+    ];
+    for (const [selector, name] of lessonFields) {
+      trainerOverlay.querySelectorAll(`.class-journal-form ${selector}, .class-next-plan-editor ${selector}`)
+        .forEach(field => mount(field, name));
+    }
+    if (active && !document.contains(active.field)) stopActive();
   }).observe(trainerOverlay, {childList:true,subtree:true});
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopActive(); });
 })();
+
