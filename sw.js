@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v103-voice-ui-20261121-premium-20261120';
+const CACHE_NAME = 'refit-shell-v104-diet-status-20261121-premium-20261120';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -34,10 +34,10 @@ const SHELL_ASSETS = [
   './member-insights.css?v=20261120-monthly-1',
   './member-insights.js?v=20261120-monthly-1',
   './body-records.js?v=20261116-prototype-1',
-  './account.js?v=20261120-signup-mail-1',
+  './account.js?v=20261121-diet-status-1',
   './operator-dashboard.js?v=20261113-raw-sync-1',
   './voice-journal.js?v=20261121-voice-ui-1',
-  './diet-journal.js?v=20261120-records-1',
+  './diet-journal.js?v=20261121-diet-status-1',
   './diet-journal.css',
   './docs/diet-guidance.md',
   './assets/diet/grain.svg',
