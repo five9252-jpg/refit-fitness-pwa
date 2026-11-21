@@ -1,11 +1,11 @@
-const CACHE_NAME = 'refit-shell-v110-report-range-20261121';
+const CACHE_NAME = 'refit-shell-v111-detail-overview-20261121';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
   './pacefit-services.css?v=20261117-services-1',
   './pacefit-depth.css?v=20261120-1',
   './navigation.css?v=20261121-report-nav-1',
-  './pacefit-premium.css?v=20261121-voice-ui-1',
+  './pacefit-premium.css?v=20261121-detail-overview-1',
   './profile-onboarding.js?v=20261120-1',
   './pacefit-ui-details.js?v=20261117-services-1',
   './prototype-planners.js?v=20261117-services-1',
@@ -24,7 +24,7 @@ const SHELL_ASSETS = [
   './lesson-journal-store.js?v=20261116-lesson-1',
   './lesson-journal-ui.js?v=20261116-lesson-1',
   './pacefit-prototype.css?v=20261116-prototype-1',
-  './record-period.js?v=20261121-report-range-1',
+  './record-period.js?v=20261121-detail-overview-1',
   './assets/fonts/suit/SUIT-Regular.ttf',
   './assets/fonts/suit/SUIT-Bold.ttf',
   './privacy.html',
@@ -32,7 +32,7 @@ const SHELL_ASSETS = [
   './pwa-register.js',
   './backend-config.js?v=20261114-food-search-1',
   './member-insights.css?v=20261120-monthly-1',
-  './member-insights.js?v=20261121-report-nav-1',
+  './member-insights.js?v=20261121-detail-overview-1',
   './body-records.js?v=20261116-prototype-1',
   './account.js?v=20261121-diet-status-1',
   './operator-dashboard.js?v=20261113-raw-sync-1',
@@ -53,7 +53,7 @@ const SHELL_ASSETS = [
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261119-trainer-workspace-2',
-  './trainer.js?v=20261121-report-range-1',
+  './trainer.js?v=20261121-detail-overview-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
@@ -117,11 +117,3 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
-
-
-
-
-
-
-
-
