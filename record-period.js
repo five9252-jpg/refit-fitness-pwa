@@ -14,6 +14,18 @@
     if(mode==='month'){start.setUTCDate(1);end.setUTCMonth(end.getUTCMonth()+1,0);}
     return {start:iso(start),end:iso(end),label:mode==='day'?anchor:`${iso(start)} ~ ${iso(end)}`};
   }
+  function rollingBounds(mode, startDate) {
+    if(!['week','month'].includes(mode)||!valid(startDate))throw Error('리포트 기간과 시작 날짜를 확인해주세요.');
+    const start=new Date(startDate+'T00:00:00Z'),end=new Date(start);
+    if(mode==='week')end.setUTCDate(end.getUTCDate()+6);
+    else {
+      const year=start.getUTCFullYear(),month=start.getUTCMonth(),date=start.getUTCDate();
+      const lastDayOfNextMonth=new Date(Date.UTC(year,month+2,0)).getUTCDate();
+      end.setTime(Date.UTC(year,month+1,Math.min(date,lastDayOfNextMonth+1)));
+      end.setUTCDate(end.getUTCDate()-1);
+    }
+    return {start:iso(start),end:iso(end),label:`${iso(start)} ~ ${iso(end)}`};
+  }
   function select(rows,mode,anchor,key='date') {
     const {start,end}=bounds(mode,anchor);
     return (Array.isArray(rows)?rows:[]).filter(row=>valid(row?.[key])&&row[key]>=start&&row[key]<=end);
@@ -41,6 +53,6 @@
     };
     host.onchange=event=>{if(!event.target.matches('[data-period-date]'))return;if(!valid(event.target.value)){event.target.value=state.anchor;return;}state.anchor=event.target.value;mount(host,state,onChange);host.querySelector('input')?.focus();onChange();};
   }
-  const api={day,valid,bounds,select,move,controls,mount};root.PacefitRecordPeriod=api;
+  const api={day,valid,bounds,rollingBounds,select,move,controls,mount};root.PacefitRecordPeriod=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window==='undefined'?globalThis:window);
