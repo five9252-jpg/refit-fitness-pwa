@@ -585,7 +585,7 @@ resultBox.innerHTML=`<section class="trainer-report-card" id="trainerPeriodRepor
     const graph=I.workoutSummary(filteredLogs,profile,period?.mode||'week');
     const profileFields=[['운동 경험',profile.experienceOther||profile.experience],['운동 목표',profile.goalOther||profile.goal],['주간 목표',profile.days?`주 ${profile.days}회`:null],['성별',profile.sex||profile.gender],['키',profile.height?`${profile.height}cm`:null]];
     const profileHtml=`<div class="trainer-profile-grid">${profileFields.map(([label,value])=>`<div class="trainer-profile-item"><small>${esc(label)}</small><strong>${esc(value||'미입력')}</strong></div>`).join('')}${I.historyMarkup(result.record?.payload?.bodyMetricsV1,'weight',profile)}${I.historyMarkup(result.record?.payload?.bodyMetricsV1,'bmr',profile)}</div>${I.reportsMarkup(result.record?.payload?.sharedBodyReportsV1,memberId)}<p class="trainer-note">회원이 공유한 정보만 표시합니다. 검사표는 사진별 별도 공유 동의가 필요합니다.</p>`;
-    const dietHtml=result.dietError?`<p class="trainer-error">식단 조회에 실패했어요. ${esc(result.dietError)}</p>`:I.dietMarkup(P?P.select(result.diets,period.mode,period.anchor,'entry_date'):result.diets,profile);
+    const dietHtml=result.dietError?`<p class="trainer-error">식단 조회에 실패했어요. ${esc(result.dietError)}</p>`:I.dietMarkup(P?P.select(result.diets,period.mode,period.anchor,'entry_date'):result.diets,profile,undefined,P?P.bounds(period.mode,period.anchor):null);
     const overviewHtml=`${result.dietError?`<p class="trainer-error">식단 조회 실패: ${esc(result.dietError)} · 식단 집계 제외</p>`:''}${I.monthlyOverview(logs,result.diets,result.sharePose?result.poses:[],result.record?.payload?.bodyMetricsV1,profile)}`;
     const poseHtml=!schemaAvailable.poseSharing?'<p class="trainer-empty">현재 서버는 자세 결과 공유를 지원하지 않습니다. 카메라 영상은 전송하거나 저장하지 않습니다.</p>':result.sharePose&&result.poses.length?result.poses.map(row=>`<div class="trainer-log"><h4>${esc(row.exercise_name)} · ${row.rep_count}회</h4><small>${esc(new Date(row.created_at).toLocaleString('ko-KR'))} · ${row.duration_seconds}초 · 최대 각도 ${row.max_angle??'—'}°</small><p>${esc(row.observed)}</p></div>`).join(''):'<p class="trainer-empty">공유 허용된 자세 분석 결과가 없어요. 카메라 영상은 저장하지 않습니다.</p>';
     const {data:sharedTrainerLogs}=schemaAvailable.trainerSharing ? await optionalQuery(s.client.from('trainer_shared_workouts').select('id,workout_date,title,items,note').eq('trainer_id',result.link.trainer_id).order('workout_date',{ascending:false}).limit(20),'trainerSharing') : {data:[]};
@@ -717,6 +717,3 @@ resultBox.innerHTML=`<section class="trainer-report-card" id="trainerPeriodRepor
   let lastRefresh=0;
   window.addEventListener('focus',()=>{if(session()&&Date.now()-lastRefresh>60000){lastRefresh=Date.now();refreshTrainerEntries()}});
 })();
-
-
-
