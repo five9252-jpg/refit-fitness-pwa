@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v107-weekly-diet-share-20261121';
+const CACHE_NAME = 'refit-shell-v108-diet-preferences-20261121';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -38,8 +38,8 @@ const SHELL_ASSETS = [
   './operator-dashboard.js?v=20261113-raw-sync-1',
   './voice-journal.js?v=20261121-voice-ui-1',
   './diet-journal.js?v=20261121-weekly-plan-2',
-  './diet-plan.js?v=20261121-weekly-plan-2',
-  './diet-journal.css?v=20261121-weekly-plan-2',
+  './diet-plan.js?v=20261121-diet-plan-3',
+  './diet-journal.css?v=20261121-diet-plan-3',
   './docs/diet-guidance.md',
   './assets/diet/grain.svg',
   './assets/diet/protein.svg',
