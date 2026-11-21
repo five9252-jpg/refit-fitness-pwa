@@ -582,6 +582,13 @@
     const trainerLogsHtml=(sharedTrainerLogs||[]).length?(sharedTrainerLogs||[]).map(row=>`<div class="trainer-log"><h4>${esc(row.title)}</h4><small>${esc(row.workout_date)} · 트레이너 공개 운동</small><p>${(row.items||[]).map(trainerItemMarkup).join('<br>')}</p>${row.note?`<p>${esc(row.note)}</p>`:''}</div>`).join(''):'<p class="trainer-empty">트레이너가 공개한 운동 기록이 없어요.</p>';
     const memberName=displayName(s.user.id,memberId,profile.name||'회원 기록');
     show(shell(memberName, '회원이 허용한 운동·자세·식단 기록을 확인합니다.', `<button class="trainer-subtle" id="backToMembers" type="button">← 회원 목록</button><button class="trainer-subtle" id="openTrainerSchedule" type="button" style="margin-left:8px">수업 일정 · 일지</button><button class="trainer-primary" id="openTrainerPeriodReport" type="button" style="margin-left:8px">주·월 운동 리포트</button><button class="trainer-primary" id="trainerNewPlan" type="button" style="margin-left:8px">다음 운동 제안</button>${result.link.can_write?'<button class="trainer-primary" id="trainerNewLog" type="button" style="margin-left:8px">운동 기록 대신 작성</button>':''}<form class="pf-alias" id="trainerAliasForm"><label>내 화면에서 부를 이름<input name="alias" maxlength="40" value="${esc(window.PacefitTrainerWorkspace.loadAliases?.(s.user.id)?.[memberId]||'')}" placeholder="원래 이름 사용"></label><button class="trainer-subtle" type="submit">표시 이름 저장</button><small>현재 브라우저의 내 트레이너 계정에만 저장됩니다. 비우면 원래 이름으로 돌아갑니다.</small><span role="status" id="aliasStatus"></span></form><p class="trainer-note">아래 기간은 운동·식단 기록에 적용합니다. 프로필 이력과 자세 결과는 별도입니다.</p><div id="trainerRecordPeriod"></div><nav class="tw-detail-nav" aria-label="회원 정보 바로가기">${[['summary','종합'],['profile','프로필'],['workout','운동·변화'],['diet','식단'],['pose','자세']].map(([key,label])=>`<button type="button" data-detail="${key}" aria-current="${section===key}">${label}</button>`).join('')}</nav><div class="trainer-card tw-detail-section" id="trainerDetail-summary" tabindex="-1"><h3>월별 종합</h3>${overviewHtml}</div><div class="trainer-card tw-detail-section" id="trainerDetail-profile" tabindex="-1"><h3>회원 프로필</h3><p>${esc(profile.name||'이름 미입력')}님의 기본 정보와 운동 목표</p>${result.record?profileHtml:'<p class="trainer-empty">공유 프로필을 조회할 수 없어요. 미동의·미저장 등일 수 있으며 현재 화면에서 사유를 확인할 수 없습니다.</p>'}</div><div class="trainer-card tw-detail-section" id="trainerDetail-workout" tabindex="-1"><h3>운동 변화 그래프</h3>${graph}<h3>운동 기록 ${filteredLogs.length}회</h3>${I.workoutLogs(filteredLogs,profile)}</div><div class="trainer-card tw-detail-section" id="trainerDetail-pose" tabindex="-1"><h3>자세 체크 ${!schemaAvailable.poseSharing?'· 서버 미지원':result.sharePose?'· 공유 허용':'· 미공유'}</h3>${poseHtml}</div><div class="trainer-card tw-detail-section" id="trainerDetail-diet" tabindex="-1"><h3>식단 기록 · 회원이 공유한 데이터</h3>${dietHtml}</div><div class="trainer-card"><h3>트레이너가 공개한 운동</h3>${trainerLogsHtml}</div><p class="trainer-note">식단·자세 데이터는 회원 동의가 있을 때만 서버에서 읽을 수 있습니다. 사진 분석 원본 영상은 전송하거나 저장하지 않습니다.</p>`));
+    const dietPanel=overlay.querySelector('#trainerDetail-diet');
+    if(dietPanel&&window.PacefitDietPlan){
+      const planPanel=document.createElement('section');
+      planPanel.className='trainer-card trainer-weekly-diet-plan';
+      dietPanel.append(planPanel);
+      window.PacefitDietPlan.mountTrainer(planPanel,memberId,result.link.can_write===true);
+    }
     overlay.querySelector('#openTrainerSchedule').onclick=()=>trainerScheduleView();
     const periodReportButton=overlay.querySelector('#openTrainerPeriodReport');
     if(periodReportButton)periodReportButton.onclick=()=>openTrainerPeriodReport(memberId,memberName);
@@ -699,4 +706,6 @@
   let lastRefresh=0;
   window.addEventListener('focus',()=>{if(session()&&Date.now()-lastRefresh>60000){lastRefresh=Date.now();refreshTrainerEntries()}});
 })();
+
+
 
