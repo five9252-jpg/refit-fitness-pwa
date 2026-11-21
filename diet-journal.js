@@ -37,7 +37,12 @@
   let session = null, selectedPhoto = null, selectedFood = null, searchTimer, searchSeq = 0, previewUrl = '', urls = [],lastLoadError='';
   const aiConfigured = () => window.REFIT_CONFIG?.features?.dietPhotoAnalysisEnabled === true;
   const foodSearchConfigured = () => window.REFIT_CONFIG?.features?.dietFoodSearchEnabled === true;
-  const refreshAnalyze = () => { const button=$('dietAnalyze');button.disabled=!(aiConfigured()&&consent().ai&&selectedPhoto&&session);button.textContent=aiConfigured()?'사진에서 음식 추정':'사진 인식 설정 대기 중'; };
+  const refreshAnalyze = () => {
+    const button=$('dietAnalyze'),status=$('dietAnalyzeStatus');
+    button.disabled=!(aiConfigured()&&consent().ai&&selectedPhoto&&session);
+    button.textContent=aiConfigured()?'사진에서 음식 추정':'사진 자동 분석 사용 불가';
+    if(status) status.textContent=aiConfigured()?'사진과 전송 동의를 확인한 뒤 분석할 수 있어요.':'현재 사진 자동 분석은 활성화되지 않았어요. 사진은 첨부해 저장할 수 있으며, 칼로리는 음식 검색 결과를 선택해 기록해 주세요.';
+  };
   const toast = message => { let el=$('dietToast'); if(!el){el=document.createElement('div');el.id='dietToast';el.className='diet-toast';el.setAttribute('role','status');document.body.append(el);} el.textContent=message;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2600); };
   const cloudReady = () => !!(session?.client && session?.user && consent().server);
   async function searchFoods(query) {
@@ -106,7 +111,7 @@
   document.addEventListener('click',async event=>{
     const open=event.target.closest('[data-diet-open]');if(open){openForm(open.dataset.dietOpen);return;}
     if(event.target.closest('#dietClose')||event.target.closest('#dietCancel')||event.target===backdrop){closeForm();return;}
-      if(event.target.closest('#dietConsentOpen')){$('dietConsentBackdrop').classList.add('open');$('dietConsentBackdrop').setAttribute('aria-hidden','false');$('dietServerConsent').checked=consent().server;$('dietTrainerShare').checked=consent().trainerShare===true;$('dietDeleteServer').hidden=!session;return;}
+      if(event.target.closest('#dietConsentOpen')){openConsentSettings();return;}
     if(event.target.closest('#dietConsentClose')||event.target.closest('#dietConsentClose2')||event.target===$('dietConsentBackdrop')){$('dietConsentBackdrop').classList.remove('open');$('dietConsentBackdrop').setAttribute('aria-hidden','true');return;}
     if(event.target.closest('#dietConsentSave')){
       const next={...consent(),server:$('dietServerConsent').checked,trainerShare:$('dietTrainerShare').checked};
@@ -157,7 +162,16 @@
     const protein=Math.round(weight*1.2),fat=Math.round(kcal*.30/9),carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
     return {goal,kcal,protein,fat,carbs};
   }
-  window.RefitDietJournal={history,goalTargets,clearLocal:async()=>{try{const rows=read();write([]);localStorage.removeItem('pacefitDietJournalV1');for(const row of rows)if(row.photoId)await photoDel(row.photoId);}catch{localStorage.removeItem(STORE_KEY);localStorage.removeItem('pacefitDietJournalV1');}}};
+  function openConsentSettings(){
+    const dialog=$('dietConsentBackdrop');
+    if(dialog.parentElement!==document.body)document.body.appendChild(dialog);
+    dialog.classList.add('open');dialog.setAttribute('aria-hidden','false');
+    $('dietServerConsent').checked=consent().server;
+    $('dietTrainerShare').checked=consent().trainerShare===true;
+    $('dietDeleteServer').hidden=!session;
+    $('dietConsentClose').focus({preventScroll:true});
+  }
+  window.RefitDietJournal={history,goalTargets,openConsentSettings,clearLocal:async()=>{try{const rows=read();write([]);localStorage.removeItem('pacefitDietJournalV1');for(const row of rows)if(row.photoId)await photoDel(row.photoId);}catch{localStorage.removeItem(STORE_KEY);localStorage.removeItem('pacefitDietJournalV1');}}};
   window.dispatchEvent(new Event('pacefit:diet-updated'));
   render();renderTargets();
 })();
