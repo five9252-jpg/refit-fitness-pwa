@@ -456,7 +456,7 @@
       show(gate,`<section class="account-panel account-consent-hub"><div class="eyebrow">내 정보</div><h1>동의·공유 설정</h1><p>필요한 항목만 선택해 설정할 수 있어요. 선택 동의는 자동으로 켜지지 않습니다.</p><div class="account-actions"><button id="changeConsent" class="cancel">운동·신체 서버 저장</button><button id="menuTrainerPermissions" class="cancel">트레이너 공유·대리 작성</button><button id="menuDietPermissions" class="cancel">식단 저장·공유·사진 인식</button><button id="menuBodyPermissions" class="cancel">체성분 사진 공유</button></div><details><summary>동의 항목과 개인정보 안내 보기</summary><p>각 항목에서 저장·공유 범위를 확인하고 변경할 수 있습니다. <a href="./privacy.html" target="_blank" rel="noopener">개인정보 처리 안내 전체 보기</a></p></details><button id="consentHubBack" class="cancel">계정으로 돌아가기</button></section>`);
       gate.querySelector('#changeConsent').onclick=()=>consentView('existing');
       gate.querySelector('#menuTrainerPermissions').onclick=()=>{gate.hidden=true;document.querySelector('.trainer-open')?.click();};
-      gate.querySelector('#menuDietPermissions').onclick=()=>{gate.hidden=true;document.querySelector('[data-view-target="diet"]')?.click();document.getElementById('dietConsentOpen')?.click();};
+      gate.querySelector('#menuDietPermissions').onclick=()=>{gate.hidden=true;window.RefitDietJournal?.openConsentSettings?.();};
       gate.querySelector('#menuBodyPermissions').onclick=()=>{gate.hidden=true;document.getElementById('editProfile')?.click();document.getElementById('bodyRecordsPanel')?.scrollIntoView({block:'start'});};
       gate.querySelector('#consentHubBack').onclick=()=>accountMenu();
     };
