@@ -18,6 +18,11 @@
   const categories = ['전체', ...new Set(items.map(item => item.category).filter(Boolean))];
   let category = '전체';
   let limit = 36;
+  let favoritesOnly = false;
+  const favoriteKey = () => `pacefit-exercise-favorites:${window.RefitAccountSession?.user?.id || 'guest'}`;
+  const favorites = () => { try { return new Set(JSON.parse(localStorage.getItem(favoriteKey()) || '[]')); } catch { return new Set(); } };
+  const toggleFavorite = name => { const saved=favorites(); if(saved.has(name))saved.delete(name);else saved.add(name);localStorage.setItem(favoriteKey(),JSON.stringify([...saved]));render(); };
+  window.PacefitExerciseFavorites={list:()=>[...favorites()],toggle:toggleFavorite};
 
   const categoryIcon = (name) => {
     const marks = {
@@ -49,13 +54,14 @@
     return items.filter(item => {
       const muscles = muscleText(item);
       const searchable = `${item.name} ${item.equipment || ''} ${muscles?.main || ''} ${muscles?.assist || ''}`.toLocaleLowerCase('ko-KR');
-      return (category === '전체' || item.category === category) && (!query || searchable.includes(query));
+      return (category === '전체' || item.category === category) && (!favoritesOnly || favorites().has(item.name)) && (!query || searchable.includes(query));
     });
   };
   const render = () => {
     const list = matching();
     count.textContent = `검색 결과 ${list.length}개 · 전체 ${items.length}개`;
-    grid.innerHTML = list.slice(0, limit).map((item) => `<button class="library-card" type="button" data-library-id="${esc(item.id)}"><span class="library-visual">${visual(item)}</span><span class="library-card-copy"><strong>${esc(item.name)}</strong><small>${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}${imagePath(item) ? (isAreaArt(item) ? ' · 부위 안내 그림' : ' · 운동 그림') : ' · 부위 그림'}</small>${muscleMarkup(item)}</span></button>`).join('') || '<p class="empty">검색 결과가 없어요. 다른 이름이나 부위를 선택해보세요.</p>';
+    const saved=favorites();
+    grid.innerHTML = list.slice(0, limit).map((item) => `<div class="library-card-wrap"><button class="library-card" type="button" data-library-id="${esc(item.id)}"><span class="library-visual">${visual(item)}</span><span class="library-card-copy"><strong>${esc(item.name)}</strong><small>${esc(item.category)}${item.equipment ? ' · ' + esc(item.equipment) : ''}${imagePath(item) ? (isAreaArt(item) ? ' · 부위 안내 그림' : ' · 운동 그림') : ' · 부위 그림'}</small>${muscleMarkup(item)}</span></button><button class="library-favorite" type="button" data-favorite-name="${esc(item.name)}" aria-label="${esc(item.name)} 즐겨찾기 ${saved.has(item.name)?'해제':'추가'}" aria-pressed="${saved.has(item.name)}">${saved.has(item.name)?'★':'☆'}</button></div>`).join('') || '<p class="empty">검색 결과가 없어요. 다른 이름이나 부위를 선택해보세요.</p>';
     more.hidden = list.length <= limit;
   };
   const showDetail = (item) => {
@@ -81,15 +87,18 @@
     if (item) showDetail(item);
   };
 
-  filters.innerHTML = categories.map(name => `<button type="button" data-category="${esc(name)}" aria-pressed="${name === category}">${esc(name)}</button>`).join('');
+  filters.innerHTML = `<button type="button" data-favorites-only aria-pressed="false">★ 즐겨찾기</button>`+categories.map(name => `<button type="button" data-category="${esc(name)}" aria-pressed="${name === category}">${esc(name)}</button>`).join('');
   filters.addEventListener('click', event => {
+    const favoriteButton=event.target.closest('[data-favorites-only]');
+    if(favoriteButton){favoritesOnly=!favoritesOnly;favoriteButton.setAttribute('aria-pressed',String(favoritesOnly));limit=36;render();return;}
     const button = event.target.closest('[data-category]');
     if (!button) return;
     category = button.dataset.category;
     limit = 36;
-    filters.querySelectorAll('button').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
+    filters.querySelectorAll('[data-category]').forEach(choice => choice.setAttribute('aria-pressed', String(choice === button)));
     render();
   });
+  grid.addEventListener('click',event=>{const button=event.target.closest('[data-favorite-name]');if(button){event.stopPropagation();toggleFavorite(button.dataset.favoriteName);}});
   search.addEventListener('input', () => { limit = 36; render(); });
   more.addEventListener('click', () => { limit += 36; render(); });
   grid.addEventListener('click', event => {
