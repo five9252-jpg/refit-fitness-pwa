@@ -108,6 +108,7 @@
     return `<p class="trainer-note">월별로 회원이 공유한 기록만 모았습니다. ${esc(profile.name||'회원')}님의 현재 프로필과 과거 측정값은 다를 수 있습니다. 기록이 없는 달은 변화가 없었다는 뜻이 아닙니다.</p><div class="mi-month-list">${cards.join('')||'<p class="mi-month-empty">공유된 월별 기록이 아직 없습니다.</p>'}</div>`;
   }
   function historyMarkup(rows,key,profile={}) {
+    profile=profile||{};
     const entries=cleanMetrics(rows).filter(row=>row[key]!==null),unit=key==='weight'?'kg':'kcal/일',label=key==='weight'?'체중':'기초대사량';
     return `<details class="mi-history"><summary>${label} 변화 목록 · 현재 ${fmt(num(profile[key],key==='weight'?20:500,key==='weight'?300:4000),1)} ${unit}</summary>${entries.length?`<div class="mi-history-list">${entries.map((row,i)=>`<div><time>${esc(row.date)}</time><strong>${fmt(row[key],1)} ${unit}</strong><small>${entries[i+1]?`이전 대비 ${(row[key]-entries[i+1][key])>0?'+':''}${fmt(row[key]-entries[i+1][key],1)} ${unit}`:'첫 기록'} · ${row.source==='profile'?'프로필 값 확인':'날짜별 기록'}</small></div>`).join('')}</div>`:'<p class="trainer-note">날짜별 기록이 아직 없습니다. 과거 수치는 임의로 만들지 않습니다.</p>'}</details>`;
   }
