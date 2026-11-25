@@ -19,18 +19,14 @@
     '덤벨 불가리안 스플릿 스쿼트': 'pacefit-bulgarian-split-squat-v2.jpg',
     '덤벨 고블릿 스쿼트': 'pacefit-goblet-squat-v2.jpg',
     '점프 스쿼트': 'pacefit-jump-squat-v2.jpg',
-    '루마니안 데드리프트': 'pacefit-romanian-deadlift-v2.jpg',
     '스모 데드리프트': 'pacefit-sumo-deadlift-v2.jpg',
     '레그 프레스': 'pacefit-leg-press-v2.jpg',
     '시티드 레그 컬': 'pacefit-seated-leg-curl-v2.jpg',
-    '레그 컬': 'pacefit-seated-leg-curl-v2.jpg',
     '레그 익스텐션': 'pacefit-leg-extension-v2.jpg',
     '스탠딩 카프 레이즈': 'pacefit-standing-calf-raise-v2.jpg',
     '핵 스쿼트 머신': 'pacefit-hack-squat-v2.jpg',
     '힙 어덕션 머신': 'pacefit-hip-adduction-v2.jpg',
-    '힙 어브덕션 머신': 'pacefit-hip-abduction-v2.jpg',
     '시티드 카프 레이즈': 'pacefit-seated-calf-raise-v2.jpg',
-    '노르딕 햄스트링 컬': 'pacefit-nordic-hamstring-curl-v2.jpg',
   };
   const areaFiles = {
     '가슴': 'pacefit-area-chest-v2.jpg',
@@ -203,4 +199,3 @@
     renderPlan();
   }
 })();
-
