@@ -111,6 +111,7 @@
   $('#calendarPrev').onclick=()=>{shownMonth--;if(shownMonth<0){shownMonth=11;shownYear--;}renderCalendar()};
   $('#calendarNext').onclick=()=>{shownMonth++;if(shownMonth>11){shownMonth=0;shownYear++;}renderCalendar()};
   $('#calendarGrid').onclick=event=>{const day=event.target.closest('[data-date]');if(!day)return;selectedDate=day.dataset.date;renderCalendar()};
+  window.PacefitJournalSelectDate=date=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;selectedDate=date;shownYear=Number(date.slice(0,4));shownMonth=Number(date.slice(5,7))-1;renderCalendar();document.getElementById('journalCard')?.scrollIntoView({block:'start'});};
   function pointsFor(key) {
     return logs().flatMap(log => (log.items||[]).filter(item=>JSON.stringify([item.name,item.equipment||''])===key).map(item=>{
       const sets=Array.isArray(item.setDetails)&&item.setDetails.length?item.setDetails:[{weight:item.weight,reps:item.reps}];
