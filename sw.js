@@ -1,4 +1,4 @@
-const CACHE_NAME = 'refit-shell-v112-management-20261121';
+const CACHE_NAME = 'refit-shell-v113-member-trainer-20261125';
 const SHELL_ASSETS = [
   './pacefit-services-core.js?v=20261117-services-1',
   './pacefit-services.js?v=20261117-services-1',
@@ -19,6 +19,7 @@ const SHELL_ASSETS = [
   './assets/ui-3d-web/workout-start.png',
   './',
   './index.html',
+  './가이드-미리보기.html',
   './lesson-journal.css?v=20261116-lesson-1',
   './lesson-journal-core.js?v=20261116-lesson-1',
   './lesson-journal-store.js?v=20261116-lesson-1',
@@ -49,16 +50,17 @@ const SHELL_ASSETS = [
   './assets/diet/seafood.svg',
   './assets/diet/dairy.svg',
   './routine-by-part.js?v=20261120-ui-1',
-  './workout-enhancements.js?v=20261120-records-3',
+  './workout-enhancements.js?v=20261125-1',
+  './member-notifications.js?v=20261125-1',
   './calorie-estimate.js',
   './docs/운동-칼로리-추정-근거.md',
   './trainer-workspace.css?v=20261116-prototype-1',
   './trainer-workspace.js?v=20261119-trainer-workspace-2',
-  './trainer.js?v=20261121-management-1',
+  './trainer.js?v=20261125-1',
   './trainer-plans.js?v=20261105-plans-2',
   './pose-check.js?v=18',
   './data/burnfit-library.js',
-  './exercise-library-ui.js?v=20261118-area-art-audit-1',
+  './exercise-library-ui.js?v=20261125-1',
   './exercise-art-data.js',
   './exercise-art-lower-1.js',
   './exercise-art-lower-2.js',
@@ -118,6 +120,7 @@ self.addEventListener('fetch', (event) => {
     }
   })());
 });
+
 
 
 
